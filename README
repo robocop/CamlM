@@ -1,0 +1,15 @@
+Ceci est un intepreteur de mini-caml servant de base à différentes expérimentations.
+
+Pour le lancer
+--------------
+
+1. Créer le dossier build/
+2. Executer la commande : 
+   $ /.makefile.sh
+
+Exemple
+-------
+
+$ rlwrap ./caml
+# let rec fac = function 0 -> 1 | n -> n*fac(n-1) in fac 5;;
+120

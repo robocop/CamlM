@@ -1,25 +1,7 @@
 open Syntaxe
-(* Exemple : définition de fac et calcul de fac 5*)
-(* n-1 *)
-
-let nminus1 = Application (Application(Variable "-", Variable "n"), Nombre 1);;
-(* function 0 -> 1 | n -> n * fac(n-1) *)
-let expression = Fonction(
-  [(Motif_nombre 0, Nombre 1); 
-   (Motif_variable "n", 
-    Application(Application(Variable "*", Application(Variable "fac", nminus1)), Variable "n"))
-]);;
-
-(* let rec fac n = function | 0 -> 1 | n -> n*fac(n-1) in fac 5*)
-let expr = (Let  ({ recursive = true; nom = "fac"; expr = expression}, Application(Variable "fac", Nombre 5)));;
-
-
-(* let rec fac n = function | 0 -> 1 | n -> n*fac(n-1);;*)
-
-let fac = ({recursive = true; nom = "fac"; expr = expression})
-
-;;
-
+open Eval
+open Parser
+open Lexer
 
 
 let code_nombre n = Val_nombre n;;
@@ -30,9 +12,42 @@ let prim2 codeur calcul decodeur =
   )
 
 let env_initial = 
-[("-", prim2 code_nombre (-) decode_nombre); 
- ("*", prim2 code_nombre ( * ) decode_nombre)
+[("+", prim2 code_nombre (+) decode_nombre); 
+ ("*", prim2 code_nombre ( * ) decode_nombre);
+ ("-", prim2 code_nombre (-) decode_nombre);
 ];;
 
-let _  = 
-  print_int (decode_nombre (evalue env_initial expr));;
+let parse expr = Parser.eval Lexer.token (Lexing.from_string expr);;
+
+parse "1::[]";;
+let scan () = 
+  let rec scan' n s = 
+    let ns = read_line () in
+    let t = String.length ns in 
+    let f = try String.sub ns (t-2) 2 with _ -> "" in
+    if n = 0 then begin
+      if f = ";;" then s^(String.sub ns 0 (t-2))
+      else scan' (n+1) (s^ns)
+    end
+    else 
+      begin 
+        if f = ";;" then s^"\n"^(String.sub ns 0 (t-2))
+        else scan' (n+1) (s^"\n"^ns)
+      end
+  in scan' 0 ""
+;;
+
+
+let _ =
+  let rec loop () =
+    try 
+      (
+	let expr = scan (print_string "# ") in
+	match parse expr with
+	  | None -> print_endline "Terminé"
+	  | Some res -> print_endline (imprime_valeur (evalue env_initial res)); print_newline (); loop ()
+      )
+    with Erreur s -> print_endline ("erreur : " ^ s);
+      loop()
+  in
+loop ()

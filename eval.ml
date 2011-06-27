@@ -1,4 +1,4 @@
-open Type
+open Syntaxe
 type valeur = 
   | Val_nombre of int
   | Val_booleenne of bool
@@ -12,12 +12,21 @@ and fermeture =
     { definition: ((motif * expression) list); mutable environnement: environnement }
 and environnement = (string * valeur) list;;
 
-
-
-
-
 exception Echec_filtrage;;
 exception Erreur of string;;
+
+
+let rec imprime_valeur = function
+  | Val_nombre n -> string_of_int n
+  | Val_booleenne false -> "false"
+  | Val_booleenne true -> "true"
+  | Val_paire(v1, v2) ->
+    "("^imprime_valeur v1^", "^imprime_valeur v2^")"
+  | Val_nil -> "[]"
+  | Val_cons(v1, v2) ->
+    imprime_valeur v1 ^ "::" ^imprime_valeur v2
+  | Val_fermeture _ | Val_primitive _ -> "<fun>"
+;;
 
 
 let rec filtrage valeur motif = match valeur, motif with
@@ -34,8 +43,11 @@ let rec filtrage valeur motif = match valeur, motif with
   | _, _ -> raise Echec_filtrage
 ;;
 
+
+
 let rec evalue env expr = match expr with
-  | Variable s -> List.assoc s env
+  | Variable s -> 
+    begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
   | Fonction liste_de_cas ->
     Val_fermeture {definition = liste_de_cas; environnement = env} 
   | Application(f, a) ->
