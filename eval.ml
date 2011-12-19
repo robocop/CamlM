@@ -7,6 +7,8 @@ type valeur =
   | Val_cons of valeur * valeur
   | Val_fermeture of fermeture
   | Val_primitive of (valeur -> valeur)
+  | Val_some of valeur
+  | Val_none 
 
 and fermeture = 
     { definition: ((motif * expression) list); mutable environnement: environnement }
@@ -26,6 +28,8 @@ let rec imprime_valeur = function
   | Val_cons(v1, v2) ->
     imprime_valeur v1 ^ "::" ^imprime_valeur v2
   | Val_fermeture _ | Val_primitive _ -> "<fun>"
+  | Val_none -> "None"
+  | Val_some v -> Printf.sprintf "Some (%s)" (imprime_valeur v) 
 ;;
 
 
@@ -40,6 +44,8 @@ let rec filtrage valeur motif = match valeur, motif with
   | (Val_nil, Motif_nil) -> []
   | (Val_cons (v1, v2), Motif_cons(m1, m2)) ->
     filtrage v1 m1 @ filtrage v2 m2
+  | (Val_none, Motif_none) -> []
+  | (Val_some v, Motif_some m) -> filtrage v m
   | _, _ -> raise Echec_filtrage
 ;;
 
@@ -65,6 +71,9 @@ let rec evalue env expr = match expr with
   | Paire(e1, e2) -> Val_paire(evalue env e1, evalue env e2)
   | Nil -> Val_nil
   | Cons(e1, e2) -> Val_cons(evalue env e1, evalue env e2)
+
+  | CNone -> Val_none
+  | CSome e -> Val_some (evalue env e)
 
 and evalue_application env liste_de_cas arg = match liste_de_cas with
   | [] -> raise (Erreur "echec du filtrage")

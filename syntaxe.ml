@@ -8,6 +8,9 @@ type expression =
   | Paire of expression * expression
   | Nil
   | Cons of expression * expression
+  | CNone  
+  | CSome of expression
+  
 and motif = 
   | Motif_variable of string
   | Motif_booleen of bool
@@ -15,6 +18,8 @@ and motif =
   | Motif_paire of motif * motif
   | Motif_nil
   | Motif_cons of motif * motif
+  | Motif_none
+  | Motif_some of motif 
 and definition = 
     {
       recursive:bool;

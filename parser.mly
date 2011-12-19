@@ -4,7 +4,7 @@
 %}
 
 %token LPA RPA EOF
-%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC
+%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE
 %token ADD REM MUL DIV POW CONS NIL
 %token <int> NUM
 %token <string> VAR
@@ -26,6 +26,8 @@ expr:
   | NIL                 { Nil }
   | expr CONS expr      { Cons($1, $3)}
   | LPA expr RPA        { $2 }
+  | NONE                { CNone }
+  | SOME expr           { CSome($2) }
   | expr ADD expr       { cons_op "+" $1 $3 }
   | expr REM expr       { cons_op "-" $1 $3 }
   | expr MUL expr       { cons_op "*" $1 $3 }
@@ -42,6 +44,8 @@ motif:
   | VAR                 { Motif_variable $1 }
   | LPA motif VIRGULE motif RPA { Motif_paire($2, $4) }
   | NIL                 { Motif_nil }
+  | SOME motif          { Motif_some $2 }
+  | NONE                { Motif_none }
   | motif CONS motif    { Motif_cons($1, $3)}
 
 filtrage: 
