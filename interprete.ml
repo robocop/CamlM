@@ -3,9 +3,11 @@ open Eval
 open Parser
 open Lexer
 open Lexing
+open Formel
 
 let code_nombre n = Val_nombre n;;
 let decode_nombre = function Val_nombre n -> n | _ -> raise (Erreur "entier attendu");;
+
 let prim2 codeur calcul decodeur = 
   Val_primitive (fun x -> 
     Val_primitive (fun y-> codeur (calcul (decodeur x) (decodeur y)))
@@ -16,6 +18,11 @@ scope @
 [("+", prim2 code_nombre (+) decode_nombre); 
  ("*", prim2 code_nombre ( * ) decode_nombre);
  ("-", prim2 code_nombre (-) decode_nombre);
+ ("add", primitive_add);
+ ("mult", primitive_mult);
+ ("compose", primitive_compose);
+ ("const", primitive_const);
+ ("id", primitive_id)
 ];;
 
 let parse expr = Parser.eval Lexer.token (Lexing.from_string expr);;
