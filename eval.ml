@@ -34,6 +34,7 @@ let rec imprime_valeur = function
 
 
 let rec filtrage valeur motif = match valeur, motif with
+  | (_, Motif_all) -> []
   | (valeur, Motif_variable id) -> [id, valeur]
   | (Val_booleenne b1, Motif_booleen b2) -> 
     if b1 = b2 then [] else raise Echec_filtrage
