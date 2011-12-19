@@ -12,6 +12,7 @@ type expression =
   | CSome of expression
   
 and motif = 
+  | Motif_all
   | Motif_variable of string
   | Motif_booleen of bool
   | Motif_nombre of int

@@ -6,7 +6,7 @@
 %}
 
 %token LPA RPA EOF FUN_SEP
-%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE
+%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE UNDERSCORE
 %token ADD REM MUL DIV CONS NIL
 %token <int> NUM
 %token <string> VAR
@@ -50,6 +50,8 @@ atom:
 | VAR                 { Variable $1 }
 | NUM                 { Nombre $1 }
 | NIL                 { Nil }
+| SOME expr           { CSome $2}
+| NONE                { CNone }
 
 let_binding:
 | REC VAR EQ let_expr   { (true, $2, $4) }
@@ -61,6 +63,7 @@ let_expr:
 
 filtrage:
 | cas       { [$1] }
+| cas filtrage2 { $1 :: $2 }
 | filtrage2 { $1 }
 
 filtrage2:
@@ -81,4 +84,5 @@ motif_atom:
 | VAR                         { Motif_variable $1 }
 | NIL                         { Motif_nil }
 | SOME motif                  { Motif_some $2 }
+| UNDERSCORE                  { Motif_all }
 | NONE                        { Motif_none }
