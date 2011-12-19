@@ -2,7 +2,7 @@ type expression =
   | Variable of string
   | Fonction of (motif * expression) list
   | Application of expression * expression
-  | Let of definition * expression
+  | Let of definition * expression option
   | Booleen of bool
   | Nombre of int
   | Paire of expression * expression
@@ -33,3 +33,4 @@ type phrase =
   | Definition of definition
 ;;
 
+exception ParseError of Lexing.position;;

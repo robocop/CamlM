@@ -13,7 +13,7 @@ caml: lexer.mll parser.mly syntaxe.ml eval.ml interprete.ml
 	ocamlc -c parser.ml
 	ocamlc -c eval.ml
 	ocamlc -c interprete.ml
-	ocamlc -o caml lexer.cmo parser.cmo eval.cmo interprete.cmo
+	ocamlc -o caml syntaxe.cmo lexer.cmo parser.cmo eval.cmo interprete.cmo
 
 	mv lexer.ml build
 	mv parser.ml build

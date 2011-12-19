@@ -1,13 +1,11 @@
 %{
   open Syntaxe
   let cons_op op a b = Application (Application(Variable op, a), b)
-  let genLet r (nom, cas) dans = 
+  let genLet (r, nom, cas) dans = 
     Let({recursive=r; nom=nom; expr = cas}, dans)
-
-  exception ParseError of Lexing.position
 %}
 
-%token LPA RPA EOF
+%token LPA RPA EOF FUN_SEP
 %token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE
 %token ADD REM MUL DIV CONS NIL
 %token <int> NUM
@@ -19,9 +17,9 @@
 %%
 
 eval:
-| EOF      { None }
-| expr EOF { Some $1 }
-| error    { raise (ParseError (Parsing.symbol_start_pos ())) }
+| EOF               { None }
+| expr FUN_SEP      { Some $1 }
+| error             { raise (ParseError (Parsing.symbol_start_pos ())) }
 
 expr:
 | term1 CONS expr   { Cons ($1, $3) }
@@ -38,8 +36,8 @@ term2:
 | term3             { $1 }
 
 term3:
-| LET let_binding IN expr      { genLet false $2 $4 }
-| LET REC let_binding IN expr  { genLet true $3 $5 }
+| LET let_binding              { genLet $2 None }
+| LET let_binding IN expr      { genLet $2 (Some $4) }
 | term4                        { $1 }
 
 term4:
@@ -54,7 +52,8 @@ atom:
 | NIL                 { Nil }
 
 let_binding:
-| VAR EQ let_expr       { ($1, $3) }
+| REC VAR EQ let_expr   { (true, $2, $4) }
+| VAR EQ let_expr       { (false, $1, $3) }
 
 let_expr:
 | expr                { $1 }

@@ -17,6 +17,10 @@ and environnement = (string * valeur) list;;
 exception Echec_filtrage;;
 exception Erreur of string;;
 
+let scope = ref [];;
+
+let addScope n valeur =
+  scope := (n, valeur) :: !scope;;
 
 let rec imprime_valeur = function
   | Val_nombre n -> string_of_int n
@@ -49,8 +53,6 @@ let rec filtrage valeur motif = match valeur, motif with
   | _, _ -> raise Echec_filtrage
 ;;
 
-
-
 let rec evalue env expr = match expr with
   | Variable s -> 
     begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
@@ -64,7 +66,10 @@ let rec evalue env expr = match expr with
       | Val_fermeture fermeture -> evalue_application fermeture.environnement fermeture.definition val_argument
       | _ -> raise (Erreur "Application d'une valeur non fonctionelle")
     end
-  | Let (def, corps) ->
+  | Let (def, None) ->
+    let valeur = evalue env def.expr
+    in addScope def.nom valeur; valeur
+  | Let (def, Some corps) ->
     evalue (evalue_definition env def) corps
   | Booleen b -> Val_booleenne b
   | Nombre n -> Val_nombre n

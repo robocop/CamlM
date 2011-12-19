@@ -21,6 +21,7 @@ rule token = parse
   | "->"        { FLECHE }
   | "None"      { NONE }
   | "Some"      { SOME }
+  | ";;"        { FUN_SEP }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
   | str         { VAR (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
