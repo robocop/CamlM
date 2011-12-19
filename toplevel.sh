@@ -1,3 +1,3 @@
 #!/bin/bash
-./makefile.sh;
-ocaml build/lexer.cmo build/parser.cmo build/eval.cmo
+make
+ocamlmktop -o toplevel build/parser.cmo build/eval.cmo
