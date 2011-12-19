@@ -8,7 +8,7 @@
 %}
 
 %token LPA RPA EOF
-%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC
+%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE
 %token ADD REM MUL DIV CONS NIL
 %token <int> NUM
 %token <string> VAR
@@ -72,7 +72,7 @@ cas:
 | motif FLECHE expr  { ($1, $3) }
 
 motif:
-| motif CONS motif_atom  { Motif_cons($1, $3) }
+| motif_atom CONS motif  { Motif_cons($1, $3) }
 | motif_atom             { $1 }
 
 motif_atom:
@@ -81,3 +81,5 @@ motif_atom:
 | NUM                         { Motif_nombre $1}
 | VAR                         { Motif_variable $1 }
 | NIL                         { Motif_nil }
+| SOME motif                  { Motif_some $2 }
+| NONE                        { Motif_none }

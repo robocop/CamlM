@@ -1,7 +1,7 @@
 { open Parser }
 
 let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
-let str = ['a'-'z']+
+let str = ['a'-'z' 'A'-'Z']+
 rule token = parse
   | '+'         { ADD }
   | '-'         { REM }
@@ -19,6 +19,8 @@ rule token = parse
   | "function"  { FUNCTION }
   | "in"        { IN  }
   | "->"        { FLECHE }
+  | "None"      { NONE }
+  | "Some"      { SOME }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
   | str         { VAR (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
