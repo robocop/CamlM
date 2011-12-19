@@ -8,25 +8,25 @@ open Formel
 let code_nombre n = Val_nombre n;;
 let decode_nombre = function Val_nombre n -> n | _ -> raise (Erreur "entier attendu");;
 
+let parse expr = Parser.eval Lexer.token (Lexing.from_string expr);;
+
 let prim2 codeur calcul decodeur = 
   Val_primitive (fun x -> 
     Val_primitive (fun y-> codeur (calcul (decodeur x) (decodeur y)))
   )
+;;
 
-let env_initial scope = 
-scope @
-[("+", prim2 code_nombre (+) decode_nombre); 
- ("*", prim2 code_nombre ( * ) decode_nombre);
- ("-", prim2 code_nombre (-) decode_nombre);
- ("add", primitive_add);
- ("mult", primitive_mult);
- ("compose", primitive_compose);
- ("const", primitive_const);
- ("id", primitive_id)
-];;
-
-let parse expr = Parser.eval Lexer.token (Lexing.from_string expr);;
-
+let populateBaseScope () = 
+  scope := 
+    [("+", prim2 code_nombre (+) decode_nombre); 
+     ("*", prim2 code_nombre ( * ) decode_nombre);
+     ("-", prim2 code_nombre (-) decode_nombre);
+     ("add", primitive_add);
+     ("mult", primitive_mult);
+     ("compose", primitive_compose);
+     ("const", primitive_const);
+     ("id", primitive_id)]
+  
 let scan () = 
   let rec scan' n s = 
     let ns = read_line () in
@@ -59,8 +59,8 @@ let _ =
 	    let expr = scan (print_string "# ") in
 	    match parse expr with
 	      | None -> print_endline "Terminé"
-	      | Some res -> print_endline (imprime_valeur (evalue (env_initial !scope) res)); print_newline (); loop ()
+	      | Some res -> 
+            print_endline (imprime_valeur (evalue !scope res)); print_newline (); loop ()
       )
     with exn -> handleError exn; loop()
-  in
-loop ()
+  in populateBaseScope (); loop ()

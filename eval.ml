@@ -1,4 +1,5 @@
 open Syntaxe
+
 type valeur = 
   | Val_nombre of int
   | Val_booleenne of bool
@@ -19,8 +20,8 @@ exception Erreur of string;;
 
 let scope = ref [];;
 
-let addScope n valeur =
-  scope := (n, valeur) :: !scope;;
+let fst = function (x, _) -> x;;
+let snd = function (_, y) -> y;;
 
 let rec imprime_valeur = function
   | Val_nombre n -> string_of_int n
@@ -67,10 +68,10 @@ let rec evalue env expr = match expr with
       | _ -> raise (Erreur "Application d'une valeur non fonctionelle")
     end
   | Let (def, None) ->
-    let valeur = evalue env def.expr
-    in addScope def.nom valeur; valeur
+    let (scope', valeur) = evalue_definition !scope def
+    in scope := scope'; valeur
   | Let (def, Some corps) ->
-    evalue (evalue_definition env def) corps
+    evalue (fst (evalue_definition env def)) corps
   | Booleen b -> Val_booleenne b
   | Nombre n -> Val_nombre n
   | Paire(e1, e2) -> Val_paire(evalue env e1, evalue env e2)
@@ -90,13 +91,15 @@ and evalue_application env liste_de_cas arg = match liste_de_cas with
 
 and evalue_definition env_courant def = 
   match def.recursive with
-    | false -> (def.nom, evalue env_courant def.expr)::env_courant
+    | false -> 
+      let valeur = evalue env_courant def.expr
+      in ((def.nom, valeur)::env_courant, valeur)
     | true ->
       match def.expr with
 	| Fonction liste_de_cas ->
 	  let fermeture = {definition = liste_de_cas; environnement = [] } in
 	  let env = (def.nom, Val_fermeture fermeture)::env_courant in
 	  fermeture.environnement <- env; 
-	  env
+	  (env, Val_fermeture fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel")
 ;;
