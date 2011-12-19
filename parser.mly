@@ -6,7 +6,7 @@
 %}
 
 %token LPA RPA EOF FUN_SEP
-%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE UNDERSCORE
+%token LET EQ IN VIRGULE FLECHE PIPE FUNCTION REC SOME NONE UNDERSCORE MATCH WITH
 %token ADD REM MUL DIV CONS NIL
 %token <int> NUM
 %token <string> VAR
@@ -52,6 +52,8 @@ atom:
 | NIL                 { Nil }
 | SOME expr           { CSome $2}
 | NONE                { CNone }
+| FUNCTION filtrage   { Fonction $2 }# (deriv (function x -> 1)) 0;;
+| MATCH expr WITH filtrage    { Application (Fonction $4, $2) }
 
 let_binding:
 | REC VAR EQ let_expr   { (true, $2, $4) }
@@ -59,7 +61,6 @@ let_binding:
 
 let_expr:
 | expr                { $1 }
-| FUNCTION filtrage   { Fonction $2 }
 
 filtrage:
 | cas       { [$1] }
