@@ -50,6 +50,11 @@ let new_def_compose def = match def with
 	  [Motif_variable v, Application (Variable f, Variable v)],
 	  [Motif_variable v, e] in
 	Some (d1, d2)
+      | Application (Fonction d, e) ->
+	let d1, d2 = 
+	  d,
+	  [Motif_variable v, e] in
+	Some (d1, d2)
       | _ -> None)
   | _ -> None
 

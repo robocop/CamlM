@@ -13,3 +13,41 @@ Exemple
 $ rlwrap ./caml
 # let rec fac = function 0 -> 1 | n -> n*fac(n-1) in fac 5;;
 120
+
+
+
+let rec map = function f -> function
+  | [] -> []
+  | x::xs -> (f x) :: (map f xs)
+;;
+map (function x -> x+3) (1::2::3::[]);;
+(* 4::5::6::[]  *)
+
+let rec fibo = function
+  | 0 -> 1
+  | 1 -> 1
+  | n -> (fibo (n-1)) + fibo (n-2)
+;;
+fibo 7;;
+(* 21 *)
+
+let f = function x -> (x*x)+4;;
+(* \x -> ((x * x) + 4) *)
+let rec deriv = function f -> 
+  match (((add f, const f), id f), mult f) with
+    | (((_, _), _), Some (f, g)) ->
+      let ff = deriv f in
+      let gg = deriv g in
+      (function x -> (ff x) * (g x) + (gg x) * (f x))
+    | (((Some (f, g), _), _), _) -> 
+      let ff = deriv f in
+      let gg = deriv g in
+      (function x -> ff x + gg x)
+    | (((_, Some c), _), _) -> (function x -> 0)
+    | (((_, _), true), _) -> (function x -> 1)
+    | _ -> false
+;;
+
+deriv (function x -> x*x+1);;
+(* \x -> ((\x -> (((\x -> 1) (x) * (\x -> x) (x)) + ((\x -> 1) (x) * (\x -> x) (x)))) (x) + (\x -> 0) (x)) *)
+

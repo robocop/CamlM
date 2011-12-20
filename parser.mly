@@ -52,7 +52,7 @@ atom:
 | NIL                 { Nil }
 | SOME expr           { CSome $2}
 | NONE                { CNone }
-| FUNCTION filtrage   { Fonction $2 }# (deriv (function x -> 1)) 0;;
+| FUNCTION filtrage   { Fonction $2 };;
 | MATCH expr WITH filtrage    { Application (Fonction $4, $2) }
 
 let_binding:

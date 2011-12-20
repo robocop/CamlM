@@ -23,19 +23,6 @@ let scope = ref [];;
 let fst = function (x, _) -> x;;
 let snd = function (_, y) -> y;;
 
-let rec imprime_valeur = function
-  | Val_nombre n -> string_of_int n
-  | Val_booleenne false -> "false"
-  | Val_booleenne true -> "true"
-  | Val_paire(v1, v2) ->
-    "("^imprime_valeur v1^", "^imprime_valeur v2^")"
-  | Val_nil -> "[]"
-  | Val_cons(v1, v2) ->
-    imprime_valeur v1 ^ "::" ^imprime_valeur v2
-  | Val_fermeture _ | Val_primitive _ -> "<fun>"
-  | Val_none -> "None"
-  | Val_some v -> Printf.sprintf "Some (%s)" (imprime_valeur v) 
-;;
 
 
 let rec filtrage valeur motif = match valeur, motif with
@@ -103,4 +90,37 @@ and evalue_definition env_courant def =
 	  fermeture.environnement <- env; 
 	  (env, Val_fermeture fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel")
+;;
+
+
+
+let rec print_fonction env = function
+  | [Motif_variable v, expr] -> 
+    let rec print_expr = function
+      | Variable s -> s
+      | Fonction f -> print_fonction env f
+      | Application (Application (Variable op, e1), e2) when List.mem op ["+"; "*"; "-"; "/"] -> Printf.sprintf "(%s %s %s)" (print_expr e1) op (print_expr e2)
+      | Application (Variable f, e2) -> 
+	let e1 = evalue env (Variable f) in
+	Printf.sprintf "(%s) (%s)" (imprime_valeur e1) (print_expr e2)
+      | Application (e1, e2) -> Printf.sprintf "(%s) (%s)" (print_expr e1) (print_expr e2)
+      | Nombre n -> string_of_int n
+      | _ -> "<expr>"
+    in
+    Printf.sprintf "\\%s -> %s" v  (print_expr expr)
+  | _ -> "<fun>"
+
+and imprime_valeur = function
+  | Val_nombre n -> string_of_int n
+  | Val_booleenne false -> "false"
+  | Val_booleenne true -> "true"
+  | Val_paire(v1, v2) ->
+    "("^imprime_valeur v1^", "^imprime_valeur v2^")"
+  | Val_nil -> "[]"
+  | Val_cons(v1, v2) ->
+    imprime_valeur v1 ^ "::" ^imprime_valeur v2
+  | Val_primitive _ -> "<fun>"
+  | Val_fermeture {definition=def; environnement=env} -> print_fonction env def 
+  | Val_none -> "None"
+  | Val_some v -> Printf.sprintf "Some %s" (imprime_valeur v) 
 ;;
