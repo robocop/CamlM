@@ -60,7 +60,7 @@ let handleError = function
                      ^ string_of_int (p.pos_cnum - p.pos_bol)
                      ^ ") on token : '"
                      ^ tok ^ "'")
-  | _ -> print_endline "Unhandle exception"
+  | exn -> print_endline ("Unhandled exception : " ^ Printexc.to_string exn)
 
 let _ =
   let rec loop () =
