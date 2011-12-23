@@ -68,8 +68,12 @@ let _ =
       (
 	    let expr = scan (print_string "# ") in
 	    match parse expr with
-	      | None -> print_endline "Terminé"
-	      | Some res -> 
+	      | INothing -> print_endline "Terminé"
+          | ICommand com -> (match com with
+              | "quit" -> print_endline "Terminé"
+              | _ -> print_endline "Commande inconnue"; loop ()
+            )
+	      | IValue res -> 
             print_endline (imprime_valeur (evalue !scope res)); print_newline (); loop ()
       )
     with exn -> handleError exn; loop()

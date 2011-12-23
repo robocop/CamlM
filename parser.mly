@@ -1,6 +1,6 @@
 %{
     open Syntaxe
-    let cons_op op a b = Application (Application(Variable op, a), b)
+    let cons_op op a b = Application (Application (Variable op, a), b)
 
     let rec mkFun (cases, e) = match cases with
         | [] -> e
@@ -19,7 +19,7 @@
     let fn e = Fonction (List.rev e)
 %}
 
-%token LPA RPA EOF END_EXPR
+%token LPA RPA EOF END_EXPR HASH
 %token FUNCTION MATCH WITH FUN
 %token LET EQ IN COMMA ARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS NIL
@@ -39,17 +39,19 @@
 %left funapp
 
 %start eval
-%type <Syntaxe.expression option> eval
+%type <Syntaxe.expression Syntaxe.interpreter> eval
 
 %%
 
 eval:
       EOF
-        { None }
+        { INothing }
+    | HASH VAR END_EXPR
+        { ICommand $2 }
     | LET rec_flag let_bindings END_EXPR
-        { Some (mkLet $2 $3 None) }
+        { IValue (mkLet $2 $3 None) }
     | expr END_EXPR
-        { Some $1 }
+        { IValue $1 }
 
 expr:
      simple_expr simple_expr_list %prec funapp
@@ -88,7 +90,7 @@ simple_expr:
     | LPA expr COMMA expr   { Paire ($2, $4) }
 
 let_bindings:
-    VAR cases EQ expr             { ($1, $2, $4) }
+    VAR cases_or_empty EQ expr             { ($1, $2, $4) }
 
 multi_pattern:
     cases ARROW expr { ($1, $3) }
@@ -100,6 +102,9 @@ patterns:
 pattern:
     case ARROW expr  { ($1, $3) }
 
+cases_or_empty:
+      /* empty */  { [] }
+    | cases        { $1 }
 cases:
       case       { [$1] }
     | cases case { $2 :: $1 }

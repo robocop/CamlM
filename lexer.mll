@@ -3,6 +3,7 @@
 let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
 let str = ['a'-'z' 'A'-'Z']+
 rule token = parse
+  | '#'         { HASH }
   | '_'         { UNDERSCORE }
   | '+'         { PLUS }
   | '-'         { MINUS }

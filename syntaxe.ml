@@ -34,4 +34,9 @@ type phrase =
   | Definition of definition
 ;;
 
+type 'a interpreter = 
+  | INothing                 (* Rien n'a ete entre *)
+  | ICommand of string       (* Une commande de l'interpreteur *)
+  | IValue of 'a             (* Une expression a evaluer *)
+
 exception ParseError of Lexing.position * string;;
