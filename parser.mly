@@ -1,16 +1,20 @@
 %{
     open Syntaxe
     let cons_op op a b = Application (Application(Variable op, a), b)
-    let genLet r (nom, cas) dans = 
-        Let({recursive=r; nom=nom; expr = cas}, dans)
-
-    let rec mkApp e = function
-        | [] -> e
-        | x :: xs -> mkApp (Application (e, x)) xs
 
     let rec mkFun (cases, e) = match cases with
         | [] -> e
         | x :: xs -> mkFun (xs, Fonction [x, e])
+
+    let mkLet r (name, pats, exp) in_clause = 
+        Let ( { recursive = r
+              ; nom = name
+              ; expr = mkFun (pats, exp) }
+            , in_clause )  
+
+    let rec mkApp e = function
+        | [] -> e
+        | x :: xs -> mkApp (Application (e, x)) xs
 
     let fn e = Fonction (List.rev e)
 %}
@@ -43,7 +47,7 @@ eval:
       EOF
         { None }
     | LET rec_flag let_bindings END_EXPR
-        { Some (genLet $2 $3 None) }
+        { Some (mkLet $2 $3 None) }
     | expr END_EXPR
         { Some $1 }
 
@@ -51,7 +55,7 @@ expr:
      simple_expr simple_expr_list %prec funapp
         { mkApp $1 (List.rev $2) }
     | LET rec_flag let_bindings IN expr
-        { genLet $2 $3 (Some $5) }
+        { mkLet $2 $3 (Some $5) }
     | expr CONS expr
         { Cons ($1, $3) }
     | expr MINUS expr
@@ -84,7 +88,7 @@ simple_expr:
     | LPA expr COMMA expr   { Paire ($2, $4) }
 
 let_bindings:
-    VAR EQ expr             { ($1, $3) }
+    VAR cases EQ expr             { ($1, $2, $4) }
 
 multi_pattern:
     cases ARROW expr { ($1, $3) }
