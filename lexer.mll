@@ -4,13 +4,13 @@ let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
 let str = ['a'-'z' 'A'-'Z']+
 rule token = parse
   | '_'         { UNDERSCORE }
-  | '+'         { ADD }
-  | '-'         { REM }
-  | '*'         { MUL }
+  | '+'         { PLUS }
+  | '-'         { MINUS }
+  | '*'         { TIMES }
   | '/'         { DIV }
   | '('         { LPA }
   | ')'         { RPA }
-  | ','         { VIRGULE }
+  | ','         { COMMA }
   | '='         { EQ  }
   | "::"        { CONS }
   | "[]"        { NIL }
@@ -19,12 +19,12 @@ rule token = parse
   | "rec"       { REC }
   | "function"  { FUNCTION }
   | "in"        { IN  }
-  | "->"        { FLECHE }
+  | "->"        { ARROW }
   | "None"      { NONE }
   | "Some"      { SOME }
   | "match"     { MATCH }
   | "with"      { WITH }
-  | ";;"        { FUN_SEP }
+  | ";;"        { END_EXPR }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
   | str         { VAR (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
