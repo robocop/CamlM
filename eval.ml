@@ -46,7 +46,25 @@ let rec evalue env expr = match expr with
   | Variable s -> 
     begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
   | Fonction liste_de_cas ->
-    Val_fermeture {definition = liste_de_cas; environnement = env} 
+    (match liste_de_cas with
+      | [(Motif_variable x, expr)] ->
+	let replace = function
+	  | Application(Variable f, c)  ->
+	    print_endline "application";
+	    (match List.assoc f env with 
+	      | Val_fermeture {definition= def; environnement = _} ->
+		Val_fermeture 
+		  {definition = [Motif_variable x, Application(Fonction def, c)];
+		   environnement = env}
+	      | Val_primitive _ -> 
+		Val_fermeture {definition = liste_de_cas; environnement = env} 	
+	      | _ -> raise (Erreur "Application d'une valeur non fonctionelle")
+	    )
+	  | _ -> Val_fermeture {definition = liste_de_cas; environnement = env} 
+	in 
+	replace expr
+      | _ -> Val_fermeture {definition = liste_de_cas; environnement = env} 
+    )
   | Application(f, a) ->
     let val_fonction = evalue env f in
     let val_argument = evalue env a in
@@ -101,8 +119,7 @@ let rec print_fonction env = function
       | Fonction f -> print_fonction env f
       | Application (Application (Variable op, e1), e2) when List.mem op ["+"; "*"; "-"; "/"] -> Printf.sprintf "(%s %s %s)" (print_expr e1) op (print_expr e2)
       | Application (Variable f, e2) -> 
-	let e1 = evalue env (Variable f) in
-	Printf.sprintf "(%s) (%s)" (imprime_valeur e1) (print_expr e2)
+	Printf.sprintf "%s (%s)" f (print_expr e2)
       | Application (e1, e2) -> Printf.sprintf "(%s) (%s)" (print_expr e1) (print_expr e2)
       | Nombre n -> string_of_int n
       | _ -> "<expr>"

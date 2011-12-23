@@ -17,14 +17,14 @@ $ rlwrap ./caml
 
 
 let rec map = function f -> function
-  | [] -> []
+    [] -> []
   | x::xs -> (f x) :: (map f xs)
 ;;
 map (function x -> x+3) (1::2::3::[]);;
 (* 4::5::6::[]  *)
 
 let rec fibo = function
-  | 0 -> 1
+    0 -> 1
   | 1 -> 1
   | n -> (fibo (n-1)) + fibo (n-2)
 ;;
@@ -35,7 +35,7 @@ let f = function x -> (x*x)+4;;
 (* \x -> ((x * x) + 4) *)
 let rec deriv = function f -> 
   match (((add f, const f), id f), mult f) with
-    | (((_, _), _), Some (f, g)) ->
+      (((_, _), _), Some (f, g)) ->
       let ff = deriv f in
       let gg = deriv g in
       (function x -> (ff x) * (g x) + (gg x) * (f x))

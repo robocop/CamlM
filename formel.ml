@@ -42,18 +42,19 @@ let primitive_mult = Val_primitive
 
 
 
-let new_def_compose def = match def with
+let new_def_compose env def = match def with
   | [Motif_variable v, expr] ->
     (match expr with
       | Application (Variable f, e) ->
-	let d1, d2 = 
-	  [Motif_variable v, Application (Variable f, Variable v)],
-	  [Motif_variable v, e] in
-	Some (d1, d2)
+	(match (evalue env (Variable f)) with
+	  | Val_fermeture {definition = d; environnement = _ } ->
+	    let d1, d2 = d, [Motif_variable v, e] 
+	    in
+	    Some (d1, d2)
+	  | _ -> None
+	)
       | Application (Fonction d, e) ->
-	let d1, d2 = 
-	  d,
-	  [Motif_variable v, e] in
+	let d1, d2 = d, [Motif_variable v, e] in
 	Some (d1, d2)
       | _ -> None)
   | _ -> None
@@ -61,7 +62,7 @@ let new_def_compose def = match def with
 let primitive_compose = Val_primitive 
   (fun f -> match f with 
     | Val_fermeture {definition=def; environnement = env } -> 
-      (match new_def_compose def with
+      (match new_def_compose env def with
 	| Some (d1, d2) ->
 	  let make d =  Val_fermeture{definition=d; environnement = env } in
 	  Val_some (Val_paire(make d1, make d2))
