@@ -22,6 +22,8 @@ rule token = parse
   | "->"        { ARROW }
   | "None"      { NONE }
   | "Some"      { SOME }
+  | "match"     { MATCH }
+  | "with"      { WITH }
   | ";;"        { END_EXPR }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
   | str         { VAR (Lexing.lexeme lexbuf) }

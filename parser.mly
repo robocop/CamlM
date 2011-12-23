@@ -3,24 +3,32 @@
     let cons_op op a b = Application (Application(Variable op, a), b)
     let genLet r (nom, cas) dans = 
         Let({recursive=r; nom=nom; expr = cas}, dans)
+
+    let rec mkApp e = function
+        | [] -> e
+        | x :: xs -> mkApp (Application (e, x)) xs
+
+    let fn e = Fonction (List.rev e)
 %}
 
 %token LPA RPA EOF END_EXPR
-%token LET EQ IN COMMA ARROW PIPE FUNCTION REC SOME NONE UNDERSCORE
+%token FUNCTION MATCH WITH
+%token LET EQ IN COMMA ARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS NIL
 %token <int> NUM
 %token <string> VAR
 
 %nonassoc IN
 %nonassoc LET
-%nonassoc FUNCTION
+%nonassoc FUNCTION WITH
 %left PIPE
 %left COMMA
 %nonassoc ARROW
-%right CONS
+%right CONS 
 %left PLUS MINUS
 %left TIMES DIV
-%nonassoc SOME
+%nonassoc SOME 
+%left funapp
 
 %start eval
 %type <Syntaxe.expression option> eval
@@ -38,8 +46,8 @@ eval:
         { raise (ParseError (Parsing.symbol_start_pos ())) }
 
 expr:
-      simple_expr     
-        { $1 }
+      simple_expr simple_expr_list %prec funapp
+        { mkApp $1 (List.rev $2) }
     | LET rec_flag let_bindings IN expr
         { genLet $2 $3 (Some $5) }
     | expr MINUS expr
@@ -51,7 +59,13 @@ expr:
     | expr TIMES expr
         { cons_op "*" $1 $3 }
     | FUNCTION patterns
-        { Fonction $2 }
+        { fn $2 }
+    | MATCH expr WITH patterns
+        { Application (fn $4, $2) }
+
+simple_expr_list:
+      /* empty */ { [] }
+    |  simple_expr_list simple_expr { $2 :: $1 } 
 
 simple_expr:
       NUM                   { Nombre $1 }
