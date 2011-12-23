@@ -16,16 +16,26 @@
         | [] -> e
         | x :: xs -> mkApp (Application (e, x)) xs
 
+    let rec mkList = function
+        | [] -> Nil
+        | x :: xs -> Cons (x, mkList xs)
+
+    let rec mkMotifList = function
+        | [] -> Motif_nil
+        | x :: xs -> Motif_cons (x, mkMotifList xs)
+
+
     let fn e = Fonction (List.rev e)
 %}
 
-%token LPA RPA EOF END_EXPR HASH
+%token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN
 %token LET EQ IN COMMA ARROW PIPE REC SOME NONE UNDERSCORE
-%token PLUS MINUS TIMES DIV CONS NIL
+%token PLUS MINUS TIMES DIV CONS
 %token <int> NUM
 %token <string> VAR
 
+%right DOLLAR
 %nonassoc IN
 %nonassoc LET
 %nonassoc FUNCTION FUN WITH
@@ -68,6 +78,8 @@ expr:
         { cons_op "/" $1 $3 }
     | expr TIMES expr
         { cons_op "*" $1 $3 }
+    | expr DOLLAR expr
+        { Application ($1, $3) } 
     | FUNCTION patterns
         { fn $2 }
     | FUN multi_pattern
@@ -82,12 +94,17 @@ simple_expr_list:
 simple_expr:
       NUM                     { Nombre $1 }
     | VAR                     { Variable $1 }
-    | NIL                     { Nil }
     | SOME expr               { CSome $2 }
     | NONE                    { CNone }
     | LPA expr RPA            { $2 }
     | MINUS NUM               { Nombre (- $2) }
     | LPA expr COMMA expr RPA { Paire ($2, $4) }
+    | LSB list_sugar RSB      { mkList $2 } 
+
+list_sugar:
+      /* empty */            { [] }
+      | expr                 { [$1] }
+      | expr SEMI list_sugar { $1 :: $3 }
 
 let_bindings:
     VAR cases_or_empty EQ expr             { ($1, $2, $4) }
@@ -110,15 +127,20 @@ cases:
     | cases case { $2 :: $1 }
 
 case:
-      case CONS case          { Motif_cons ($1, $3) }
-    | SOME case               { Motif_some $2 }
-    | NONE                    { Motif_none }
-    | UNDERSCORE              { Motif_all }
-    | NUM                     { Motif_nombre $1 }
-    | VAR                     { Motif_variable $1 }
-    | NIL                     { Motif_nil }
-    | LPA case RPA            { $2 }
-    | LPA case COMMA case RPA { Motif_paire ($2, $4) }
+      case CONS case             { Motif_cons ($1, $3) }
+    | SOME case                  { Motif_some $2 }
+    | NONE                       { Motif_none }
+    | UNDERSCORE                 { Motif_all }
+    | NUM                        { Motif_nombre $1 }
+    | VAR                        { Motif_variable $1 }
+    | LSB list_pattern_sugar RSB { mkMotifList $2 }
+    | LPA case RPA               { $2 }
+    | LPA case COMMA case RPA    { Motif_paire ($2, $4) }
+
+list_pattern_sugar:
+      /* empty */                  { [] }
+    | case                         { [$1] }
+    | case SEMI list_pattern_sugar { $1 :: $3 }
 
 rec_flag:
       /* empty */  { false }

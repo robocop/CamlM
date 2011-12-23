@@ -13,8 +13,11 @@ rule token = parse
   | ')'         { RPA }
   | ','         { COMMA }
   | '='         { EQ  }
+  | ';'         { SEMI }
+  | '['         { LSB }
+  | ']'         { RSB }
+  | '$'         { DOLLAR }
   | "::"        { CONS }
-  | "[]"        { NIL }
   | '|'         { PIPE }
   | "let"       { LET }
   | "rec"       { REC }
