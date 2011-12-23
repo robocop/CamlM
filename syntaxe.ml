@@ -34,4 +34,4 @@ type phrase =
   | Definition of definition
 ;;
 
-exception ParseError of Lexing.position;;
+exception ParseError of Lexing.position * string;;

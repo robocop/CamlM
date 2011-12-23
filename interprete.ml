@@ -8,7 +8,14 @@ open Formel
 let code_nombre n = Val_nombre n;;
 let decode_nombre = function Val_nombre n -> n | _ -> raise (Erreur "entier attendu");;
 
-let parse expr = Parser.eval Lexer.token (Lexing.from_string expr);;
+let parse expr =
+  let lexbuf = Lexing.from_string expr
+  in try 
+    Parser.eval Lexer.token lexbuf
+  with _ ->
+    let p = Lexing.lexeme_start_p lexbuf in
+    let tok = Lexing.lexeme lexbuf in
+      raise (ParseError (p, tok))
 
 let prim2 codeur calcul decodeur = 
   Val_primitive (fun x -> 
@@ -46,10 +53,13 @@ let scan () =
 
 let handleError = function
   | Erreur s -> print_endline ("Erreur : " ^ s)
-  | ParseError p -> print_endline ("Parse error : ligne " 
-                                   ^ string_of_int p.pos_lnum
-                                   ^ ", character "
-                                   ^ string_of_int p.pos_cnum)
+  | ParseError (p, tok) -> 
+      print_endline ("Parse error (line " 
+                     ^ string_of_int p.pos_lnum
+                     ^ ", column "
+                     ^ string_of_int (p.pos_cnum - p.pos_bol)
+                     ^ ") on token : '"
+                     ^ tok ^ "'")
   | _ -> print_endline "Unhandle exception"
 
 let _ =

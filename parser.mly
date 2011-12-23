@@ -8,11 +8,15 @@
         | [] -> e
         | x :: xs -> mkApp (Application (e, x)) xs
 
+    let rec mkFun (cases, e) = match cases with
+        | [] -> e
+        | x :: xs -> mkFun (xs, Fonction [x, e])
+
     let fn e = Fonction (List.rev e)
 %}
 
 %token LPA RPA EOF END_EXPR
-%token FUNCTION MATCH WITH
+%token FUNCTION MATCH WITH FUN
 %token LET EQ IN COMMA ARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS NIL
 %token <int> NUM
@@ -20,7 +24,7 @@
 
 %nonassoc IN
 %nonassoc LET
-%nonassoc FUNCTION WITH
+%nonassoc FUNCTION FUN WITH
 %left PIPE
 %left COMMA
 %nonassoc ARROW
@@ -42,14 +46,14 @@ eval:
         { Some (genLet $2 $3 None) }
     | expr END_EXPR
         { Some $1 }
-    | error
-        { raise (ParseError (Parsing.symbol_start_pos ())) }
 
 expr:
      simple_expr simple_expr_list %prec funapp
         { mkApp $1 (List.rev $2) }
     | LET rec_flag let_bindings IN expr
         { genLet $2 $3 (Some $5) }
+    | expr CONS expr
+        { Cons ($1, $3) }
     | expr MINUS expr
         { cons_op "-" $1 $3 }
     | expr PLUS expr
@@ -60,6 +64,8 @@ expr:
         { cons_op "*" $1 $3 }
     | FUNCTION patterns
         { fn $2 }
+    | FUN multi_pattern
+        { mkFun $2 }
     | MATCH expr WITH patterns
         { Application (fn $4, $2) }
 
@@ -80,12 +86,19 @@ simple_expr:
 let_bindings:
     VAR EQ expr             { ($1, $3) }
 
+multi_pattern:
+    cases ARROW expr { ($1, $3) }
+
 patterns:
       pattern                { [$1] }
     | patterns PIPE pattern  { $3 :: $1 }
 
 pattern:
     case ARROW expr  { ($1, $3) }
+
+cases:
+      case       { [$1] }
+    | cases case { $2 :: $1 }
 
 case:
       case CONS case          { Motif_cons ($1, $3) }
