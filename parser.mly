@@ -80,14 +80,14 @@ simple_expr_list:
     |  simple_expr_list simple_expr { $2 :: $1 } 
 
 simple_expr:
-      NUM                   { Nombre $1 }
-    | VAR                   { Variable $1 }
-    | NIL                   { Nil }
-    | SOME expr             { CSome $2 }
-    | NONE                  { CNone }
-    | LPA expr RPA          { $2 }
-    | MINUS NUM             { Nombre (- $2) }
-    | LPA expr COMMA expr   { Paire ($2, $4) }
+      NUM                     { Nombre $1 }
+    | VAR                     { Variable $1 }
+    | NIL                     { Nil }
+    | SOME expr               { CSome $2 }
+    | NONE                    { CNone }
+    | LPA expr RPA            { $2 }
+    | MINUS NUM               { Nombre (- $2) }
+    | LPA expr COMMA expr RPA { Paire ($2, $4) }
 
 let_bindings:
     VAR cases_or_empty EQ expr             { ($1, $2, $4) }
