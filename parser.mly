@@ -29,7 +29,7 @@
 %}
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
-%token FUNCTION MATCH WITH FUN
+%token FUNCTION MATCH WITH FUN OPEN
 %token LET EQ IN COMMA ARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS
 %token <int> NUM
@@ -37,7 +37,7 @@
 
 %right DOLLAR
 %nonassoc IN
-%nonassoc LET
+%nonassoc LET OPEN
 %nonassoc FUNCTION FUN WITH
 %left PIPE
 %left COMMA
@@ -51,6 +51,9 @@
 %start eval
 %type <Syntaxe.expression Syntaxe.interpreter> eval
 
+%start file
+%type <Syntaxe.expression list> file
+
 %%
 
 eval:
@@ -58,10 +61,20 @@ eval:
         { INothing }
     | HASH VAR END_EXPR
         { ICommand $2 }
-    | LET rec_flag let_bindings END_EXPR
-        { IValue (mkLet $2 $3 None) }
-    | expr END_EXPR
+    | toplevel
         { IValue $1 }
+
+file:
+      EOF
+        { [] }
+    | toplevel file
+        { $1 :: $2 }
+
+toplevel:
+      LET rec_flag let_bindings END_EXPR
+        { mkLet $2 $3 None }
+    | expr END_EXPR
+        { $1 }
 
 expr:
      simple_expr simple_expr_list %prec funapp

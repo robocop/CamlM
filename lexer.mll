@@ -19,6 +19,7 @@ rule token = parse
   | '$'         { DOLLAR }
   | "::"        { CONS }
   | '|'         { PIPE }
+  | "open"      { OPEN }
   | "let"       { LET }
   | "rec"       { REC }
   | "function"  { FUNCTION }
