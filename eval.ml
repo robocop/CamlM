@@ -42,29 +42,48 @@ let rec filtrage valeur motif = match valeur, motif with
   | _, _ -> raise Echec_filtrage
 ;;
 
+
+let applique fonction arg = match fonction with
+  | Fonction [Motif_variable x, expr] -> 
+    let rec remplace = function
+      | Variable s when s = x -> arg
+      | Application (e1, e2) ->
+	Application (remplace e1, remplace e2)
+      | Paire(e1, e2) -> Paire(remplace e1, remplace e2)
+      | Cons(e1, e2) -> Cons(remplace e1, remplace e2)
+      | CSome e -> CSome (remplace e)
+      | rest -> rest
+    in
+    remplace expr
+  | _ -> Application(fonction, arg)
+let rec evalue_fonction env list_cas = match list_cas with
+  | [Motif_variable x, expr] ->
+    let rec replace = function
+      | Application(expr1, expr2) ->
+	applique (replace expr1) (replace expr2)
+      | Variable s when s <> x -> 
+	(match List.assoc s env with 
+	  | Val_fermeture {definition= def; environnement = env'} ->
+	    Fonction (evalue_fonction env' def)
+	  | _ -> Variable s
+	)
+      | Paire(e1, e2) -> Paire(replace e1, replace e2)
+      | Cons(e1, e2) -> Cons(replace e1, replace e2)
+      | CSome e -> CSome (replace e)
+      | rest -> rest
+    in
+    [Motif_variable x, replace expr]
+  | _ -> list_cas
+
+
 let rec evalue env expr = match expr with
   | Variable s -> 
     begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
   | Fonction liste_de_cas ->
-    (match liste_de_cas with
-      | [(Motif_variable x, expr)] ->
-	let replace = function
-	  | Application(Variable f, c)  ->
-	    print_endline "application";
-	    (match List.assoc f env with 
-	      | Val_fermeture {definition= def; environnement = _} ->
-		Val_fermeture 
-		  {definition = [Motif_variable x, Application(Fonction def, c)];
-		   environnement = env}
-	      | Val_primitive _ -> 
-		Val_fermeture {definition = liste_de_cas; environnement = env} 	
-	      | _ -> raise (Erreur "Application d'une valeur non fonctionelle")
-	    )
-	  | _ -> Val_fermeture {definition = liste_de_cas; environnement = env} 
-	in 
-	replace expr
-      | _ -> Val_fermeture {definition = liste_de_cas; environnement = env} 
-    )
+    Val_fermeture 
+      {definition = evalue_fonction env liste_de_cas; 
+       environnement = env} 
+
   | Application(f, a) ->
     let val_fonction = evalue env f in
     let val_argument = evalue env a in
