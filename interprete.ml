@@ -86,15 +86,18 @@ let setup () =
 
 let _ =
   let rec loop () =
-    let lexbuf = Lexing.from_string (scan (print_string "# ")) in
-      match parse Parser.eval lexbuf with
-        | INothing -> print_endline "Terminé"
-        | ICommand com -> (match com with
-                             | "quit" -> print_endline "Terminé"
-                             | _ -> print_endline "Commande inconnue"; loop ()
-          )
-        | IValue res -> 
-            print_endline (imprime_valeur (evalue !scope res)); 
-            loop ()
+    try begin
+      let lexbuf = Lexing.from_string (scan (print_string "# ")) in
+        match parse Parser.eval lexbuf with
+          | INothing -> print_endline "Terminé"
+          | ICommand com -> (match com with
+                               | "quit" -> print_endline "Terminé"
+                               | _ -> print_endline "Commande inconnue"; loop ()
+            )
+          | IValue res -> 
+              print_endline (imprime_valeur (evalue !scope res)); 
+              loop ()
+    end
+    with exn -> handleError exn; loop ()
   in try setup (); loop ()
   with exn -> handleError exn; loop ()
