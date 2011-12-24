@@ -4,6 +4,7 @@ type valeur =
   | Val_nombre of int
   | Val_booleenne of bool
   | Val_paire of valeur * valeur
+  | Val_nuple of valeur list
   | Val_nil
   | Val_cons of valeur * valeur
   | Val_fermeture of fermeture
@@ -75,6 +76,33 @@ let rec evalue_fonction env list_cas = match list_cas with
     [Motif_variable x, replace expr]
   | _ -> list_cas
 
+let zip2 l1_orig l2_orig = 
+  let rec aux l1 l2 = match l1 with
+    | Val_nil -> Val_nil
+    | Val_cons (a, l1tl) -> ( match l2 with
+        | Val_nil -> aux l1tl l2_orig
+        | Val_cons (b, l2tl) -> Val_cons (Val_paire (a, b), 
+                                          aux (Val_cons (a, l1tl)) l2tl) 
+        | _ -> raise (Erreur "Cannot zip non-list values")
+      )
+    | _ -> raise (Erreur "Cannot zip non-list values")
+  in aux l1_orig l2_orig
+
+let rec zipn = function
+  | [l1] -> l1
+  | l :: ls -> zip2 l (zipn ls)
+  | _ -> raise (Erreur "Cannot zip non-list values")
+
+let flattenPair p = 
+  let rec aux = function
+    | Val_paire (a, b) -> a :: (aux b)
+    | a -> [a]
+  in Val_nuple (aux p) 
+
+let rec valMap f = function
+  | Val_nil -> Val_nil
+  | Val_cons (x, xs) -> Val_cons (f x, valMap f xs)
+  | _ -> raise (Erreur "Cannot map on a non list value")
 
 let rec evalue env expr = match expr with
   | Variable s -> 
@@ -103,8 +131,22 @@ let rec evalue env expr = match expr with
   | Nil -> Val_nil
   | Cons(e1, e2) -> Val_cons(evalue env e1, evalue env e2)
 
+  | ListComp (e, gens) ->
+    evalue_list_comp env e gens
+
   | CNone -> Val_none
   | CSome e -> Val_some (evalue env e)
+
+and evalue_list_comp env e gens = 
+  let ev_gens = List.map (function x -> evalue env (snd x)) gens in
+  let combs = valMap flattenPair (zipn ev_gens) in
+  let rec getE = function
+    | Val_nil -> Val_nil
+    | Val_cons (Val_nuple x, xs) -> 
+          let env' = (List.combine (List.map fst gens) x) @ env
+          in Val_cons (evalue env' e, getE xs)
+    | _ -> raise (Erreur "Not possible")
+  in getE combs
 
 and evalue_application env liste_de_cas arg = match liste_de_cas with
   | [] -> raise (Erreur "echec du filtrage")
@@ -152,6 +194,12 @@ and imprime_valeur = function
   | Val_booleenne true -> "true"
   | Val_paire(v1, v2) ->
     "("^imprime_valeur v1^", "^imprime_valeur v2^")"
+  | Val_nuple vs ->
+    "(" 
+    ^ List.fold_left (fun acc x -> acc ^ ", " ^ imprime_valeur x) 
+        (imprime_valeur (List.hd vs))
+        (List.tl vs)
+    ^ ")"
   | Val_nil -> "[]"
   | Val_cons(v1, v2) ->
     imprime_valeur v1 ^ "::" ^imprime_valeur v2

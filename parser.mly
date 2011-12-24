@@ -1,5 +1,8 @@
 %{
     open Syntaxe
+    
+    let snd (_, b) = b
+
     let cons_op op a b = Application (Application (Variable op, a), b)
 
     let rec mkFun (cases, e) = match cases with
@@ -16,9 +19,13 @@
         | [] -> e
         | x :: xs -> mkApp (Application (e, x)) xs
 
-    let rec mkList = function
-        | [] -> Nil
-        | x :: xs -> Cons (x, mkList xs)
+    let mkList = function
+        | List l -> 
+            let rec stdList = function
+              | [] -> Nil
+              | x :: xs -> Cons (x, stdList xs)
+            in stdList l
+        | Comprehension (e, c) -> ListComp (e, c) 
 
     let rec mkMotifList = function
         | [] -> Motif_nil
@@ -29,8 +36,8 @@
 %}
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
-%token FUNCTION MATCH WITH FUN OPEN
-%token LET EQ IN COMMA ARROW PIPE REC SOME NONE UNDERSCORE
+%token FUNCTION MATCH WITH FUN OPEN LARROW
+%token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS
 %token <int> NUM
 %token <string> VAR
@@ -41,7 +48,7 @@
 %nonassoc FUNCTION FUN WITH
 %left PIPE
 %left COMMA
-%nonassoc ARROW
+%nonassoc RARROW LARROW
 %right CONS 
 %left PLUS MINUS
 %left TIMES DIV
@@ -115,22 +122,31 @@ simple_expr:
     | LSB list_sugar RSB      { mkList $2 } 
 
 list_sugar:
-      /* empty */            { [] }
-      | expr                 { [$1] }
-      | expr SEMI list_sugar { $1 :: $3 }
+      /* empty */          { List [] }
+    | expr                 { List [$1] }
+    | expr SEMI list_rest  { List ($1 :: $3) }
+    | expr PIPE list_comp  { Comprehension ($1, $3) }
+
+list_rest:
+      expr                { [$1] }
+    | expr SEMI list_rest { $1 :: $3 }
+
+list_comp:
+    | VAR LARROW expr                   { [$1, $3] }
+    | VAR LARROW expr SEMI list_comp    { ($1, $3) :: $5 }
 
 let_bindings:
     VAR cases_or_empty EQ expr             { ($1, $2, $4) }
 
 multi_pattern:
-    cases ARROW expr { ($1, $3) }
+    cases RARROW expr { ($1, $3) }
 
 patterns:
       pattern                { [$1] }
     | patterns PIPE pattern  { $3 :: $1 }
 
 pattern:
-    case ARROW expr  { ($1, $3) }
+    case RARROW expr  { ($1, $3) }
 
 cases_or_empty:
       /* empty */  { [] }

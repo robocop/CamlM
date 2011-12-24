@@ -8,9 +8,14 @@ type expression =
   | Paire of expression * expression
   | Nil
   | Cons of expression * expression
+  | ListComp of expression * (string * expression) list
   | CNone  
   | CSome of expression
   
+and lists =
+  | List of expression list
+  | Comprehension of expression * (string * expression) list
+
 and motif = 
   | Motif_all
   | Motif_variable of string
