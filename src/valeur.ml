@@ -18,4 +18,5 @@ and environnement = (string * valeur) list;;
 
 exception Echec_filtrage;;
 exception Erreur of string;;
+exception VPrim;;
 

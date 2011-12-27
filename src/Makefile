@@ -5,9 +5,9 @@ CC=ocamlc -I $(BUILD)
 all: caml
 
 caml: lexer.mll parser.mly syntaxe.ml valeur.ml eval_helper.ml eval.ml formel.ml interprete.ml
-	ocamllex -o $(BUILD)/lexer.ml lexer.mll 
-	menhir --base $(BUILD)/parser parser.mly
 	$(CC) -o $(BUILD)/syntaxe.cmo -c syntaxe.ml
+	ocamllex -o $(BUILD)/lexer.ml lexer.mll 
+	menhir --ocamlc "$(CC)" --infer --base $(BUILD)/parser parser.mly
 	cd $(BUILD); $(CC) -o parser.cmi -c parser.mli
 	cd $(BUILD); $(CC) -o lexer.cmo -c lexer.ml
 	cd $(BUILD); $(CC) -o parser.cmo -c parser.ml

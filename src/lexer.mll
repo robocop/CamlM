@@ -4,13 +4,28 @@ let char = ['\000'-'\033' '\035'-'\038' '\040'-'\127']
 let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
 let letter = ['a'-'z' 'A'-'Z']
 let id = letter | ['0'-'9' '_']
+
 rule token = parse
   | '#'         { HASH }
   | '_'         { UNDERSCORE }
+
   | '+'         { PLUS }
   | '-'         { MINUS }
   | '*'         { TIMES }
   | '/'         { DIV }
+  | '$'         { DOLLAR }
+  | "::"        { CONS }
+  | "=="        { BEQ }
+  | "!="        { BNEQ }
+  | "<="        { BLEQ }
+  | ">="        { BGEQ }
+  | "<"         { BLT }
+  | ">"         { BGT }
+  | "not"       { BNOT }
+  | "&&"        { BAND }
+  | "||"        { BOR }
+  | "true"      { BTRUE }
+  | "false"     { BFALSE }
   | '('         { LPA }
   | ')'         { RPA }
   | ','         { COMMA }
@@ -18,8 +33,6 @@ rule token = parse
   | ';'         { SEMI }
   | '['         { LSB }
   | ']'         { RSB }
-  | '$'         { DOLLAR }
-  | "::"        { CONS }
   | '|'         { PIPE }
   | "open"      { OPEN }
   | "let"       { LET }

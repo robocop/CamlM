@@ -39,6 +39,7 @@
 %token FUNCTION MATCH WITH FUN OPEN LARROW
 %token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS
+%token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE
 %token <int> NUM
 %token <string> VAR
 
@@ -49,10 +50,13 @@
 %left PIPE
 %left COMMA
 %nonassoc RARROW LARROW
+%left BAND BOR
+%left BLEQ BGEQ BLT BGT
+%left BEQ BNEQ
 %right CONS 
 %left PLUS MINUS
 %left TIMES DIV
-%nonassoc SOME 
+%nonassoc SOME BNOT 
 %left funapp
 
 %start eval
@@ -104,6 +108,15 @@ expr:
   | DIV    { cons_op "/" }
   | CONS   { fun x y -> Cons (x, y) }
   | DOLLAR { fun x y -> Application (x, y)}
+  | BEQ    { cons_op "==" }
+  | BNEQ   { cons_op "!=" }
+  | BLEQ   { cons_op "<=" }
+  | BGEQ   { cons_op ">=" }
+  | BLT    { cons_op "<" }
+  | BGT    { cons_op ">" }
+  | BAND   { cons_op "&&" }
+  | BOR    { cons_op "||" }
+
 
 simple_expr_list:
       /* empty */ { [] }
@@ -111,11 +124,14 @@ simple_expr_list:
 
 simple_expr:
       NUM                     { Nombre $1 }
+    | BTRUE                   { Booleen true }
+    | BFALSE                  { Booleen false }
     | VAR                     { Variable $1 }
     | SOME expr               { CSome $2 }
     | NONE                    { CNone }
     | LPA expr RPA            { $2 }
     | MINUS NUM               { Nombre (- $2) }
+    | BNOT expr               { Application (Variable "not", $2) } 
     | LPA expr COMMA expr RPA { Paire ($2, $4) }
     | LSB list_sugar RSB      { mkList $2 } 
 
