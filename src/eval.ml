@@ -29,21 +29,35 @@ let applique fonction arg = match fonction with
 	Application (remplace e1, remplace e2)
       | Paire(e1, e2) -> Paire(remplace e1, remplace e2)
       | Cons(e1, e2) -> Cons(remplace e1, remplace e2)
-      | CSome e -> CSome (remplace e)
+      | CSome e -> CSome (remplace e) 
       | rest -> rest
     in
     remplace expr
   | _ -> Application(fonction, arg)
-let rec evalue_fonction env list_cas = match list_cas with
+
+exception VPrim;;
+
+let rec expr_of_valeur = function
+  | Val_nombre n  -> Nombre n
+  | Val_booleenne b -> Booleen b
+  | Val_fermeture {definition= def; environnement = env'} ->
+    Fonction (evalue_fonction env' def)
+  | Val_some e -> CSome (expr_of_valeur e)
+  | Val_none -> CNone
+  | Val_nil -> Nil
+  | Val_cons (a, b) -> Cons(expr_of_valeur a, expr_of_valeur b)
+  | Val_paire (a, b) -> Paire(expr_of_valeur a, expr_of_valeur b)
+  | Val_primitive _ -> raise VPrim
+
+and evalue_fonction env list_cas = match list_cas with
   | [Motif_variable x, expr] ->
     let rec replace = function
       | Application(expr1, expr2) ->
 	applique (replace expr1) (replace expr2)
       | Variable s when s <> x -> 
-	(match List.assoc s env with 
-	  | Val_fermeture {definition= def; environnement = env'} ->
-	    Fonction (evalue_fonction env' def)
-	  | _ -> Variable s
+	(try 
+	   expr_of_valeur (List.assoc s env) 
+	 with VPrim -> Variable s 
 	)
       | Paire(e1, e2) -> Paire(replace e1, replace e2)
       | Cons(e1, e2) -> Cons(replace e1, replace e2)
@@ -51,7 +65,7 @@ let rec evalue_fonction env list_cas = match list_cas with
       | rest -> rest
     in
     [Motif_variable x, replace expr]
-  | _ -> list_cas
+  | _  -> list_cas
 
 let rec evalue env expr = match expr with
   | Variable s -> 
