@@ -84,28 +84,26 @@ toplevel:
         { $1 }
 
 expr:
-     simple_expr simple_expr_list %prec funapp
+      simple_expr simple_expr_list %prec funapp
         { mkApp $1 (List.rev $2) }
     | LET rec_flag let_bindings IN expr
         { mkLet $2 $3 (Some $5) }
-    | expr CONS expr
-        { Cons ($1, $3) }
-    | expr MINUS expr
-        { cons_op "-" $1 $3 }
-    | expr PLUS expr
-        { cons_op "+" $1 $3 }
-    | expr DIV expr
-        { cons_op "/" $1 $3 }
-    | expr TIMES expr
-        { cons_op "*" $1 $3 }
-    | expr DOLLAR expr
-        { Application ($1, $3) } 
+    | a=expr; f=op; b=expr
+        { f a b }
     | FUNCTION patterns
         { fn $2 }
     | FUN multi_pattern
         { mkFun $2 }
     | MATCH expr WITH patterns
         { Application (fn $4, $2) }
+
+%inline op:
+    PLUS   { cons_op "+" }
+  | MINUS  { cons_op "-" }
+  | TIMES  { cons_op "*" }
+  | DIV    { cons_op "/" }
+  | CONS   { fun x y -> Cons (x, y) }
+  | DOLLAR { fun x y -> Application (x, y)}
 
 simple_expr_list:
       /* empty */ { [] }
