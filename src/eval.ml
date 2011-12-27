@@ -10,6 +10,8 @@ let rec filtrage valeur motif = match valeur, motif with
     if b1 = b2 then [] else raise Echec_filtrage
   | (Val_nombre i1, Motif_nombre i2) ->
     if i1 = i2 then [] else raise Echec_filtrage
+  | (Val_string s1, Motif_string s2) -> 
+    if s1 = s2 then [] else raise Echec_filtrage
   | (Val_paire(v1, v2), Motif_paire (m1, m2)) -> 
     filtrage v1 m1 @ filtrage v2 m2
   | (Val_nil, Motif_nil) -> []
@@ -38,6 +40,7 @@ let applique fonction arg = match fonction with
 exception VPrim;;
 
 let rec expr_of_valeur = function
+  | Val_string s -> String s
   | Val_nombre n  -> Nombre n
   | Val_booleenne b -> Booleen b
   | Val_fermeture {definition= def; environnement = env'} ->
@@ -90,6 +93,7 @@ let rec evalue env expr = match expr with
     evalue (fst (evalue_definition env def)) corps
   | Booleen b -> Val_booleenne b
   | Nombre n -> Val_nombre n
+  | String s -> Val_string s
   | Paire(e1, e2) -> Val_paire(evalue env e1, evalue env e2)
   | Nil -> Val_nil
   | Cons(e1, e2) -> Val_cons(evalue env e1, evalue env e2)
@@ -161,6 +165,7 @@ let rec print_fonction env = function
 
 and imprime_valeur = function
   | Val_nombre n -> string_of_int n
+  | Val_string s -> Printf.sprintf "\"%s\"" s
   | Val_booleenne false -> "false"
   | Val_booleenne true -> "true"
   | Val_paire(v1, v2) ->

@@ -2,6 +2,7 @@ open Syntaxe
 
 type valeur = 
   | Val_nombre of int
+  | Val_string of string
   | Val_booleenne of bool
   | Val_paire of valeur * valeur
   | Val_nuple of valeur list

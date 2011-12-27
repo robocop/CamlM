@@ -41,7 +41,7 @@
 %token PLUS MINUS TIMES DIV CONS
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE
 %token <int> NUM
-%token <string> VAR
+%token <string> VAR STRING
 
 %right DOLLAR
 %nonassoc IN
@@ -126,6 +126,7 @@ simple_expr:
       NUM                     { Nombre $1 }
     | BTRUE                   { Booleen true }
     | BFALSE                  { Booleen false }
+    | STRING                  { String $1 }
     | VAR                     { Variable $1 }
     | SOME expr               { CSome $2 }
     | NONE                    { CNone }
@@ -175,6 +176,9 @@ case:
     | NONE                       { Motif_none }
     | UNDERSCORE                 { Motif_all }
     | NUM                        { Motif_nombre $1 }
+    | BTRUE                      { Motif_booleen true }
+    | BFALSE                     { Motif_booleen false }
+    | STRING                     { Motif_string $1 }
     | VAR                        { Motif_variable $1 }
     | LSB list_pattern_sugar RSB { mkMotifList $2 }
     | LPA case RPA               { $2 }

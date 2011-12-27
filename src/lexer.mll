@@ -47,6 +47,9 @@ rule token = parse
   | "with"      { WITH }
   | ";;"        { END_EXPR }
   | '\\'        { FUN }
+  | '"' char* '"' 
+    { let str = (Lexing.lexeme lexbuf)
+      in STRING (String.sub str 1 (String.length str - 2)) }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
   | letter id*  { VAR (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
