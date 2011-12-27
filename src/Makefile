@@ -20,4 +20,4 @@ caml: lexer.mll parser.mly syntaxe.ml valeur.ml eval_helper.ml eval.ml formel.ml
 	mv $(BUILD)/caml $(EXEC)
 
 clean:
-	rm $(BUILD)/* $(EXEC)/caml
+	rm -f $(BUILD)/* $(EXEC)/caml
