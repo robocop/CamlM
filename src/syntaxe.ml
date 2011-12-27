@@ -28,6 +28,8 @@ and motif =
   | Motif_none
   | Motif_some of motif 
   | Motif_string of string
+  | Motif_when of expression * motif
+
 and definition = 
     {
       recursive:bool;

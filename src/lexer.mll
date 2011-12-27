@@ -35,6 +35,7 @@ rule token = parse
   | ']'         { RSB }
   | '|'         { PIPE }
   | "open"      { OPEN }
+  | "when"      { WHEN }
   | "let"       { LET }
   | "rec"       { REC }
   | "function"  { FUNCTION }

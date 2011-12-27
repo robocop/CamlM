@@ -39,7 +39,7 @@
 %token FUNCTION MATCH WITH FUN OPEN LARROW
 %token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS
-%token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE
+%token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token <int> NUM
 %token <string> VAR STRING
 
@@ -50,6 +50,7 @@
 %left PIPE
 %left COMMA
 %nonassoc RARROW LARROW
+%nonassoc WHEN
 %left BAND BOR
 %left BLEQ BGEQ BLT BGT
 %left BEQ BNEQ
@@ -161,7 +162,8 @@ patterns:
     | patterns PIPE pattern  { $3 :: $1 }
 
 pattern:
-    case RARROW expr  { ($1, $3) }
+      case WHEN expr RARROW expr { (Motif_when ($3, $1), $5) }
+    | case RARROW expr           { ($1, $3) }
 
 cases_or_empty:
       /* empty */  { [] }

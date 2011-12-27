@@ -3,25 +3,6 @@ open Valeur
 open Eval_helper
 
 let scope = ref [];;
-let rec filtrage valeur motif = match valeur, motif with
-  | (_, Motif_all) -> []
-  | (valeur, Motif_variable id) -> [id, valeur]
-  | (Val_booleenne b1, Motif_booleen b2) -> 
-    if b1 = b2 then [] else raise Echec_filtrage
-  | (Val_nombre i1, Motif_nombre i2) ->
-    if i1 = i2 then [] else raise Echec_filtrage
-  | (Val_string s1, Motif_string s2) -> 
-    if s1 = s2 then [] else raise Echec_filtrage
-  | (Val_paire(v1, v2), Motif_paire (m1, m2)) -> 
-    filtrage v1 m1 @ filtrage v2 m2
-  | (Val_nil, Motif_nil) -> []
-  | (Val_cons (v1, v2), Motif_cons(m1, m2)) ->
-    filtrage v1 m1 @ filtrage v2 m2
-  | (Val_none, Motif_none) -> []
-  | (Val_some v, Motif_some m) -> filtrage v m
-  | _, _ -> raise Echec_filtrage
-;;
-
 
 let applique fonction arg = match fonction with
   | Fonction [Motif_variable x, expr] -> 
@@ -37,7 +18,6 @@ let applique fonction arg = match fonction with
     remplace expr
   | _ -> Application(fonction, arg)
 
-exception VPrim;;
 
 let rec expr_of_valeur = function
   | Val_string s -> String s
@@ -127,7 +107,7 @@ and evalue_application env liste_de_cas arg = match liste_de_cas with
   | [] -> raise (Erreur "echec du filtrage")
   | (motif, expr):: autres_cas ->
     try 
-      let env_etendu =  (filtrage arg motif) @ env in
+      let env_etendu =  (filtrage env arg motif) @ env in
       evalue env_etendu expr
     with Echec_filtrage -> evalue_application env autres_cas arg
 
@@ -144,8 +124,30 @@ and evalue_definition env_courant def =
 	  fermeture.environnement <- env; 
 	  (env, Val_fermeture fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel")
-;;
 
+and filtrage env valeur motif = match valeur, motif with
+  | (_, Motif_all) -> []
+  | (valeur, Motif_variable id) -> [id, valeur]
+  | (Val_booleenne b1, Motif_booleen b2) -> 
+    if b1 = b2 then [] else raise Echec_filtrage
+  | (Val_nombre i1, Motif_nombre i2) ->
+    if i1 = i2 then [] else raise Echec_filtrage
+  | (Val_string s1, Motif_string s2) -> 
+    if s1 = s2 then [] else raise Echec_filtrage
+  | (Val_paire(v1, v2), Motif_paire (m1, m2)) -> 
+    filtrage env v1 m1 @ filtrage env v2 m2
+  | (Val_nil, Motif_nil) -> []
+  | (Val_cons (v1, v2), Motif_cons(m1, m2)) ->
+    filtrage env v1 m1 @ filtrage env v2 m2
+  | (Val_none, Motif_none) -> []
+  | (Val_some v, Motif_some m) -> filtrage env v m
+  | (v, Motif_when (cond, m)) -> 
+       let ret = filtrage env v m
+       in if evalue (ret @ env) cond = Val_booleenne true
+       then ret
+       else raise Echec_filtrage
+  | _, _ -> raise Echec_filtrage
+;;
 
 
 let rec print_fonction env = function
