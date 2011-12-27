@@ -1,6 +1,6 @@
 open Syntaxe
+open Valeur
 open Eval
-
 
 let new_def_plus def = match def with
   | [Motif_variable v, expr] ->

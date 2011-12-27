@@ -1,8 +1,9 @@
 { open Parser }
 
+let char = ['\000'-'\033' '\035'-'\038' '\040'-'\127']
 let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
-let str = ['a'-'z' 'A'-'Z']
-let id = str | ['0'-'9' '_']
+let letter = ['a'-'z' 'A'-'Z']
+let id = letter | ['0'-'9' '_']
 rule token = parse
   | '#'         { HASH }
   | '_'         { UNDERSCORE }
@@ -34,7 +35,7 @@ rule token = parse
   | ";;"        { END_EXPR }
   | '\\'        { FUN }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
-  | str id*     { VAR (Lexing.lexeme lexbuf) }
+  | letter id*  { VAR (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
   | _           { token lexbuf }
   | eof         { EOF }

@@ -1,4 +1,5 @@
 open Syntaxe
+open Valeur
 open Eval
 open Parser
 open Lexer
