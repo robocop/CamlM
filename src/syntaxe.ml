@@ -10,6 +10,7 @@ type expression =
   | Cons of expression * expression
   | ListComp of expression * (string * expression) list
   | CNone  
+  | String of string
   | CSome of expression
   
 and lists =
@@ -26,6 +27,7 @@ and motif =
   | Motif_cons of motif * motif
   | Motif_none
   | Motif_some of motif 
+  | Motif_string of string
 and definition = 
     {
       recursive:bool;

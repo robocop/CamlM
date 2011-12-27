@@ -34,6 +34,7 @@ rule token = parse
   | "with"      { WITH }
   | ";;"        { END_EXPR }
   | '\\'        { FUN }
+  | '"'         { QUOTE }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
   | letter id*  { VAR (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }

@@ -37,7 +37,7 @@
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN LARROW
-%token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
+%token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE QUOTE
 %token PLUS MINUS TIMES DIV CONS
 %token <int> NUM
 %token <string> VAR
@@ -113,6 +113,7 @@ simple_expr_list:
 
 simple_expr:
       NUM                     { Nombre $1 }
+    | QUOTE VAR QUOTE         { String $2 }
     | VAR                     { Variable $1 }
     | SOME expr               { CSome $2 }
     | NONE                    { CNone }
