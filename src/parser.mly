@@ -59,7 +59,7 @@
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
-%nonassoc SOME BNOT 
+%nonassoc SOME BNOT CONST ID
 %left funapp
 
 %start eval
