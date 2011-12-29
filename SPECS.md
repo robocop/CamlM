@@ -4,6 +4,7 @@ MINI-CAML V1 SPECIFICATIONS
 Grammaire
 ---------
 
+```
 mcaml = expr ';;'
     | 'let' 'rec'? let_binding ';;'
     | 'use' string ';;'
@@ -89,7 +90,7 @@ option<T> = 'None'
     | 'Some' T
 list_sugar<T> = '[' ']'
     | '[' T (';' T)* ']'
-
+```
 
 Sémantique
 ----------
