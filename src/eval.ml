@@ -127,6 +127,12 @@ and evalue_definition env_courant def =
 
 and filtrage env valeur motif = match valeur, motif with
   | (_, Motif_all) -> []
+  | (v, Motif_when (cond, m)) -> 
+       let ret = filtrage env v m
+       in if evalue (ret @ env) cond = Val_booleenne true
+       then ret
+       else raise Echec_filtrage
+
   | (valeur, Motif_variable id) -> [id, valeur]
   | (Val_booleenne b1, Motif_booleen b2) -> 
     if b1 = b2 then [] else raise Echec_filtrage
@@ -141,14 +147,74 @@ and filtrage env valeur motif = match valeur, motif with
     filtrage env v1 m1 @ filtrage env v2 m2
   | (Val_none, Motif_none) -> []
   | (Val_some v, Motif_some m) -> filtrage env v m
-  | (v, Motif_when (cond, m)) -> 
-       let ret = filtrage env v m
-       in if evalue (ret @ env) cond = Val_booleenne true
-       then ret
-       else raise Echec_filtrage
-  | _, _ -> raise Echec_filtrage
-;;
 
+(* Filtrage des fonctions *)
+  | (f, FMotif_const m) ->
+    (match const f with
+      | Some v -> filtrage env v m
+      | None -> raise Echec_filtrage
+    )
+  | (f, FMotif_add(m1, m2)) ->
+     (match operation "+" f with 
+       | Some (f1, f2)->
+	 (filtrage env f1 m1) @ (filtrage env f2 m2)
+       | None ->  raise Echec_filtrage
+      )
+  | (f, FMotif_mult(m1, m2)) ->
+     (match operation "*" f with 
+       | Some (f1, f2)->
+	 (filtrage env f1 m1) @ (filtrage env f2 m2)
+       | None ->  raise Echec_filtrage
+      )
+  | (f, FMotif_Id) ->
+     if id f then []
+     else raise Echec_filtrage
+  | _, _ -> raise Echec_filtrage
+
+and new_def_op op def = match def with
+  | [Motif_variable v, expr] ->
+    (match expr with
+      | Application (Application (Variable ope, e1), e2) when ope = op ->
+	let d1, d2 = [Motif_variable v, e1],  [Motif_variable v, e2] in
+	Some (d1, d2)
+      | _ -> None)
+  | _ -> None
+
+and operation op = function
+    | Val_fermeture {definition=def; environnement = env } -> 
+      (match new_def_op op def with
+	| Some (d1, d2) ->
+	  let make d =  Val_fermeture{definition=d; environnement = env } in
+	  Some (make d1, make d2)
+	| None -> None)
+    | _ -> None
+
+and get_const env def = match def with
+  | [Motif_variable v, expr] ->
+    (match expr with
+      | Nombre n ->
+	Some (Val_nombre n)
+      | Variable v' when v <> v' -> Some (evalue env (Variable v'))
+      | _ -> None)
+  | _ -> None
+
+and const = function
+  | Val_fermeture {definition=def; environnement = env } -> get_const env def
+  | _ -> None
+
+and is_id def = match def with
+  | [Motif_variable v, expr] ->
+    (match expr with
+        Variable v -> true
+      | _ -> false
+    )
+  | _ -> false
+
+and id = function
+    | Val_fermeture {definition=def; environnement = env } -> is_id def
+    | _ -> false
+
+;;
 
 let rec print_fonction env = function
   | [Motif_variable v, expr] -> 

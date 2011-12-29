@@ -4,18 +4,20 @@ open Eval
 open Parser
 open Lexer
 open Lexing
-open Formel
 
 let id x = x;;
 let code_nombre n = Val_nombre n;;
 let code_bool b = Val_booleenne b;;
+let code_string s = Val_string s;;
 let decode_nombre = function 
     Val_nombre n -> n 
   | _ -> raise (Erreur "Entier attendu");;
 let decode_bool = function 
     Val_booleenne b -> b 
   | _ -> raise (Erreur "Bool attendu");;
-
+let decode_string = function
+  | Val_string s -> s
+  | _ -> raise (Erreur "String attendu");;
 let parse f lexbuf =
   try 
     f Lexer.token lexbuf
@@ -43,12 +45,9 @@ let populateBaseScope () =
      (">", prim2 code_bool (>) id);
      ("&&", prim2 code_bool (&&) decode_bool);
      ("||", prim2 code_bool (||) decode_bool);
-     ("not", Val_primitive (fun x -> code_bool (not (decode_bool x))));
-     ("add", primitive_add);
-     ("mult", primitive_mult);
-     ("compose", primitive_compose);
-     ("const", primitive_const);
-     ("id", primitive_id)]
+     ("++", prim2 code_string ( ^ ) decode_string);
+     ("not", Val_primitive (fun x -> code_bool (not (decode_bool x))))
+    ]
   
 let scan () = 
   let rec scan' n s = 

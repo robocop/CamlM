@@ -33,21 +33,34 @@ fibo 7;;
 
 let f = function x -> (x*x)+4;;
 (* \x -> ((x * x) + 4) *)
-let rec deriv = function f -> 
-  match (((add f, const f), id f), mult f) with
-      (((_, _), _), Some (f, g)) ->
-      let ff = deriv f in
-      let gg = deriv g in
-      (function x -> (ff x) * (g x) + (gg x) * (f x))
-    | (((Some (f, g), _), _), _) -> 
-      let ff = deriv f in
-      let gg = deriv g in
-      (function x -> ff x + gg x)
-    | (((_, Some c), _), _) -> (function x -> 0)
-    | (((_, _), true), _) -> (function x -> 1)
-    | _ -> false
+
+let rec deriv = function
+    Id -> \x -> 1
+  | Const _ -> \x -> 0
+  | f+g -> 
+    let df = deriv f in let dg = deriv g in
+    \x -> df x + dg x
+  | f*g -> 
+    let df = deriv f in let dg = deriv g in
+    \x -> df x * g x + dg x * f x
 ;;
 
-deriv (function x -> x*x+1);;
-(* \x -> ((\x -> (((\x -> 1) (x) * (\x -> x) (x)) + ((\x -> 1) (x) * (\x -> x) (x)))) (x) + (\x -> 0) (x)) *)
+let rec simplify = function
+   (Const a) + (Const b) -> let r = a+b in \x -> r
+  | (Const a) * (Const b) -> let r = a*b in \x -> r
+  | (Const 1) * g -> g
+  | g * (Const 1) -> g
+  | Id + Id -> \x -> 2*x
+  | f + (Const 0) -> f
+  | f+g -> 
+    let f = simplify f in let g = simplify g in
+    \x -> f x + g x
+  | f*g -> 
+    let sf = simplify f in let sg = simplify g in
+    \x -> sf x * sg x
+  | f -> f
+;;
+
+# deriv (\x -> 5*x*x+3*x+1);;
+\x -> ((((((0 * x) + (1 * 5)) * x) + (1 * (5 * x))) + ((0 * x) + (1 * 3))) + 0)
 

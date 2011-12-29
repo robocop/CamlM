@@ -38,8 +38,9 @@
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN LARROW
 %token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
-%token PLUS MINUS TIMES DIV CONS
+%token PLUS MINUS TIMES DIV CONS CONCAT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
+%token CONST ID
 %token <int> NUM
 %token <string> VAR STRING
 
@@ -56,6 +57,7 @@
 %left BEQ BNEQ
 %right CONS 
 %left PLUS MINUS
+%right CONCAT
 %left TIMES DIV
 %nonassoc SOME BNOT 
 %left funapp
@@ -104,6 +106,7 @@ expr:
 
 %inline op:
     PLUS   { cons_op "+" }
+  | CONCAT { cons_op "++" }
   | MINUS  { cons_op "-" }
   | TIMES  { cons_op "*" }
   | DIV    { cons_op "/" }
@@ -173,18 +176,23 @@ cases:
     | cases case { $2 :: $1 }
 
 case:
-      case CONS case             { Motif_cons ($1, $3) }
-    | SOME case                  { Motif_some $2 }
-    | NONE                       { Motif_none }
-    | UNDERSCORE                 { Motif_all }
-    | NUM                        { Motif_nombre $1 }
-    | BTRUE                      { Motif_booleen true }
-    | BFALSE                     { Motif_booleen false }
-    | STRING                     { Motif_string $1 }
-    | VAR                        { Motif_variable $1 }
+      case CONS case { Motif_cons ($1, $3) }
+    | SOME case { Motif_some $2 }
+    | NONE { Motif_none }
+    | UNDERSCORE { Motif_all }
+    | NUM { Motif_nombre $1 }
+    | BTRUE { Motif_booleen true }
+    | BFALSE { Motif_booleen false }
+    | STRING { Motif_string $1 }
+    | VAR { Motif_variable $1 }
     | LSB list_pattern_sugar RSB { mkMotifList $2 }
-    | LPA case RPA               { $2 }
-    | LPA case COMMA case RPA    { Motif_paire ($2, $4) }
+    | LPA case RPA { $2 }
+    | LPA case COMMA case RPA { Motif_paire ($2, $4) }
+    | CONST case { FMotif_const $2  }
+    | case PLUS case { FMotif_add ($1, $3) }
+    | case TIMES case  { FMotif_mult ($1, $3) }
+    | ID             { FMotif_Id }
+
 
 list_pattern_sugar:
       /* empty */                  { [] }

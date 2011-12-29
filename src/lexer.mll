@@ -8,7 +8,7 @@ let id = letter | ['0'-'9' '_']
 rule token = parse
   | '#'         { HASH }
   | '_'         { UNDERSCORE }
-
+  | "++"        { CONCAT }
   | '+'         { PLUS }
   | '-'         { MINUS }
   | '*'         { TIMES }
@@ -44,6 +44,8 @@ rule token = parse
   | "<-"        { LARROW }
   | "None"      { NONE }
   | "Some"      { SOME }
+  | "Const"     { CONST }
+  | "Id"        { ID }
   | "match"     { MATCH }
   | "with"      { WITH }
   | ";;"        { END_EXPR }

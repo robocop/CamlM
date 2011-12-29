@@ -1,4 +1,4 @@
-open Syntaxe
+(*open Syntaxe
 open Valeur
 open Eval
 
@@ -10,6 +10,18 @@ let new_def_plus def = match def with
 	Some (d1, d2)
       | _ -> None)
   | _ -> None
+
+let addlol = 
+   (fun f -> match f with 
+    | Val_fermeture {definition=def; environnement = env } -> 
+      (match new_def_plus def with
+	| Some (d1, d2) ->
+	  let make d =  Val_fermeture{definition=d; environnement = env } in
+	  Some (make d1, make d2)
+	| None -> None)
+    | _ -> None
+  )
+
 let primitive_add = Val_primitive 
   (fun f -> match f with 
     | Val_fermeture {definition=def; environnement = env } -> 
@@ -70,7 +82,7 @@ let primitive_compose = Val_primitive
     | _ -> Val_none
   )
 
-
+(*
 let get_const env def = match def with
   | [Motif_variable v, expr] ->
     (match expr with
@@ -79,6 +91,7 @@ let get_const env def = match def with
       | Variable v' when v <> v' -> Some (evalue env (Variable v'))
       | _ -> None)
   | _ -> None
+*)
 
 let primitive_const = Val_primitive 
   (fun f -> match f with 
@@ -104,3 +117,4 @@ let primitive_id = Val_primitive
       Val_booleenne (is_id def)
     | _ -> Val_booleenne false
   )
+*)
