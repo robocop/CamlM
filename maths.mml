@@ -36,7 +36,7 @@ let rec get_const l = function
 ;;
 get_const [] (decsum (\x -> 5*x+1+x+3));; 
      
-decsomme (\x -> 5*x+3*x+4+3);;
+decsum (\x -> 5*x+3*x+4+3);;
 
 compare_expr (\x -> 5*x+3) (\x -> 5*x+3);;
 
