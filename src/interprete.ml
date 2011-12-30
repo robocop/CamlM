@@ -3,8 +3,17 @@ open Eval
 open Parser
 open Lexer
 open Lexing
-
   
+let parse f lexbuf =
+  try
+    f Lexer.token lexbuf
+  with _ ->
+    let p = Lexing.lexeme_start_p lexbuf in
+    let tok = Lexing.lexeme lexbuf in
+      raise (ParseError (p, tok))
+
+
+
 let scan () = 
   let rec scan' n s = 
     let ns = read_line () in
@@ -23,7 +32,7 @@ let scan () =
 ;;
 
 let handleError = function
-  | Erreur s -> print_endline ("Erreur : " ^ s)
+  (* | Erreur s -> print_endline ("Erreur : " ^ s) *)
   | ParseError (p, tok) -> 
       print_endline ("Parse error (line " 
                      ^ string_of_int p.pos_lnum
@@ -51,7 +60,7 @@ let rec loadFiles = function
 let setup () = 
   let parseList = ref [] in
     begin
-      populateBaseScope ();
+     (* populateBaseScope (); *)
       Arg.parse [] (fun x -> parseList := !parseList @ [x]) "filename(s)";
       loadFiles !parseList
     end
@@ -67,7 +76,7 @@ let _ =
                                | _ -> print_endline "Commande inconnue"; loop ()
             )
           | IValue res -> 
-              print_endline (imprime_valeur (evalue !scope res)); 
+              print_endline (imprime ((*evalue !scope*) res)); 
               loop ()
     end
     with exn -> handleError exn; loop ()

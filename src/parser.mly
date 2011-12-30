@@ -19,20 +19,17 @@
         | [] -> e
         | x :: xs -> mkApp (Application (e, x)) xs
 
-    let mkList = function
-        | List l -> 
-            let rec stdList = function
-              | [] -> Nil
-              | x :: xs -> Cons (x, stdList xs)
-            in stdList l
-        | Comprehension (e, c) -> ListComp (e, c) 
+
+    let rec stdList = function
+      | [] -> Nil
+      | x :: xs -> Cons (x, stdList xs)
 
     let rec mkMotifList = function
         | [] -> Motif_nil
         | x :: xs -> Motif_cons (x, mkMotifList xs)
 
 
-    let fn e = Fonction (List.rev e)
+    let fn e = Fonction ((List.rev e), [])
 %}
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
@@ -138,13 +135,12 @@ simple_expr:
     | MINUS NUM               { Nombre (- $2) }
     | BNOT expr               { Application (Variable "not", $2) } 
     | LPA expr COMMA expr RPA { Paire ($2, $4) }
-    | LSB list_sugar RSB      { mkList $2 } 
+    | LSB list_sugar RSB      { stdList $2 } 
 
 list_sugar:
-      /* empty */          { List [] }
-    | expr                 { List [$1] }
-    | expr SEMI list_rest  { List ($1 :: $3) }
-    | expr PIPE list_comp  { Comprehension ($1, $3) }
+      /* empty */          {  [] }
+    | expr                 { [$1] }
+    | expr SEMI list_rest  { ($1 :: $3) }
 
 list_rest:
       expr                { [$1] }

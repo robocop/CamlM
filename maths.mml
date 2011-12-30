@@ -23,34 +23,62 @@ let rec concat l m = match l with
   | x::xs -> x :: (concat xs m)
 ;;
 
+let rec fold_left f x0 = function
+    [] -> x0
+  | x::xs -> fold_left f (f x0 x) xs
+;;
+let l = [1;2;3];;
+fold_left (\x y -> x+y) 0 l;;
+
+let f a x = a+x;;
+f 1;;
+\x -> (f 1) x ;;
+let g x = f 1 x;;
+g 1;;
+let sum lol = fold_left (\x y -> x+y) 0 lol;;
+
+sum [1;2;3];;
+
+
+
+
+
 let rec decsum = function
    f+g -> concat (decsum f) (decsum g)
   | f -> [f]
 ;;
 
-let get_const l = 
+let simpl_sum_const fonction = 
   let rec get l = function
       [] -> ([], l)
     | (Const x)::fs -> 
       (match get l fs with (cst, fs) -> (x::cst, fs))
     | f::fs -> get (f::l) fs
   in
-  match get [] l with
-      ([_], _) -> None
-    | c -> Some c 
+  (match get [] (decsum fonction) with
+      ([_], _) -> fonction
+    | ([], _) -> fonction
+    | (cs, []) -> 
+      let s = sum cs in
+      (\x -> s)
+    | (cs, g::gs) -> 
+      let fsum = \x -> 0 in
+      let s = sum cs in
+      \x -> s + fsum x)
 ;;
-get_const  (decsum (\x -> 5*x+x+3));; 
+
+simpl_sum_const (\x -> 1+1);;
+
+
+match get_const  (decsum (\x -> 4+5*x+x+1)) with
+  Some(_, f::fs) ->  fold_left (\f g -> \x -> f x + g x) f fs;;
+
      
-let rec fold_left f x0 = function
-   [] -> x0
-  | x::xs ->
-    fold_left f (f x0 x) xs
-;;
-let sum l = fold_left (\x y -> x+y) 0 l;;
 
 
+fold_left (\f g -> f x + g x) f fs;;
 let simplify f = 
-  let rec simpl = function
+  let rec simpl fonction = match fonction with
       (Const a) + (Const b) -> let r = a+b in (\x -> r, true)
     | (Const a) * (Const b) -> let r = a*b in (\x -> r, true)
     | (Const 1) * g -> (g, true)
@@ -61,9 +89,11 @@ let simplify f =
     | (Const 0) +f -> (f, true)
     | f + g when compare_expr f g -> (\x -> 2*(f x), true)
     | f+g -> 
-      (match get_const (decsum (\x -> f x + g x)) with
-	| Some(l, fs) ->
-	  
+      (match get_const (decsum fonction) with
+	 Some(l, []) ->
+	  (\x -> sum l, false)
+	| Some(l, f::fs) ->
+	  (\x -> (sum l) + (fold_left (\f g -> (\x -> f x + g x)) f fs) x, false)
 	| None ->
 	  (match (simpl f, simpl g) with
 	      ((f, a), (g, b)) -> ((\x -> f x + g x), a||b)
@@ -81,6 +111,9 @@ let simplify f =
   in test f
 ;;
 
+
+simplify (\x -> x+1+3);;
+simplify (\x -> 1+x+1);;
 let fst = function (x, _) -> x;;
 simplify (\x -> 1*x+(1+3)+1);;
 simplify (deriv (\x -> 5*x*x+2*x+1));;

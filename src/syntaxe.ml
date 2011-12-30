@@ -12,7 +12,7 @@ type expression =
   | String of string
   | CSome of expression
 
-and environnement = string * expression list
+and environnement = (string * expression) list
 
 and motif = 
   | Motif_all
