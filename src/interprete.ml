@@ -4,6 +4,8 @@ open Parser
 open Lexer
 open Lexing
   
+let scope = ref []
+
 let parse f lexbuf =
   try
     f Lexer.token lexbuf
@@ -12,7 +14,23 @@ let parse f lexbuf =
     let tok = Lexing.lexeme lexbuf in
       raise (ParseError (p, tok))
 
+let code_nombre n = Nombre n;;
+let decode_nombre = function
+    Nombre n -> n
+  | _ -> raise (Erreur "Entier attendu");;
 
+let prim2 nom codeur calcul decodeur =
+  Primitive (nom, (fun x ->
+    Primitive (nom, (fun y-> codeur (calcul (decodeur x) (decodeur y))))
+  ))
+;;
+
+
+
+let populateBaseScope () =
+  scope :=
+    [("+", prim2 "+" code_nombre (+) decode_nombre);
+    ]
 
 let scan () = 
   let rec scan' n s = 
@@ -32,7 +50,7 @@ let scan () =
 ;;
 
 let handleError = function
-  (* | Erreur s -> print_endline ("Erreur : " ^ s) *)
+  | Erreur s -> print_endline ("Erreur : " ^ s) 
   | ParseError (p, tok) -> 
       print_endline ("Parse error (line " 
                      ^ string_of_int p.pos_lnum
@@ -45,7 +63,7 @@ let handleError = function
 let rec doEval fname = function
   | [] -> print_endline (fname ^ " loaded.\n")
   | x :: xs -> 
-      print_endline (imprime( (* evalue !scope *) x)); 
+      print_endline (imprime(evalue !scope x)); 
       doEval fname xs
 
 
@@ -60,7 +78,7 @@ let rec loadFiles = function
 let setup () = 
   let parseList = ref [] in
     begin
-     (* populateBaseScope (); *)
+      populateBaseScope ();
       Arg.parse [] (fun x -> parseList := !parseList @ [x]) "filename(s)";
       loadFiles !parseList
     end
@@ -76,7 +94,7 @@ let _ =
                                | _ -> print_endline "Commande inconnue"; loop ()
             )
           | IValue res -> 
-              print_endline (imprime ((*evalue !scope*) res)); 
+              print_endline (imprime (evalue !scope res)); 
               loop ()
     end
     with exn -> handleError exn; loop ()

@@ -1,6 +1,7 @@
 type expression = 
   | Variable of string
-  | Fonction of ((motif * expression) list) * environnement
+  | Fonction of ((motif * expression) list) * (environnement option)
+  | Primitive of string * (expression -> expression)
   | Application of expression * expression
   | Let of definition * expression option
   | Booleen of bool
