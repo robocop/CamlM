@@ -1,6 +1,6 @@
 type expression = 
   | Variable of string
-  | Fonction of ((motif * expression) list) * (environnement option)
+  | Fonction of fermeture
   | Primitive of string * (expression -> expression)
   | Application of expression * expression
   | Let of definition * expression option
@@ -13,6 +13,9 @@ type expression =
   | String of string
   | CSome of expression
 
+and fermeture = 
+      { def : (motif * expression) list; 
+	mutable environnement : environnement option }
 and environnement = (string * expression) list
 
 and motif = 

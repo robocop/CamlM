@@ -7,7 +7,7 @@
 
     let rec mkFun (cases, e) = match cases with
         | [] -> e
-        | x :: xs -> mkFun (xs, Fonction ([x, e], None))
+        | x :: xs -> mkFun (xs, Fonction {def = [x, e]; environnement =  None})
 
     let mkLet r (name, pats, exp) in_clause = 
         Let ( { recursive = r
@@ -29,7 +29,7 @@
         | x :: xs -> Motif_cons (x, mkMotifList xs)
 
 
-    let fn e = Fonction ((List.rev e), None)
+    let fn e = Fonction {def = List.rev e; environnement =  None}
 %}
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
