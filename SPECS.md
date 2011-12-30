@@ -101,6 +101,7 @@ To do
 - Ajout d'un typeur
 - Ajout des fonctions/constantes définie sans leur expression.
     Exemple : 
+```
     let def pi in  (* pi a le type num automatiquement *)
     let def function exp in (* exp a le type num -> num automatiquement *)
     let f x = \x * exp (x*x) in
@@ -110,6 +111,7 @@ To do
         | F "exp" . g -> true
         | f + g -> test f || test g
         | _ -> false
+```
 
 - Ajout d'un type num supportant les flottants, les entiers arbitrairement long
 - Ajout des listes de la forme : [1..n]
