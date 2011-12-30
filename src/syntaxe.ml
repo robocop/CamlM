@@ -30,8 +30,7 @@ and motif =
   | Motif_none
   | Motif_some of motif 
   | Motif_string of string
-  | FMotif_add of motif * motif
-  | FMotif_mult of motif * motif
+  | FMotif_op of string*motif * motif
   | FMotif_Id
   | FMotif_const of motif
 

@@ -185,8 +185,10 @@ case:
     | LPA case RPA { $2 }
     | LPA case COMMA case RPA { Motif_paire ($2, $4) }
     | CONST case { FMotif_const $2  }
-    | case PLUS case { FMotif_add ($1, $3) }
-    | case TIMES case  { FMotif_mult ($1, $3) }
+    | case PLUS case { FMotif_op ("+", $1, $3) }
+    | case TIMES case  { FMotif_op ("*", $1, $3) }
+    | case MINUS case  { FMotif_op ("-", $1, $3) }
+    | case DIV case  { FMotif_op ("/", $1, $3) }
     | ID             { FMotif_Id }
 
 

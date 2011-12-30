@@ -3,8 +3,6 @@ open Eval
 open Parser
 open Lexer
 open Lexing
-  
-let scope = ref []
 
 let parse f lexbuf =
   try
@@ -30,7 +28,10 @@ let prim2 nom codeur calcul decodeur =
 let populateBaseScope () =
   scope :=
     [("+", prim2 "+" code_nombre (+) decode_nombre);
-    ]
+     ("-", prim2 "-" code_nombre (-) decode_nombre);
+     ("*", prim2 "-" code_nombre ( * ) decode_nombre);
+     ("/", prim2 "-" code_nombre ( / ) decode_nombre);
+     ]
 
 let scan () = 
   let rec scan' n s = 

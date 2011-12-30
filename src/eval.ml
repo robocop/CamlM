@@ -1,9 +1,34 @@
 open Syntaxe
 exception Echec_filtrage
 exception Erreur of string;;
+let scope = ref []
 
 
+let decompose_op op = function
+  | Fonction {def = [Motif_variable v, expr]; environnement = env} ->
+    (match expr with
+      | Application (Application (Variable ope, e1), e2) when ope = op ->
+	let make e = Fonction {def = [Motif_variable v, e]; environnement = env } in
+	Some (make e1, make e2)
+      | _ -> None
+    )
+  | _ -> None
 
+let is_id = function
+  | Fonction {def = [Motif_variable v, expr]} ->
+    (match expr with
+        Variable v -> true
+      | _ -> false
+    )
+  | _ -> false
+
+let const = function
+  | Fonction {def = [Motif_variable v, expr]; environnement = env} ->
+    (match expr with
+      | Nombre n -> Some (Nombre n)
+      | _ -> None
+    )
+  | _ -> None
 
 let rec filtrage valeur motif = match valeur, motif with
   | (_, Motif_all) -> []
@@ -21,8 +46,22 @@ let rec filtrage valeur motif = match valeur, motif with
     filtrage v1 m1 @ filtrage v2 m2
   | (CNone, Motif_none) -> []
   | (CSome v, Motif_some m) -> filtrage v m
-  | _ -> raise Echec_filtrage
+  | (f, FMotif_const m) ->
+    (match const f with
+      | Some v -> filtrage v m
+      | None -> raise Echec_filtrage
+    )
+  | (f, FMotif_op(op, m1, m2)) ->
+    (match decompose_op op f with
+      | Some (f1, f2) ->
+	(filtrage f1 m1) @ (filtrage f2 m2)
+      | None -> raise Echec_filtrage
+      )
+  | (f, FMotif_Id) ->
+     if is_id f then []
+     else raise Echec_filtrage
 
+  | _ -> raise Echec_filtrage
 
 let rec evalue env expr = match expr with
   | Variable s ->
@@ -42,7 +81,10 @@ let rec evalue env expr = match expr with
   | Cons(e1, e2) -> Cons(evalue env e1, evalue env e2)
   | CSome e -> CSome (evalue env e)
   | Let(def, Some corps) ->
-    evalue (evalue_definition env def) corps
+    evalue (fst (evalue_definition env def)) corps
+  | Let(def, None) ->
+    let (scope', valeur) = evalue_definition !scope def
+    in scope := scope'; valeur
   | r -> r
 and evalue_application env list_de_cas argument = match list_de_cas with
   | [] -> raise (Erreur "echec du filtrage")
@@ -52,24 +94,19 @@ and evalue_application env list_de_cas argument = match list_de_cas with
       evalue env_etendu expr
     with
 	Echec_filtrage -> evalue_application env autres_cas argument
-
-
 and evalue_definition env_courant def =
   match def.recursive with
     | false ->
       let valeur = evalue env_courant def.expr
-      in (def.nom, valeur)::env_courant
+      in ((def.nom, valeur)::env_courant, valeur)
     | true ->
       match def.expr with
 	| Fonction ferm ->
 	  let fermeture = {def = ferm.def; environnement = None } in
 	  let env_etendu = (def.nom, Fonction fermeture)::env_courant in
 	  fermeture.environnement <- Some env_etendu;
-	  (* (env, Fonction fermeture) *) env_etendu
+	  (env_etendu, Fonction fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel") 
-
-
-
 
 let rec print_def def = 
   Printf.sprintf "let %s%s = %s" 
@@ -87,6 +124,7 @@ and imprime = function
   | Nil -> "[]"
   | Cons(e1, e2) ->
     imprime e1 ^ "::" ^imprime e2
+  | Application (Application (Variable op, e1), e2) when List.mem op ["+"; "*"; "-"; "/"] -> Printf.sprintf "(%s %s %s)" (imprime e1) op (imprime e2)
   | Application(f, e) ->
     "("^imprime f^") "^"("^imprime e^")" 
   | Fonction {def = def; environnement = _} -> 
@@ -102,4 +140,3 @@ and imprime = function
   | Let(def, Some expr) ->
     (print_def def) ^ " in " ^ imprime expr
   | Let(def, None) -> print_def def
-;;
