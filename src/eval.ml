@@ -66,8 +66,12 @@ let rec filtrage valeur motif = match valeur, motif with
 let rec evalue env expr = match expr with
   | Variable s ->
     begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
+
+  | Fonction {def = [Motif_variable v, expr]; environnement = None} ->
+    Fonction {def = (evalue_fonction env [Motif_variable v, expr]); environnement = Some env }
   | Fonction {def = def; environnement = None} -> 
      Fonction {def = def; environnement = Some env}
+    
   | Application(f, e) ->
     let eval_f = evalue env f in
     let eval_e = evalue env e in
@@ -107,6 +111,23 @@ and evalue_definition env_courant def =
 	  fermeture.environnement <- Some env_etendu;
 	  (env_etendu, Fonction fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel") 
+
+and evalue_fonction env list_cas = match list_cas with
+  | [Motif_variable x, expr] ->
+    let rec replace = function
+      | Application(expr1, expr2) ->
+	Application(replace expr1, replace expr2)
+      | Variable s when s <> x && not (List.mem s ["+"; "*"; "-"; "/"])->
+	evalue env (Variable s)
+      | Paire(e1, e2) -> Paire(replace e1, replace e2)
+      | Cons(e1, e2) -> Cons(replace e1, replace e2)
+      | CSome e -> CSome (replace e)
+      | rest -> rest
+    in
+    [Motif_variable x, replace expr]
+  | _ -> list_cas
+
+
 
 let rec print_def def = 
   Printf.sprintf "let %s%s = %s" 

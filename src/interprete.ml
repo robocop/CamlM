@@ -29,8 +29,8 @@ let populateBaseScope () =
   scope :=
     [("+", prim2 "+" code_nombre (+) decode_nombre);
      ("-", prim2 "-" code_nombre (-) decode_nombre);
-     ("*", prim2 "-" code_nombre ( * ) decode_nombre);
-     ("/", prim2 "-" code_nombre ( / ) decode_nombre);
+     ("*", prim2 "*" code_nombre ( * ) decode_nombre);
+     ("/", prim2 "/" code_nombre ( / ) decode_nombre);
      ]
 
 let scan () = 
