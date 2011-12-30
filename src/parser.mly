@@ -7,7 +7,7 @@
 
     let rec mkFun (cases, e) = match cases with
         | [] -> e
-        | x :: xs -> mkFun (xs, Fonction [x, e])
+        | x :: xs -> mkFun (xs, Fonction ([x, e], []))
 
     let mkLet r (name, pats, exp) in_clause = 
         Let ( { recursive = r

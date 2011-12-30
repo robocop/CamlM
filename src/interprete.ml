@@ -1,53 +1,9 @@
 open Syntaxe
-open Valeur
 open Eval
 open Parser
 open Lexer
 open Lexing
 
-let id x = x;;
-let code_nombre n = Val_nombre n;;
-let code_bool b = Val_booleenne b;;
-let code_string s = Val_string s;;
-let decode_nombre = function 
-    Val_nombre n -> n 
-  | _ -> raise (Erreur "Entier attendu");;
-let decode_bool = function 
-    Val_booleenne b -> b 
-  | _ -> raise (Erreur "Bool attendu");;
-let decode_string = function
-  | Val_string s -> s
-  | _ -> raise (Erreur "String attendu");;
-let parse f lexbuf =
-  try 
-    f Lexer.token lexbuf
-  with _ ->
-    let p = Lexing.lexeme_start_p lexbuf in
-    let tok = Lexing.lexeme lexbuf in
-      raise (ParseError (p, tok))
-
-let prim2 codeur calcul decodeur = 
-  Val_primitive (fun x -> 
-    Val_primitive (fun y-> codeur (calcul (decodeur x) (decodeur y)))
-  )
-;;
-
-let populateBaseScope () = 
-  scope := 
-    [("+", prim2 code_nombre (+) decode_nombre); 
-     ("*", prim2 code_nombre ( * ) decode_nombre);
-     ("-", prim2 code_nombre (-) decode_nombre);
-     ("==", prim2 code_bool (=) id);
-     ("!=", prim2 code_bool (<>) id);
-     (">=", prim2 code_bool (>=) id);
-     ("<=", prim2 code_bool (<=) id);
-     ("<", prim2 code_bool (<) id);
-     (">", prim2 code_bool (>) id);
-     ("&&", prim2 code_bool (&&) decode_bool);
-     ("||", prim2 code_bool (||) decode_bool);
-     ("++", prim2 code_string ( ^ ) decode_string);
-     ("not", Val_primitive (fun x -> code_bool (not (decode_bool x))))
-    ]
   
 let scan () = 
   let rec scan' n s = 
@@ -80,7 +36,7 @@ let handleError = function
 let rec doEval fname = function
   | [] -> print_endline (fname ^ " loaded.\n")
   | x :: xs -> 
-      print_endline (imprime_valeur (evalue !scope x)); 
+      print_endline (imprime( (* evalue !scope *) x)); 
       doEval fname xs
 
 

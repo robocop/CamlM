@@ -28,17 +28,26 @@ let rec decsum = function
   | f -> [f]
 ;;
 
-let rec get_const l = function
-   [] -> ([], l)
-  | (Const x)::fs -> 
-    (match get_const l fs with (cst, fs) -> (x::cst, fs))
-  | f::fs -> get_const (f::l) fs
+let get_const l = 
+  let rec get l = function
+      [] -> ([], l)
+    | (Const x)::fs -> 
+      (match get l fs with (cst, fs) -> (x::cst, fs))
+    | f::fs -> get (f::l) fs
+  in
+  match get [] l with
+      ([_], _) -> None
+    | c -> Some c 
 ;;
-get_const [] (decsum (\x -> 5*x+1+x+3));; 
+get_const  (decsum (\x -> 5*x+x+3));; 
      
-decsum (\x -> 5*x+3*x+4+3);;
+let rec fold_left f x0 = function
+   [] -> x0
+  | x::xs ->
+    fold_left f (f x0 x) xs
+;;
+let sum l = fold_left (\x y -> x+y) 0 l;;
 
-compare_expr (\x -> 5*x+3) (\x -> 5*x+3);;
 
 let simplify f = 
   let rec simpl = function
@@ -52,8 +61,13 @@ let simplify f =
     | (Const 0) +f -> (f, true)
     | f + g when compare_expr f g -> (\x -> 2*(f x), true)
     | f+g -> 
-      (match (simpl f, simpl g) with
-	  ((f, a), (g, b)) -> ((\x -> f x + g x), a||b)
+      (match get_const (decsum (\x -> f x + g x)) with
+	| Some(l, fs) ->
+	  
+	| None ->
+	  (match (simpl f, simpl g) with
+	      ((f, a), (g, b)) -> ((\x -> f x + g x), a||b)
+	  )
       )
     | f*g -> 
       (match (simpl f, simpl g) with

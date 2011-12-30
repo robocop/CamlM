@@ -1,6 +1,6 @@
 type expression = 
   | Variable of string
-  | Fonction of (motif * expression) list
+  | Fonction of ((motif * expression) list) * environnement
   | Application of expression * expression
   | Let of definition * expression option
   | Booleen of bool
@@ -8,14 +8,11 @@ type expression =
   | Paire of expression * expression
   | Nil
   | Cons of expression * expression
-  | ListComp of expression * (string * expression) list
   | CNone  
   | String of string
   | CSome of expression
-  
-and lists =
-  | List of expression list
-  | Comprehension of expression * (string * expression) list
+
+and environnement = string * expression list
 
 and motif = 
   | Motif_all
