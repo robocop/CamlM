@@ -67,8 +67,11 @@ let rec evalue env expr = match expr with
   | Variable s ->
     begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
 
-  | Fonction {def = [Motif_variable v, expr]; environnement = None} ->
-    Fonction {def = (evalue_fonction env [Motif_variable v, expr]); environnement = Some env }
+  | Fonction {def = [Motif_variable v, expr]; environnement = None}->
+    let f = Fonction {def = [Motif_variable v, expr]; environnement = Some env} in
+    Fonction {def = [Motif_variable v, applique f (Variable v)]; environnement = Some env }
+
+
   | Fonction {def = def; environnement = None} -> 
      Fonction {def = def; environnement = Some env}
     
@@ -112,20 +115,21 @@ and evalue_definition env_courant def =
 	  (env_etendu, Fonction fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel") 
 
-and evalue_fonction env list_cas = match list_cas with
-  | [Motif_variable x, expr] ->
-    let rec replace = function
-      | Application(expr1, expr2) ->
-	Application(replace expr1, replace expr2)
-      | Variable s when s <> x && not (List.mem s ["+"; "*"; "-"; "/"])->
-	evalue env (Variable s)
-      | Paire(e1, e2) -> Paire(replace e1, replace e2)
-      | Cons(e1, e2) -> Cons(replace e1, replace e2)
-      | CSome e -> CSome (replace e)
+and applique fonction arg = match fonction with
+  | Fonction {def = [Motif_variable x, expr]; environnement = Some env} ->
+    let rec remplace = function
+      | Variable s when s = x -> arg
+      | Application (e1, e2) ->
+	applique e1 (remplace e2)
+      | Paire(e1, e2) -> Paire(remplace e1, remplace e2)
+      | Cons(e1, e2) -> Cons(remplace e1, remplace e2)
+      | CSome e -> CSome (remplace e)
       | rest -> rest
     in
-    [Motif_variable x, replace expr]
-  | _ -> list_cas
+    remplace expr
+  | _ -> Application(fonction, arg)
+
+
 
 
 
