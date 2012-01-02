@@ -9,6 +9,8 @@ let rec deriv = function
     \x -> df x * g x + dg x * f x
 ;;
 
+deriv (\x -> 5*x+1);;
+
 let rec compare_expr f g = match (f, g) with
    (Const a, Const b) -> a == b
   | (Id, Id) -> true
@@ -89,16 +91,9 @@ let simplify f =
     | (Const 0) +f -> (f, true)
     | f + g when compare_expr f g -> (\x -> 2*(f x), true)
     | f+g -> 
-      (match get_const (decsum fonction) with
-	 Some(l, []) ->
-	  (\x -> sum l, false)
-	| Some(l, f::fs) ->
-	  (\x -> (sum l) + (fold_left (\f g -> (\x -> f x + g x)) f fs) x, false)
-	| None ->
-	  (match (simpl f, simpl g) with
+     (match (simpl f, simpl g) with
 	      ((f, a), (g, b)) -> ((\x -> f x + g x), a||b)
-	  )
-      )
+     )
     | f*g -> 
       (match (simpl f, simpl g) with
 	  ((f, a), (g, b)) -> ((\x -> f x * g x), a||b)

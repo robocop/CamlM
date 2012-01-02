@@ -3,6 +3,67 @@ exception Echec_filtrage
 exception Erreur of string;;
 let scope = ref []
 
+module StringSet = Set.Make(String) ;;  
+
+let next str = 
+  let nstr = String.copy str in 
+  match str.[String.length str - 1] with
+    | 'z' -> nstr.[String.length str - 1] <- 'a'; nstr ^ "a"
+    | c -> nstr.[String.length str - 1] <- Char.chr (Char.code c + 1);
+      nstr
+;;
+let rec new_variable l v = 
+  let v' = next v in
+  if not (List.mem v' l) then v'
+  else new_variable l v'
+;;
+let rec free_bounds = function
+  | Variable x -> StringSet.singleton x
+  | Fonction {def = [Motif_variable x, m]} ->
+    StringSet.diff (free_bounds m) (StringSet.singleton x)
+  | Application(m, n) ->
+    StringSet.union (free_bounds m) (free_bounds n)
+  | _ -> StringSet.empty
+
+let rec remplacement fv env = function
+  | Variable x when StringSet.mem x fv && not (List.mem x ["+"; "*"; "-"; "/"])  ->
+     begin try List.assoc x env with _ -> raise (Erreur (x ^ " non connu")) end
+  | Variable x -> Variable x
+  | Application(m, n) ->
+    Application(remplacement fv env m, remplacement fv env n)
+  | rest -> rest
+
+let rec remplace f = match f with
+  | Fonction {def = [Motif_variable v, e]; environnement = Some env} ->
+    let e' = remplacement (free_bounds f) env e in
+    Fonction {def = [Motif_variable v, e']; environnement = Some env} 
+  | _ -> f
+;;
+
+let rec substitution expr arg x = match expr with
+  | Variable v when v = x -> arg
+  | Variable y when y <> x -> Variable y
+  | Fonction {def = [Motif_variable v, e]; environnement = env} when v = x->
+    Fonction {def = [Motif_variable v, e]; environnement = env}
+  | Fonction {def = [Motif_variable y, e]; environnement = env} when y <> x ->
+    let z = "z" in
+    let e1 = substitution e (Variable z) y in
+    let e2 = substitution e1 arg x in
+    Fonction {def = [Motif_variable z, e2]; environnement = env}
+  | Application(n1, n2) ->
+    Application(substitution n1 arg x, substitution n2 arg x)
+  | rest -> rest
+
+
+let rec normal_order_reduct = function
+  | Application
+      (Fonction {def = [Motif_variable x, m]}, n) ->
+    normal_order_reduct (substitution m n x)
+  | Fonction {def = [Motif_variable x, m]; environnement = env} ->
+    Fonction {def = [Motif_variable x, normal_order_reduct m]; environnement = env}
+  | Application(m, n) ->
+    Application(normal_order_reduct m, normal_order_reduct n)
+  | rest -> rest
 
 let decompose_op op = function
   | Fonction {def = [Motif_variable v, expr]; environnement = env} ->
@@ -69,8 +130,7 @@ let rec evalue env expr = match expr with
 
   | Fonction {def = [Motif_variable v, expr]; environnement = None}->
     let f = Fonction {def = [Motif_variable v, expr]; environnement = Some env} in
-    Fonction {def = [Motif_variable v, applique f (Variable v)]; environnement = Some env }
-
+    normal_order_reduct (remplace f)
 
   | Fonction {def = def; environnement = None} -> 
      Fonction {def = def; environnement = Some env}
@@ -114,22 +174,6 @@ and evalue_definition env_courant def =
 	  fermeture.environnement <- Some env_etendu;
 	  (env_etendu, Fonction fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel") 
-
-and applique fonction arg = match fonction with
-  | Fonction {def = [Motif_variable x, expr]; environnement = Some env} ->
-    let rec remplace = function
-      | Variable s when s = x -> arg
-      | Application (e1, e2) ->
-	applique e1 (remplace e2)
-      | Paire(e1, e2) -> Paire(remplace e1, remplace e2)
-      | Cons(e1, e2) -> Cons(remplace e1, remplace e2)
-      | CSome e -> CSome (remplace e)
-      | rest -> rest
-    in
-    remplace expr
-  | _ -> Application(fonction, arg)
-
-
 
 
 
