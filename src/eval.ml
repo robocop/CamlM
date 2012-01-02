@@ -5,40 +5,62 @@ let scope = ref []
 
 module StringSet = Set.Make(String) ;;  
 
+let rec print_list = function
+  | [] -> print_string "[]"
+  | x::xs -> print_string (x^"::"); print_list xs
+;;
 let next str = 
   let nstr = String.copy str in 
   match str.[String.length str - 1] with
     | 'z' -> nstr.[String.length str - 1] <- 'a'; nstr ^ "a"
     | c -> nstr.[String.length str - 1] <- Char.chr (Char.code c + 1);
       nstr
+
+let rec new_variable set v = 
+   if not (StringSet.mem v set) then v
+   else new_variable set (next v)
 ;;
-let rec new_variable l v = 
-  let v' = next v in
-  if not (List.mem v' l) then v'
-  else new_variable l v'
-;;
+
+
+let rec get_var_motif = function
+  | Motif_when (e, m) -> get_var_motif m
+  | Motif_variable v -> StringSet.singleton v
+  | Motif_paire (m1, m2) -> StringSet.union (get_var_motif m1) (get_var_motif m2)
+  | Motif_cons (m1, m2) ->  StringSet.union (get_var_motif m1) (get_var_motif m2)
+  | Motif_some m-> get_var_motif m
+  | FMotif_op (_, m1, m2) ->
+    StringSet.union (get_var_motif m1) (get_var_motif m2)
+  | FMotif_const m -> get_var_motif m
+  | _ -> StringSet.empty
+
+
 let rec free_bounds = function
   | Variable x -> StringSet.singleton x
-  | Fonction {def = [Motif_variable x, m]} ->
-    StringSet.diff (free_bounds m) (StringSet.singleton x)
+  | Fonction {def = def} ->
+    let a, b = List.fold_left 
+      (fun (l1, l2) (m, e) -> 
+	(StringSet.union l1 (free_bounds e), StringSet.union l2 (get_var_motif m)) 
+      ) (StringSet.empty, StringSet.empty) def
+    in
+    StringSet.diff a b
   | Application(m, n) ->
     StringSet.union (free_bounds m) (free_bounds n)
   | _ -> StringSet.empty
 
+
+
 let rec remplacement fv env = function
   | Variable x when StringSet.mem x fv && not (List.mem x ["+"; "*"; "-"; "/"])  ->
-     begin try List.assoc x env with _ -> raise (Erreur (x ^ " non connu")) end
+         begin try List.assoc x env with _ -> raise (Erreur (x ^ " non connu")) end
   | Variable x -> Variable x
   | Application(m, n) ->
     Application(remplacement fv env m, remplacement fv env n)
+  | Fonction {def = def; environnement = e} ->
+     let def' = List.map (fun (m, e) -> (m, remplacement fv env e)) def in
+      Fonction {def = def'; environnement = e} 
   | rest -> rest
 
-let rec remplace f = match f with
-  | Fonction {def = [Motif_variable v, e]; environnement = Some env} ->
-    let e' = remplacement (free_bounds f) env e in
-    Fonction {def = [Motif_variable v, e']; environnement = Some env} 
-  | _ -> f
-;;
+let replace env f = remplacement (free_bounds f) env f
 
 let rec substitution expr arg x = match expr with
   | Variable v when v = x -> arg
@@ -46,7 +68,8 @@ let rec substitution expr arg x = match expr with
   | Fonction {def = [Motif_variable v, e]; environnement = env} when v = x->
     Fonction {def = [Motif_variable v, e]; environnement = env}
   | Fonction {def = [Motif_variable y, e]; environnement = env} when y <> x ->
-    let z = "z" in
+    let ens = StringSet.union (StringSet.union (free_bounds arg) (free_bounds e)) (StringSet.singleton x) in
+    let z = new_variable ens "a" in
     let e1 = substitution e (Variable z) y in
     let e2 = substitution e1 arg x in
     Fonction {def = [Motif_variable z, e2]; environnement = env}
@@ -130,7 +153,7 @@ let rec evalue env expr = match expr with
 
   | Fonction {def = [Motif_variable v, expr]; environnement = None}->
     let f = Fonction {def = [Motif_variable v, expr]; environnement = Some env} in
-    normal_order_reduct (remplace f)
+    normal_order_reduct (replace env f)
 
   | Fonction {def = def; environnement = None} -> 
      Fonction {def = def; environnement = Some env}
@@ -182,6 +205,25 @@ let rec print_def def =
     (if def.recursive then "rec " else "") 
     def.nom 
     (imprime def.expr)
+and print_motif = function
+  | Motif_all -> "_"
+  | Motif_variable s -> s
+  | Motif_booleen b -> Printf.sprintf "%b" b;
+  | Motif_nombre n -> string_of_int n
+  | Motif_paire (e1, e2) -> Printf.sprintf "(%s,%s)" (print_motif e1) (print_motif e2)
+  | Motif_nil -> "[]"
+  | Motif_cons (e1, e2) -> Printf.sprintf "%s::%s" (print_motif e1) (print_motif e2) 
+  | Motif_none -> "None"
+  | Motif_some m -> Printf.sprintf "Some %s" (print_motif m)
+  | Motif_string s -> Printf.sprintf "\"%s\"" s
+  | FMotif_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (print_motif m1) op (print_motif m2)
+  | FMotif_Id -> "Id"
+  | FMotif_const m -> Printf.sprintf "Const %s" (print_motif m)
+
+and print_fonction def = 
+  "fonction\n"^
+  (String.concat "| " (List.map (fun (m, e) -> Printf.sprintf "%s -> %s\n" (print_motif m) (imprime e)) def))
+
 and imprime = function
   | Variable v -> v
   | Nombre n -> string_of_int n
@@ -201,7 +243,7 @@ and imprime = function
       match def with
 	| [Motif_variable v, expr] ->
 	   Printf.sprintf "\\%s -> %s" v  (imprime expr)
-	| _ -> "<fun>"
+	| _ -> print_fonction def
     end
   | Primitive (s, _) -> s
   | CNone -> "None"
