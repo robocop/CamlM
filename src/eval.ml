@@ -37,34 +37,48 @@ let rec get_var_motif = function
 let rec free_bounds = function
   | Variable x -> StringSet.singleton x
   | Fonction {def = def} ->
+    StringSet.empty
+      (*
     let a, b = List.fold_left 
       (fun (l1, l2) (m, e) -> 
 	(StringSet.union l1 (free_bounds e), StringSet.union l2 (get_var_motif m)) 
       ) (StringSet.empty, StringSet.empty) def
     in
+      
     StringSet.diff a b
+      *)
   | Application(m, n) ->
     StringSet.union (free_bounds m) (free_bounds n)
   | _ -> StringSet.empty
 
 
 
-let rec remplacement fv env = function
+let rec remplacement fv lv env = function
   | Variable x when StringSet.mem x fv && not (List.mem x ["+"; "*"; "-"; "/"])  ->
          begin try List.assoc x env with _ -> raise (Erreur (x ^ " non connu")) end
   | Variable x -> Variable x
   | Application(m, n) ->
-    Application(remplacement fv env m, remplacement fv env n)
+    Application(remplacement fv lv env m, remplacement fv lv env n)
   | Fonction {def = def; environnement = e} ->
-     let def' = List.map (fun (m, e) -> (m, remplacement fv env e)) def in
-      Fonction {def = def'; environnement = e} 
+    let replace_def d = List.map 
+      (fun (m, e) -> 
+	let variables = get_var_motif m in
+	let lv' = StringSet.union lv variables in
+	let fv' = StringSet.diff (free_bounds e) lv' in
+	(m, remplacement fv' lv' env e)
+      ) d
+    in
+      Fonction {def = replace_def def; environnement = e} 
   | rest -> rest
+;;
+let replace env f = remplacement (free_bounds f) (StringSet.empty) env f
 
-let replace env f = remplacement (free_bounds f) env f
-
+(*
 let rec substitution expr arg x = match expr with
   | Variable v when v = x -> arg
   | Variable y when y <> x -> Variable y
+  | Fonction {def = def; environnement = env} ->
+    
   | Fonction {def = [Motif_variable v, e]; environnement = env} when v = x->
     Fonction {def = [Motif_variable v, e]; environnement = env}
   | Fonction {def = [Motif_variable y, e]; environnement = env} when y <> x ->
@@ -88,6 +102,7 @@ let rec normal_order_reduct = function
     Application(normal_order_reduct m, normal_order_reduct n)
   | rest -> rest
 
+*)
 let decompose_op op = function
   | Fonction {def = [Motif_variable v, expr]; environnement = env} ->
     (match expr with
@@ -153,7 +168,7 @@ let rec evalue env expr = match expr with
 
   | Fonction {def = [Motif_variable v, expr]; environnement = None}->
     let f = Fonction {def = [Motif_variable v, expr]; environnement = Some env} in
-    normal_order_reduct (replace env f)
+    (*normal_order_reduct *)(replace env f)
 
   | Fonction {def = def; environnement = None} -> 
      Fonction {def = def; environnement = Some env}
