@@ -54,7 +54,8 @@ let rec free_bounds = function
 
 let rec is_simple_value = function
   | Fonction {def = [Motif_variable _, expr]} -> is_simple_value expr
-  | Nombre _ | Booleen _ | Nil | CNone | String _ -> true
+  | Nombre _ | Booleen _ | Nil | CNone | String _ | Variable _ -> true
+  | Application(_, _) -> true
   | Paire(a, b) | Cons(a, b) -> 
     is_simple_value a && is_simple_value b
   | CSome e -> is_simple_value e
@@ -62,12 +63,12 @@ let rec is_simple_value = function
 
 
 let rec remplacement fv lv env = function
-  | Variable x when StringSet.mem x fv && not (List.mem x ["+"; "*"; "-"; "/"])  ->
+  | Variable x when StringSet.mem x fv  ->
          begin 
 	   try 
 	     let v = List.assoc x env in
-	     if is_simple_value v then (print_endline x; v)
-	     else Variable x
+	     if is_simple_value v then (remplacement fv lv env v)
+	     else (print_endline (x^" pas remplace"); Variable x)
 	   with _ -> raise (Erreur (x ^ " non connu")) 
 	 end
   | Variable x -> Variable x

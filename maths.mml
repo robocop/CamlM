@@ -9,7 +9,7 @@ let rec deriv = function
     \x -> df x * g x + dg x * f x
 ;;
 
-deriv (\x -> 5*x+1);;
+deriv (\x -> x*x);;
 
 let rec compare_expr f g = match (f, g) with
    (Const a, Const b) -> a == b
