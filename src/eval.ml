@@ -36,17 +36,7 @@ let rec get_var_motif = function
 
 let rec free_bounds = function
   | Variable x -> StringSet.singleton x
-  | Fonction {def = def} ->
-    StringSet.empty
-      (*
-    let a, b = List.fold_left 
-      (fun (l1, l2) (m, e) -> 
-	(StringSet.union l1 (free_bounds e), StringSet.union l2 (get_var_motif m)) 
-      ) (StringSet.empty, StringSet.empty) def
-    in
-      
-    StringSet.diff a b
-      *)
+  | Fonction {def = def} -> StringSet.empty
   | Application(m, n) ->
     StringSet.union (free_bounds m) (free_bounds n)
   | _ -> StringSet.empty
@@ -68,7 +58,7 @@ let rec remplacement fv lv env = function
 	   try 
 	     let v = List.assoc x env in
 	     if is_simple_value v then (remplacement fv lv env v)
-	     else (print_endline (x^" pas remplace"); Variable x)
+	     else Variable x
 	   with _ -> raise (Erreur (x ^ " non connu")) 
 	 end
   | Variable x -> Variable x
@@ -88,17 +78,15 @@ let rec remplacement fv lv env = function
 ;;
 let replace env f = remplacement (free_bounds f) (StringSet.empty) env f
 
-(*
+
 let rec substitution expr arg x = match expr with
   | Variable v when v = x -> arg
   | Variable y when y <> x -> Variable y
-  | Fonction {def = def; environnement = env} ->
-    
   | Fonction {def = [Motif_variable v, e]; environnement = env} when v = x->
     Fonction {def = [Motif_variable v, e]; environnement = env}
   | Fonction {def = [Motif_variable y, e]; environnement = env} when y <> x ->
     let ens = StringSet.union (StringSet.union (free_bounds arg) (free_bounds e)) (StringSet.singleton x) in
-    let z = new_variable ens "a" in
+    let z = new_variable ens y in
     let e1 = substitution e (Variable z) y in
     let e2 = substitution e1 arg x in
     Fonction {def = [Motif_variable z, e2]; environnement = env}
@@ -117,7 +105,7 @@ let rec normal_order_reduct = function
     Application(normal_order_reduct m, normal_order_reduct n)
   | rest -> rest
 
-*)
+    
 let decompose_op op = function
   | Fonction {def = [Motif_variable v, expr]; environnement = env} ->
     (match expr with
@@ -183,7 +171,7 @@ let rec evalue env expr = match expr with
 
   | Fonction {def = [Motif_variable v, expr]; environnement = None}->
     let f = Fonction {def = [Motif_variable v, expr]; environnement = Some env} in
-    (*normal_order_reduct *)(replace env f)
+    normal_order_reduct (replace env f)
 
   | Fonction {def = def; environnement = None} -> 
      Fonction {def = def; environnement = Some env}
@@ -192,7 +180,7 @@ let rec evalue env expr = match expr with
     let eval_f = evalue env f in
     let eval_e = evalue env e in
     begin match eval_f with
-      | Primitive(n, f) -> f eval_e
+      | Primitive f -> f eval_e
       | Fonction {def = def; environnement = Some env_f} -> 
 	evalue_application env_f def eval_e
       | _ -> raise (Erreur "application d'une valeur non fonctionelle")
@@ -275,7 +263,6 @@ and imprime = function
 	   Printf.sprintf "\\%s -> %s" v  (imprime expr)
 	| _ -> print_fonction def
     end
-  | Primitive (s, _) -> s
   | CNone -> "None"
   | CSome e -> Printf.sprintf "Some %s" (imprime e) 
   | Let(def, Some expr) ->

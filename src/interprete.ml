@@ -12,25 +12,45 @@ let parse f lexbuf =
     let tok = Lexing.lexeme lexbuf in
       raise (ParseError (p, tok))
 
+let id x = x;;
 let code_nombre n = Nombre n;;
+let code_bool b = Booleen b;;
+let code_string s = String s;;
 let decode_nombre = function
     Nombre n -> n
   | _ -> raise (Erreur "Entier attendu");;
+let decode_bool = function
+    Booleen b -> b
+  | _ -> raise (Erreur "Bool attendu");;
+let decode_string = function
+  | String s -> s
+  | _ -> raise (Erreur "String attendu");;
 
-let prim2 nom codeur calcul decodeur =
-  Primitive (nom, (fun x ->
-    Primitive (nom, (fun y-> codeur (calcul (decodeur x) (decodeur y))))
-  ))
+
+let prim2 codeur calcul decodeur =
+  Primitive (fun x ->
+    Primitive (fun y-> codeur (calcul (decodeur x) (decodeur y)))
+  )
 ;;
 
 
 
 let populateBaseScope () =
   scope :=
-    [("+", prim2 "+" code_nombre (+) decode_nombre);
-     ("-", prim2 "-" code_nombre (-) decode_nombre);
-     ("*", prim2 "*" code_nombre ( * ) decode_nombre);
-     ("/", prim2 "/" code_nombre ( / ) decode_nombre);
+    [("+", prim2 code_nombre (+) decode_nombre);
+     ("-", prim2 code_nombre (-) decode_nombre);
+     ("*", prim2 code_nombre ( * ) decode_nombre);
+     ("/", prim2 code_nombre ( / ) decode_nombre);
+     ("==", prim2 code_bool (=) id);
+     ("!=", prim2 code_bool (<>) id);
+     (">=", prim2 code_bool (>=) id);
+     ("<=", prim2 code_bool (<=) id);
+     ("<", prim2 code_bool (<) id);
+     (">", prim2 code_bool (>) id);
+     ("&&", prim2 code_bool (&&) decode_bool);
+     ("||", prim2 code_bool (||) decode_bool);
+     ("++", prim2 code_string ( ^ ) decode_string);
+     ("not", Primitive (fun x -> code_bool (not (decode_bool x))))
      ]
 
 let scan () = 

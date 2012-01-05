@@ -1,0 +1,16 @@
+let rec fac = function
+    0 -> 1
+  | n -> n*fac(n-1)
+;;
+fac 5;;
+let rec concat l m = match l with
+   [] -> m
+  | x::xs -> x :: (concat xs m)
+;;
+concat [1;2] [2; 3];;
+let rec fold_left f x0 = function
+    [] -> x0
+  | x::xs -> fold_left f (f x0 x) xs
+;;
+let sum s = fold_left (\x y -> x+y) 0 s;;
+sum [1; 2; 3];;

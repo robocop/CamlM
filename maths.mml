@@ -4,12 +4,18 @@ let rec deriv = function
   | f+g -> 
     let df = deriv f in let dg = deriv g in
     \x -> df x + dg x
+  | f-g -> 
+    let df = deriv f in let dg = deriv g in
+    \x -> df x - dg x
   | f*g -> 
     let df = deriv f in let dg = deriv g in
     \x -> df x * g x + dg x * f x
+  | f / g -> 
+    let df = deriv f in let dg = deriv g in
+    \x -> (df x * g x - dg x * f x)/(g x * g x)
 ;;
 
-deriv (\x -> x*x);;
+
 
 let rec compare_expr f g = match (f, g) with
    (Const a, Const b) -> a == b
@@ -29,24 +35,15 @@ let rec fold_left f x0 = function
     [] -> x0
   | x::xs -> fold_left f (f x0 x) xs
 ;;
-let l = [1;2;3];;
-fold_left (\x y -> x+y) 0 l;;
-
-let f a x = a+x;;
-f 1;;
-\x -> (f 1) x ;;
-let g x = f 1 x;;
-g 1;;
-let sum lol = fold_left (\x y -> x+y) 0 lol;;
-
-sum [1;2;3];;
-
-
-
-
+let sum l = fold_left (\x y -> x+y) 0 l;;
+let prod l = fold_left (\x y -> x*y) 1 l;;
 
 let rec decsum = function
    f+g -> concat (decsum f) (decsum g)
+  | f -> [f]
+;;
+let rec decprod = function
+   f*g -> concat (decprod f) (decprod g)
   | f -> [f]
 ;;
 
@@ -58,27 +55,32 @@ let simpl_sum_const fonction =
     | f::fs -> get (f::l) fs
   in
   (match get [] (decsum fonction) with
-      ([_], _) -> fonction
-    | ([], _) -> fonction
-    | (cs, []) -> 
-      let s = sum cs in
-      (\x -> s)
-    | (cs, g::gs) -> 
-      let fsum = \x -> 0 in
-      let s = sum cs in
-      \x -> s + fsum x)
+      ([_], _) -> None
+    | ([], _) -> None
+    | (cs, []) -> Some (sum cs, None)
+    | (cs, f::fs) -> 
+      let sumf = fold_left (\fs f -> (\x -> fs x + f x)) f fs in 
+      let s = sum cs in Some (s, Some sumf)
+  )
+;;
+let simpl_prod_const fonction = 
+  let rec get l = function
+      [] -> ([], l)
+    | (Const x)::fs -> 
+      (match get l fs with (cst, fs) -> (x::cst, fs))
+    | f::fs -> get (f::l) fs
+  in
+  (match get [] (decprod fonction) with
+      ([_], _) -> None
+    | ([], _) -> None
+    | (cs, []) -> Some (prod cs, None)
+    | (cs, f::fs) -> 
+      let prodf = fold_left (\fs f -> (\x -> fs x * f x)) f fs in 
+      let s = prod cs in Some (s, Some prodf)
+  )
 ;;
 
-simpl_sum_const (\x -> 1+1);;
 
-
-match get_const  (decsum (\x -> 4+5*x+x+1)) with
-  Some(_, f::fs) ->  fold_left (\f g -> \x -> f x + g x) f fs;;
-
-     
-
-
-fold_left (\f g -> f x + g x) f fs;;
 let simplify f = 
   let rec simpl fonction = match fonction with
       (Const a) + (Const b) -> let r = a+b in (\x -> r, true)
@@ -86,18 +88,38 @@ let simplify f =
     | (Const 1) * g -> (g, true)
     | g * (Const 1) -> (g, true)
     | (Const 0) * f -> (\x -> 0, true)
-    | Id + Id -> \x -> (2*x, true)
+    | Id + Id -> (\x -> 2*x, true)
+    | Id - Id -> (\x -> 0, true)
     | f + (Const 0) -> (f, true)
     | (Const 0) +f -> (f, true)
-    | f + g when compare_expr f g -> (\x -> 2*(f x), true)
     | f+g -> 
-     (match (simpl f, simpl g) with
+      (match simpl_sum_const fonction with
+	  Some(c, Some f) -> ((\x -> f x + c), true)
+	| Some(c, None) -> (\x -> c, true)
+	| None -> 
+	  (match (simpl f, simpl g) with
 	      ((f, a), (g, b)) -> ((\x -> f x + g x), a||b)
-     )
-    | f*g -> 
-      (match (simpl f, simpl g) with
-	  ((f, a), (g, b)) -> ((\x -> f x * g x), a||b)
+	  )
       )
+    | f*g -> 
+      (match simpl_prod_const fonction with
+	  Some(c, Some f) -> ((\x -> c * f x), true)
+	| Some(c, None) -> (\x -> c, true)
+	| None -> 
+	  (match (simpl f, simpl g) with
+	      ((f, a), (g, b)) -> ((\x -> f x * g x), a||b)
+	  )
+      )
+    | (Const 0) / _ -> (\x -> 0, true)
+    | f / g -> 
+       (match (simpl f, simpl g) with
+	      ((f, a), (g, b)) -> ((\x -> f x / g x), a||b)
+       )
+    | f - Const 0 -> (f, true)
+    | f - g -> 
+       (match (simpl f, simpl g) with
+	      ((f, a), (g, b)) -> ((\x -> f x - g x), a||b)
+       )
     | f -> (f, false)
   in
   let rec test f= match simpl f with
@@ -107,8 +129,11 @@ let simplify f =
 ;;
 
 
-simplify (\x -> x+1+3);;
+
+simplify (\x -> 5*x*4);;
 simplify (\x -> 1+x+1);;
 let fst = function (x, _) -> x;;
 simplify (\x -> 1*x+(1+3)+1);;
-simplify (deriv (\x -> 5*x*x+2*x+1));;
+let f = simplify (deriv (\x -> 1/x));;
+simplify (deriv f);;
+(-1);;

@@ -1,7 +1,7 @@
 type expression = 
   | Variable of string
   | Fonction of fermeture
-  | Primitive of string * (expression -> expression)
+  | Primitive of (expression -> expression)
   | Application of expression * expression
   | Let of definition * expression option
   | Booleen of bool
