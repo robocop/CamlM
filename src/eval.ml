@@ -57,7 +57,7 @@ let rec remplacement fv lv env = function
          begin 
 	   try 
 	     let v = List.assoc x env in
-	     if is_simple_value v then (remplacement fv lv env v)
+	     if is_simple_value v then (v (*remplacement fv lv env v *))
 	     else Variable x
 	   with _ -> raise (Erreur (x ^ " non connu")) 
 	 end
