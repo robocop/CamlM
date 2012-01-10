@@ -56,6 +56,7 @@
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
+%nonassoc PRE_MINUS
 %nonassoc SOME BNOT CONST ID
 %left funapp
 
@@ -104,7 +105,7 @@ expr:
 %inline op:
     PLUS   { cons_op "+" }
   | CONCAT { cons_op "++" }
-  | MINUS  { cons_op "-" }
+  | MINUS  { fun x y -> cons_op "+" x (Application (Variable "-", y)) }
   | TIMES  { cons_op "*" }
   | DIV    { cons_op "/" }
   | CONS   { fun x y -> Cons (x, y) }
@@ -124,18 +125,18 @@ simple_expr_list:
     |  simple_expr_list simple_expr { $2 :: $1 } 
 
 simple_expr:
-      NUM                     { Nombre $1 }
-    | BTRUE                   { Booleen true }
-    | BFALSE                  { Booleen false }
-    | STRING                  { String $1 }
-    | VAR                     { Variable $1 }
-    | SOME expr               { CSome $2 }
-    | NONE                    { CNone }
-    | LPA expr RPA            { $2 }
-    | MINUS NUM               { Nombre (- $2) }
-    | BNOT expr               { Application (Variable "not", $2) } 
-    | LPA expr COMMA expr RPA { Paire ($2, $4) }
-    | LSB list_sugar RSB      { stdList $2 } 
+      NUM                         { Nombre $1 }
+    | BTRUE                       { Booleen true }
+    | BFALSE                      { Booleen false }
+    | STRING                      { String $1 }
+    | VAR                         { Variable $1 }
+    | SOME expr                   { CSome $2 }
+    | NONE                        { CNone }
+    | LPA expr RPA                { $2 }
+    | MINUS expr %prec PRE_MINUS  { Application (Variable "-", $2) }
+    | BNOT expr                   { Application (Variable "not", $2) } 
+    | LPA expr COMMA expr RPA     { Paire ($2, $4) }
+    | LSB list_sugar RSB          { stdList $2 } 
 
 list_sugar:
       /* empty */          {  [] }
