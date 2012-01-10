@@ -38,7 +38,6 @@ let prim2 codeur calcul decodeur =
 let populateBaseScope () =
   scope :=
     [("+", prim2 code_nombre (+) decode_nombre);
-     ("-", prim2 code_nombre (-) decode_nombre);
      ("*", prim2 code_nombre ( * ) decode_nombre);
      ("/", prim2 code_nombre ( / ) decode_nombre);
      ("==", prim2 code_bool (=) id);
@@ -50,7 +49,8 @@ let populateBaseScope () =
      ("&&", prim2 code_bool (&&) decode_bool);
      ("||", prim2 code_bool (||) decode_bool);
      ("++", prim2 code_string ( ^ ) decode_string);
-     ("not", Primitive (fun x -> code_bool (not (decode_bool x))))
+     ("not", Primitive (fun x -> code_bool (not (decode_bool x))));
+     ("-", Primitive (fun x -> code_nombre (- (decode_nombre x))))
      ]
 
 let scan () = 

@@ -253,7 +253,9 @@ and imprime = function
   | Nil -> "[]"
   | Cons(e1, e2) ->
     imprime e1 ^ "::" ^imprime e2
-  | Application (Application (Variable op, e1), e2) when List.mem op ["+"; "*"; "-"; "/"] -> Printf.sprintf "(%s %s %s)" (imprime e1) op (imprime e2)
+  | Application (Application (Variable op, e1), e2) 
+      when List.mem op ["+"; "*"; "/"] -> 
+      Printf.sprintf "(%s %s %s)" (imprime e1) op (imprime e2)
   | Application(f, e) ->
     "("^imprime f^") "^"("^imprime e^")" 
   | Fonction {def = def; environnement = _} -> 
