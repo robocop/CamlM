@@ -4,9 +4,9 @@ let rec deriv = function
   | f+g -> 
     let df = deriv f in let dg = deriv g in
     \x -> df x + dg x
-  | f-g -> 
-    let df = deriv f in let dg = deriv g in
-    \x -> df x - dg x
+  | -f -> 
+    let df = deriv f in
+    \x -> - df x
   | f*g -> 
     let df = deriv f in let dg = deriv g in
     \x -> df x * g x + dg x * f x
@@ -14,7 +14,6 @@ let rec deriv = function
     let df = deriv f in let dg = deriv g in
     \x -> (df x * g x - dg x * f x)/(g x * g x)
 ;;
-
 
 
 let rec compare_expr f g = match (f, g) with
@@ -89,7 +88,6 @@ let simplify f =
     | g * (Const 1) -> (g, true)
     | (Const 0) * f -> (\x -> 0, true)
     | Id + Id -> (\x -> 2*x, true)
-    | Id - Id -> (\x -> 0, true)
     | f + (Const 0) -> (f, true)
     | (Const 0) +f -> (f, true)
     | f+g -> 
@@ -115,11 +113,10 @@ let simplify f =
        (match (simpl f, simpl g) with
 	      ((f, a), (g, b)) -> ((\x -> f x / g x), a||b)
        )
-    | f - Const 0 -> (f, true)
-    | f - g -> 
-       (match (simpl f, simpl g) with
-	      ((f, a), (g, b)) -> ((\x -> f x - g x), a||b)
-       )
+    | - (Const x) -> let c = -x in  (\x -> c, true)
+    | - (- f) -> (f, true)
+    | - g -> 
+      (match simpl g with (f, r) -> (\x -> - f x, r))
     | f -> (f, false)
   in
   let rec test f= match simpl f with
@@ -129,11 +126,10 @@ let simplify f =
 ;;
 
 
-
-simplify (\x -> 5*x*4);;
+simplify (\x -> - ((-1) / x));;
 simplify (\x -> 1+x+1);;
 let fst = function (x, _) -> x;;
 simplify (\x -> 1*x+(1+3)+1);;
 let f = simplify (deriv (\x -> 1/x));;
 simplify (deriv f);;
-(-1);;
+

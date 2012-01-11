@@ -116,6 +116,15 @@ let decompose_op op = function
     )
   | _ -> None
 
+let minus = function
+  | Fonction {def = [Motif_variable v, expr]; environnement = env} ->
+    (match expr with
+      | Application (Variable "-", e1) ->
+	let f = Fonction {def = [Motif_variable v, e1]; environnement = env } in Some f
+      | _ -> None
+    )
+  | _ -> None
+
 let is_id = function
   | Fonction {def = [Motif_variable v, expr]} ->
     (match expr with
@@ -159,10 +168,14 @@ let rec filtrage valeur motif = match valeur, motif with
 	(filtrage f1 m1) @ (filtrage f2 m2)
       | None -> raise Echec_filtrage
       )
+  | (f, FMotif_m m) ->
+    (match minus f with
+      | Some f -> filtrage f m
+      | None -> raise Echec_filtrage
+    )
   | (f, FMotif_Id) ->
      if is_id f then []
      else raise Echec_filtrage
-
   | _ -> raise Echec_filtrage
 
 let rec evalue env expr = match expr with
@@ -235,6 +248,7 @@ and print_motif = function
   | Motif_some m -> Printf.sprintf "Some %s" (print_motif m)
   | Motif_string s -> Printf.sprintf "\"%s\"" s
   | FMotif_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (print_motif m1) op (print_motif m2)
+  | FMotif_m m -> Printf.sprintf "-%s" (print_motif m)
   | FMotif_Id -> "Id"
   | FMotif_const m -> Printf.sprintf "Const %s" (print_motif m)
 

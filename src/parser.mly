@@ -188,7 +188,7 @@ case:
     | CONST case { FMotif_const $2  }
     | case PLUS case { FMotif_op ("+", $1, $3) }
     | case TIMES case  { FMotif_op ("*", $1, $3) }
-    | case MINUS case  { FMotif_op ("-", $1, $3) }
+    | MINUS case  { FMotif_m ($2) }
     | case DIV case  { FMotif_op ("/", $1, $3) }
     | ID             { FMotif_Id }
 

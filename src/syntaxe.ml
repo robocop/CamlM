@@ -31,6 +31,7 @@ and motif =
   | Motif_some of motif 
   | Motif_string of string
   | FMotif_op of string*motif * motif
+  | FMotif_m of motif
   | FMotif_Id
   | FMotif_const of motif
 
