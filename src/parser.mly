@@ -33,6 +33,14 @@
 
     let fn e = Fonction {def = List.rev e; environnement =  None}
 
+    let mkPreMinus = function
+      | Nombre n -> Nombre (-n)
+      | expr -> Application (Variable "-", expr) 
+
+    let mkMotifPreMinus = function
+      | Motif_nombre n -> Motif_nombre (-n)
+      | motif -> FMotif_m motif 
+
 
 %}
 
@@ -141,7 +149,7 @@ simple_expr:
     | SOME expr                   { CSome $2 }
     | NONE                        { CNone }
     | LPA expr RPA                { $2 }
-    | MINUS expr %prec PRE_MINUS  { Application (Variable "-", $2) }
+    | MINUS expr %prec PRE_MINUS  { mkPreMinus $2}
     | BNOT expr                   { Application (Variable "not", $2) } 
     | LPA expr COMMA expr RPA     { Paire ($2, $4) }
     | LSB list_sugar RSB          { stdList $2 } 
@@ -196,7 +204,7 @@ case:
     | CONST case { FMotif_const $2  }
     | case PLUS case { FMotif_op ("+", $1, $3) }
     | case TIMES case  { FMotif_op ("*", $1, $3) }
-    | MINUS case  { FMotif_m ($2) }
+    | MINUS case  { mkMotifPreMinus $2 }
     | case DIV case  { FMotif_op ("/", $1, $3) }
     | ID             { FMotif_Id }
 
