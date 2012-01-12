@@ -3,6 +3,8 @@
 let char = ['\000'-'\033' '\035'-'\038' '\040'-'\127']
 let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
 let letter = ['a'-'z' 'A'-'Z']
+let downcase = ['a'-'z']
+let upcase = ['A'-'Z']
 let id = letter | ['0'-'9' '_']
 
 rule token = parse
@@ -54,7 +56,8 @@ rule token = parse
     { let str = (Lexing.lexeme lexbuf)
       in STRING (String.sub str 1 (String.length str - 2)) }
   | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
-  | letter id*  { VAR (Lexing.lexeme lexbuf) }
+  | downcase id*{ VAR (Lexing.lexeme lexbuf) }
+  | upcase id*  { MODULE (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
   | _           { token lexbuf }
   | eof         { EOF }

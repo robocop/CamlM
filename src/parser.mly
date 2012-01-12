@@ -5,6 +5,8 @@
 
     let cons_op op a b = Application (Application (Variable op, a), b)
 
+    let mkOpen m e = Open (m, e)
+
     let rec mkFun (cases, e) = match cases with
         | [] -> e
         | x :: xs -> mkFun (xs, Fonction {def = [x, e]; environnement =  None})
@@ -30,6 +32,8 @@
 
 
     let fn e = Fonction {def = List.rev e; environnement =  None}
+
+
 %}
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
@@ -39,7 +43,7 @@
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token CONST ID
 %token <int> NUM
-%token <string> VAR STRING
+%token <string> VAR STRING MODULE
 
 %right DOLLAR
 %nonassoc IN
@@ -85,6 +89,8 @@ file:
 toplevel:
       LET rec_flag let_bindings END_EXPR
         { mkLet $2 $3 None }
+    | OPEN MODULE END_EXPR
+        { mkOpen $2 None }
     | expr END_EXPR
         { $1 }
 
@@ -93,6 +99,8 @@ expr:
         { mkApp $1 (List.rev $2) }
     | LET rec_flag let_bindings IN expr
         { mkLet $2 $3 (Some $5) }
+    | OPEN MODULE IN expr
+        { mkOpen $2 (Some $4) }
     | a=expr; f=op; b=expr
         { f a b }
     | FUNCTION patterns

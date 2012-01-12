@@ -1,9 +1,15 @@
 open Syntaxe
+open Helper
+
 exception Echec_filtrage
-exception Erreur of string;;
-let scope = ref []
+exception Erreur of string
+
+let scope : (string * expression) list ref = ref []
 
 module StringSet = Set.Make(String) ;;  
+
+let file_from_module module_name = 
+  String.uncapitalize module_name ^ ".mml"
 
 let rec print_list = function
   | [] -> print_string "[]"
@@ -178,7 +184,21 @@ let rec filtrage valeur motif = match valeur, motif with
      else raise Echec_filtrage
   | _ -> raise Echec_filtrage
 
-let rec evalue env expr = match expr with
+let value (_, v) = v
+let env (e, _) = e
+
+(* Top level definitions that change the env globally *)
+let rec evalue env = function
+  | Let (def, None) ->
+      let (env', _) = evalue_definition env def
+      in (env', Unit)
+  | Open (m, None) -> 
+      let env' = open_module env m
+      in (env', Unit)
+  | expr -> (env, evalue' env expr)
+
+(* Other expressions that only change the env locally *)
+and evalue' env expr = match expr with
   | Variable s ->
     begin try List.assoc s env with _ -> raise (Erreur (s ^ " non connu")) end
 
@@ -190,35 +210,36 @@ let rec evalue env expr = match expr with
      Fonction {def = def; environnement = Some env}
     
   | Application(f, e) ->
-    let eval_f = evalue env f in
-    let eval_e = evalue env e in
+    let eval_f = evalue' env f in
+    let eval_e = evalue' env e in
     begin match eval_f with
       | Primitive f -> f eval_e
       | Fonction {def = def; environnement = Some env_f} -> 
 	evalue_application env_f def eval_e
       | _ -> raise (Erreur "application d'une valeur non fonctionelle")
     end
-  | Paire(e1, e2) -> Paire(evalue env e1, evalue env e2)
-  | Cons(e1, e2) -> Cons(evalue env e1, evalue env e2)
-  | CSome e -> CSome (evalue env e)
+  | Paire(e1, e2) -> Paire(evalue' env e1, evalue' env e2)
+  | Cons(e1, e2) -> Cons(evalue' env e1, evalue' env e2)
+  | CSome e -> CSome (evalue' env e)
+  | Open (m, Some expr) ->
+    let env' = open_module env m
+    in evalue' env' expr
   | Let(def, Some corps) ->
-    evalue (fst (evalue_definition env def)) corps
-  | Let(def, None) ->
-    let (scope', valeur) = evalue_definition !scope def
-    in scope := scope'; valeur
+    evalue' (fst (evalue_definition env def)) corps
   | r -> r
+
 and evalue_application env list_de_cas argument = match list_de_cas with
   | [] -> raise (Erreur "echec du filtrage")
   | (motif, expr) :: autres_cas ->
     try
       let env_etendu = filtrage argument motif @ env in
-      evalue env_etendu expr
+      evalue' env_etendu expr
     with
 	Echec_filtrage -> evalue_application env autres_cas argument
 and evalue_definition env_courant def =
   match def.recursive with
     | false ->
-      let valeur = evalue env_courant def.expr
+      let valeur = evalue' env_courant def.expr
       in ((def.nom, valeur)::env_courant, valeur)
     | true ->
       match def.expr with
@@ -229,6 +250,16 @@ and evalue_definition env_courant def =
 	  (env_etendu, Fonction fermeture)
 	| _ -> raise (Erreur "let rec non fonctionnel") 
 
+and do_eval env = function
+  | [] -> env
+  | x :: xs -> 
+      let (env', _) = evalue env x
+      in do_eval env' xs
+
+and open_module env m = 
+  let handle = open_in (file_from_module m) in
+  let ast = parse Parser.file (Lexing.from_channel handle) 
+  in close_in handle; do_eval env ast
 
 
 let rec print_def def = 
@@ -265,6 +296,9 @@ and imprime = function
   | Paire(e1, e2) ->
     "("^imprime e1^", "^imprime e2^")"
   | Nil -> "[]"
+  | Unit -> "()"
+  | Open (m, Some expr) -> "open " ^ m ^ " in " ^ imprime expr
+  | Open (m, None) -> "open " ^ m
   | Cons(e1, e2) ->
     imprime e1 ^ "::" ^imprime e2
   | Application (Application (Variable op, e1), e2) 
@@ -284,3 +318,6 @@ and imprime = function
   | Let(def, Some expr) ->
     (print_def def) ^ " in " ^ imprime expr
   | Let(def, None) -> print_def def
+
+
+

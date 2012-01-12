@@ -4,9 +4,11 @@ type expression =
   | Primitive of (expression -> expression)
   | Application of expression * expression
   | Let of definition * expression option
+  | Open of string * expression option
   | Booleen of bool
   | Nombre of int
   | Paire of expression * expression
+  | Unit
   | Nil
   | Cons of expression * expression
   | CNone  

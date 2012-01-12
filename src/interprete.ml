@@ -3,14 +3,8 @@ open Eval
 open Parser
 open Lexer
 open Lexing
+open Helper
 
-let parse f lexbuf =
-  try
-    f Lexer.token lexbuf
-  with _ ->
-    let p = Lexing.lexeme_start_p lexbuf in
-    let tok = Lexing.lexeme lexbuf in
-      raise (ParseError (p, tok))
 
 let id x = x;;
 let code_nombre n = Nombre n;;
@@ -81,28 +75,7 @@ let handleError = function
                      ^ tok ^ "'")
   | exn -> print_endline ("Unhandled exception : " ^ Printexc.to_string exn)
 
-let rec doEval fname = function
-  | [] -> print_endline (fname ^ " loaded.\n")
-  | x :: xs -> 
-      print_endline (imprime(evalue !scope x)); 
-      doEval fname xs
-
-
-let rec loadFiles = function
-  | [] -> ()
-  | x :: xs -> 
-      print_endline ("Loading file : " ^ x);
-      let handle = open_in x in
-      let ast = parse Parser.file (Lexing.from_channel handle)
-      in doEval x ast; close_in handle; loadFiles xs
-
-let setup () = 
-  let parseList = ref [] in
-    begin
-      populateBaseScope ();
-      Arg.parse [] (fun x -> parseList := !parseList @ [x]) "filename(s)";
-      loadFiles !parseList
-    end
+let setup () = populateBaseScope ()
 
 let _ =
   let rec loop () =
@@ -115,7 +88,8 @@ let _ =
                                | _ -> print_endline "Commande inconnue"; loop ()
             )
           | IValue res -> 
-              print_endline (imprime (evalue !scope res)); 
+              let (scope', value) = evalue !scope res
+              in scope := scope'; print_endline (imprime value); 
               loop ()
     end
     with exn -> handleError exn; loop ()
