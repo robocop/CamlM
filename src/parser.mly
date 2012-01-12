@@ -68,7 +68,6 @@
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
-%nonassoc PRE_MINUS
 %nonassoc SOME BNOT CONST ID
 %left funapp
 
@@ -149,7 +148,7 @@ simple_expr:
     | SOME expr                   { CSome $2 }
     | NONE                        { CNone }
     | LPA expr RPA                { $2 }
-    | MINUS expr %prec PRE_MINUS  { mkPreMinus $2}
+    | MINUS expr %prec MINUS      { mkPreMinus $2}
     | BNOT expr                   { Application (Variable "not", $2) } 
     | LPA expr COMMA expr RPA     { Paire ($2, $4) }
     | LSB list_sugar RSB          { stdList $2 } 
