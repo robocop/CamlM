@@ -1,4 +1,4 @@
-open Syntaxe
+open Syntax
 open Eval
 open Parser
 open Lexer
@@ -8,22 +8,22 @@ open Error
 open Show
 
 let id x = x
-let code_nombre n = Nombre n
-let code_bool b = Booleen b
-let code_string s = String s
+let code_nombre n = ENum n
+let code_bool b = EBoolean b
+let code_string s = EString s
 let decode_nombre = function
-    Nombre n -> n
-  | _ -> raise (Erreur "Entier attendu")
+    ENum n -> n
+  | _ -> raise (Error "Expecting integer")
 let decode_bool = function
-    Booleen b -> b
-  | _ -> raise (Erreur "Bool attendu")
+    EBoolean b -> b
+  | _ -> raise (Error "Expecting boolean")
 let decode_string = function
-  | String s -> s
-  | _ -> raise (Erreur "String attendu")
+  | EString s -> s
+  | _ -> raise (Error "Expecting string")
 
 let prim2 codeur calcul decodeur =
-  Primitive (fun x ->
-               Primitive (fun y-> codeur (calcul (decodeur x) (decodeur y)))
+  EPrimitive (fun x ->
+               EPrimitive (fun y-> codeur (calcul (decodeur x) (decodeur y)))
   )
 
 let populateBaseScope () =
@@ -40,8 +40,8 @@ let populateBaseScope () =
    ("&&", prim2 code_bool (&&) decode_bool);
    ("||", prim2 code_bool (||) decode_bool);
    ("++", prim2 code_string ( ^ ) decode_string);
-   ("not", Primitive (fun x -> code_bool (not (decode_bool x))));
-   ("-", Primitive (fun x -> code_nombre (- (decode_nombre x))))
+   ("not", EPrimitive (fun x -> code_bool (not (decode_bool x))));
+   ("-", EPrimitive (fun x -> code_nombre (- (decode_nombre x))))
   ]
 
 let scan () = 
@@ -67,10 +67,10 @@ let _ =
     try begin
       let lexbuf = Lexing.from_string (scan (print_string "# ")) in
         match parse Parser.eval lexbuf with
-          | INothing -> print_endline "Terminé"
+          | INothing -> print_endline "Done"
           | ICommand com -> (match com with
-                               | "quit" -> print_endline "Terminé"
-                               | _ -> print_endline "Commande inconnue"; loop ()
+                               | "quit" -> print_endline "Done"
+                               | _ -> print_endline "Unknown command"; loop ()
             )
           | IValue res -> 
               let (scope', value) = evalue !scope res

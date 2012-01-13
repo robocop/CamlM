@@ -1,4 +1,4 @@
-open Syntaxe
+open Syntax
 
 let rec print_list = function
   | [] -> print_string "[]"
@@ -7,58 +7,58 @@ let rec print_list = function
 let rec print_def def = 
   Printf.sprintf "let %s%s = %s" 
     (if def.recursive then "rec " else "") 
-    def.nom 
+    def.name 
     (imprime def.expr)
 
 and print_motif = function
-  | Motif_all -> "_"
-  | Motif_variable s -> s
-  | Motif_booleen b -> Printf.sprintf "%b" b;
-  | Motif_nombre n -> string_of_int n
-  | Motif_paire (e1, e2) -> Printf.sprintf "(%s,%s)" (print_motif e1) (print_motif e2)
-  | Motif_nil -> "[]"
-  | Motif_cons (e1, e2) -> Printf.sprintf "%s::%s" (print_motif e1) (print_motif e2) 
-  | Motif_none -> "None"
-  | Motif_some m -> Printf.sprintf "Some %s" (print_motif m)
-  | Motif_string s -> Printf.sprintf "\"%s\"" s
-  | FMotif_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (print_motif m1) op (print_motif m2)
-  | FMotif_m m -> Printf.sprintf "-%s" (print_motif m)
-  | FMotif_Id -> "Id"
-  | FMotif_const m -> Printf.sprintf "Const %s" (print_motif m)
+  | PAll -> "_"
+  | PVariable s -> s
+  | PBoolean b -> Printf.sprintf "%b" b;
+  | PNum n -> string_of_int n
+  | PPair (e1, e2) -> Printf.sprintf "(%s,%s)" (print_motif e1) (print_motif e2)
+  | PNil -> "[]"
+  | PCons (e1, e2) -> Printf.sprintf "%s::%s" (print_motif e1) (print_motif e2) 
+  | PNone -> "None"
+  | PSome m -> Printf.sprintf "Some %s" (print_motif m)
+  | PString s -> Printf.sprintf "\"%s\"" s
+  | FunP_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (print_motif m1) op (print_motif m2)
+  | FunP_m m -> Printf.sprintf "-%s" (print_motif m)
+  | FunP_id -> "Id"
+  | FunP_const m -> Printf.sprintf "Const %s" (print_motif m)
 
 and print_fonction def = 
-  "fonction\n" ^ (String.concat "| " (List.map (fun (m, e) -> Printf.sprintf "%s -> %s\n" (print_motif m) (imprime e)) def))
+  "function\n" ^ (String.concat "| " (List.map (fun (m, e) -> Printf.sprintf "%s -> %s\n" (print_motif m) (imprime e)) def))
 
 and imprime = function
-  | Variable v -> v
-  | Nombre n -> string_of_int n
-  | String s -> Printf.sprintf "\"%s\"" s
-  | Booleen false -> "false"
-  | Booleen true -> "true"
-  | Paire(e1, e2) ->
+  | EVariable v -> v
+  | ENum n -> string_of_int n
+  | EString s -> Printf.sprintf "\"%s\"" s
+  | EBoolean false -> "false"
+  | EBoolean true -> "true"
+  | EPair (e1, e2) ->
       "("^imprime e1^", "^imprime e2^")"
-  | Nil -> "[]"
-  | Unit -> "()"
-  | Open (m, Some expr) -> "open " ^ m ^ " in " ^ imprime expr
-  | Open (m, None) -> "open " ^ m
-  | Cons(e1, e2) ->
+  | ENil -> "[]"
+  | EUnit -> "()"
+  | EOpen (m, Some expr) -> "open " ^ m ^ " in " ^ imprime expr
+  | EOpen (m, None) -> "open " ^ m
+  | ECons(e1, e2) ->
       imprime e1 ^ "::" ^imprime e2
-  | Application (Application (Variable op, e1), e2) 
+  | EApplication (EApplication (EVariable op, e1), e2) 
       when List.mem op ["+"; "*"; "/"] -> 
       Printf.sprintf "(%s %s %s)" (imprime e1) op (imprime e2)
-  | Application(f, e) ->
+  | EApplication (f, e) ->
       "("^imprime f^") "^"("^imprime e^")" 
-  | Fonction {def = def; environnement = _} -> 
+  | EFunction {def = def; env = _} -> 
       begin
         match def with
-          | [Motif_variable v, expr] ->
+          | [PVariable v, expr] ->
               Printf.sprintf "\\%s -> %s" v  (imprime expr)
           | _ -> print_fonction def
       end
-  | CNone -> "None"
-  | CSome e -> Printf.sprintf "Some %s" (imprime e) 
-  | Let(def, Some expr) ->
+  | ENone -> "None"
+  | ESome e -> Printf.sprintf "Some %s" (imprime e) 
+  | ELet (def, Some expr) ->
       (print_def def) ^ " in " ^ imprime expr
-  | Let(def, None) -> print_def def
+  | ELet (def, None) -> print_def def
 
 

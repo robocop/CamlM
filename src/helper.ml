@@ -1,4 +1,4 @@
-open Syntaxe
+open Syntax
 open Error
 
 let parse f lexbuf =

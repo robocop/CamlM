@@ -4,8 +4,8 @@ CC=ocamlc -I $(BUILD)
 
 all: caml
 
-caml: lexer.mll parser.mly syntaxe.ml helper.ml error.ml show.ml lambda_repl.ml eval.ml interprete.ml
-	$(CC) -o $(BUILD)/syntaxe.cmo -c syntaxe.ml
+caml: lexer.mll parser.mly syntax.ml helper.ml error.ml show.ml lambda_repl.ml eval.ml interprete.ml
+	$(CC) -o $(BUILD)/syntax.cmo -c syntax.ml
 	ocamllex -o $(BUILD)/lexer.ml lexer.mll 
 	menhir --ocamlc "$(CC)" --infer --base $(BUILD)/parser parser.mly
 	cd $(BUILD); $(CC) -o parser.cmi -c parser.mli
@@ -18,7 +18,7 @@ caml: lexer.mll parser.mly syntaxe.ml helper.ml error.ml show.ml lambda_repl.ml 
 	$(CC) -o $(BUILD)/lambda_repl.cmo -c lambda_repl.ml
 	$(CC) -o $(BUILD)/eval.cmo -c eval.ml
 	$(CC) -o $(BUILD)/interprete.cmo -c interprete.ml
-	cd $(BUILD); $(CC) -o caml syntaxe.cmo lexer.cmo parser.cmo error.cmo helper.cmo show.cmo modules.cmo lambda_repl.cmo eval.cmo interprete.cmo
+	cd $(BUILD); $(CC) -o caml syntax.cmo lexer.cmo parser.cmo error.cmo helper.cmo show.cmo modules.cmo lambda_repl.cmo eval.cmo interprete.cmo
 	mv $(BUILD)/caml $(EXEC)
 
 clean:

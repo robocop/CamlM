@@ -1,11 +1,11 @@
 open Lexing
 
-exception Echec_filtrage
-exception Erreur of string
+exception MatchingFailure
+exception Error of string
 exception ParseError of Lexing.position * string;;
 
 let handleError = function
-  | Erreur s -> print_endline ("Erreur : " ^ s) 
+  | Error s -> print_endline ("Error : " ^ s) 
   | ParseError (p, tok) -> 
       print_endline ("Parse error (line " 
                      ^ string_of_int p.pos_lnum

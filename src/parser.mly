@@ -1,45 +1,45 @@
 %{
-    open Syntaxe
+    open Syntax
     
     let snd (_, b) = b
 
-    let cons_op op a b = Application (Application (Variable op, a), b)
+    let cons_op op a b = EApplication (EApplication (EVariable op, a), b)
 
-    let mkOpen m e = Open (m, e)
+    let mkOpen m e = EOpen (m, e)
 
     let rec mkFun (cases, e) = match cases with
         | [] -> e
-        | x :: xs -> mkFun (xs, Fonction {def = [x, e]; environnement =  None})
+        | x :: xs -> mkFun (xs, EFunction {def = [x, e]; env = None})
 
-    let mkLet r (name, pats, exp) in_clause = 
-        Let ( { recursive = r
-              ; nom = name
-              ; expr = mkFun (pats, exp) }
+    let mkLet r (n, pats, exp) in_clause = 
+        ELet ( { recursive = r
+            ; name = n
+            ; expr = mkFun (pats, exp) }
             , in_clause )  
 
     let rec mkApp e = function
         | [] -> e
-        | x :: xs -> mkApp (Application (e, x)) xs
+        | x :: xs -> mkApp (EApplication (e, x)) xs
 
 
     let rec stdList = function
-      | [] -> Nil
-      | x :: xs -> Cons (x, stdList xs)
+      | [] -> ENil
+      | x :: xs -> ECons (x, stdList xs)
 
     let rec mkMotifList = function
-        | [] -> Motif_nil
-        | x :: xs -> Motif_cons (x, mkMotifList xs)
+        | [] -> PNil
+        | x :: xs -> PCons (x, mkMotifList xs)
 
 
-    let fn e = Fonction {def = List.rev e; environnement =  None}
+    let fn e = EFunction {def = List.rev e; env = None}
 
     let mkPreMinus = function
-      | Nombre n -> Nombre (-n)
-      | expr -> Application (Variable "-", expr) 
+      | ENum n -> ENum (-n)
+      | expr -> EApplication (EVariable "-", expr) 
 
     let mkMotifPreMinus = function
-      | Motif_nombre n -> Motif_nombre (-n)
-      | motif -> FMotif_m motif 
+      | PNum n -> PNum (-n)
+      | motif -> FunP_m motif 
 
 
 %}
@@ -72,10 +72,10 @@
 %left funapp
 
 %start eval
-%type <Syntaxe.expression Syntaxe.interpreter> eval
+%type <Syntax.expression Syntax.interpreter> eval
 
 %start file
-%type <Syntaxe.expression list> file
+%type <Syntax.expression list> file
 
 %%
 
@@ -115,16 +115,16 @@ expr:
     | FUN multi_pattern
         { mkFun $2 }
     | MATCH expr WITH patterns
-        { Application (fn $4, $2) }
+        { EApplication (fn $4, $2) }
 
 %inline op:
     PLUS   { cons_op "+" }
   | CONCAT { cons_op "++" }
-  | MINUS  { fun x y -> cons_op "+" x (Application (Variable "-", y)) }
+  | MINUS  { fun x y -> cons_op "+" x (EApplication (EVariable "-", y)) }
   | TIMES  { cons_op "*" }
   | DIV    { cons_op "/" }
-  | CONS   { fun x y -> Cons (x, y) }
-  | DOLLAR { fun x y -> Application (x, y)}
+  | CONS   { fun x y -> ECons (x, y) }
+  | DOLLAR { fun x y -> EApplication (x, y)}
   | BEQ    { cons_op "==" }
   | BNEQ   { cons_op "!=" }
   | BLEQ   { cons_op "<=" }
@@ -140,17 +140,17 @@ simple_expr_list:
     |  simple_expr_list simple_expr { $2 :: $1 } 
 
 simple_expr:
-      NUM                         { Nombre $1 }
-    | BTRUE                       { Booleen true }
-    | BFALSE                      { Booleen false }
-    | STRING                      { String $1 }
-    | VAR                         { Variable $1 }
-    | SOME expr                   { CSome $2 }
-    | NONE                        { CNone }
+      NUM                         { ENum $1 }
+    | BTRUE                       { EBoolean true }
+    | BFALSE                      { EBoolean false }
+    | STRING                      { EString $1 }
+    | VAR                         { EVariable $1 }
+    | SOME expr                   { ESome $2 }
+    | NONE                        { ENone }
     | LPA expr RPA                { $2 }
     | MINUS expr %prec MINUS      { mkPreMinus $2}
-    | BNOT expr                   { Application (Variable "not", $2) } 
-    | LPA expr COMMA expr RPA     { Paire ($2, $4) }
+    | BNOT expr                   { EApplication (EVariable "not", $2) } 
+    | LPA expr COMMA expr RPA     { EPair ($2, $4) }
     | LSB list_sugar RSB          { stdList $2 } 
 
 list_sugar:
@@ -177,7 +177,7 @@ patterns:
     | patterns PIPE pattern  { $3 :: $1 }
 
 pattern:
-      case WHEN expr RARROW expr { (Motif_when ($3, $1), $5) }
+      case WHEN expr RARROW expr { (PWhen ($3, $1), $5) }
     | case RARROW expr           { ($1, $3) }
 
 cases_or_empty:
@@ -188,24 +188,24 @@ cases:
     | cases case { $2 :: $1 }
 
 case:
-      case CONS case { Motif_cons ($1, $3) }
-    | SOME case { Motif_some $2 }
-    | NONE { Motif_none }
-    | UNDERSCORE { Motif_all }
-    | NUM { Motif_nombre $1 }
-    | BTRUE { Motif_booleen true }
-    | BFALSE { Motif_booleen false }
-    | STRING { Motif_string $1 }
-    | VAR { Motif_variable $1 }
+      case CONS case             { PCons ($1, $3) }
+    | SOME case                  { PSome $2 }
+    | NONE                       { PNone }
+    | UNDERSCORE                 { PAll }
+    | NUM                        { PNum $1 }
+    | BTRUE                      { PBoolean true }
+    | BFALSE                     { PBoolean false }
+    | STRING                     { PString $1 }
+    | VAR                        { PVariable $1 }
     | LSB list_pattern_sugar RSB { mkMotifList $2 }
-    | LPA case RPA { $2 }
-    | LPA case COMMA case RPA { Motif_paire ($2, $4) }
-    | CONST case { FMotif_const $2  }
-    | case PLUS case { FMotif_op ("+", $1, $3) }
-    | case TIMES case  { FMotif_op ("*", $1, $3) }
-    | MINUS case  { mkMotifPreMinus $2 }
-    | case DIV case  { FMotif_op ("/", $1, $3) }
-    | ID             { FMotif_Id }
+    | LPA case RPA               { $2 }
+    | LPA case COMMA case RPA    { PPair ($2, $4) }
+    | CONST case                 { FunP_const $2  }
+    | case PLUS case             { FunP_op ("+", $1, $3) }
+    | case TIMES case            { FunP_op ("*", $1, $3) }
+    | MINUS case                 { mkMotifPreMinus $2 }
+    | case DIV case              { FunP_op ("/", $1, $3) }
+    | ID                         { FunP_id }
 
 
 list_pattern_sugar:
