@@ -2,6 +2,7 @@ open Syntax
 open Eval
 open Helper
 open Error
+open Typing
 open Show
 
 let id x = x
@@ -22,6 +23,9 @@ let prim2 encoder computation decoder =
   EPrimitive (fun x ->
     EPrimitive (fun y -> encoder (computation (decoder x) (decoder y)))
   )
+
+let type_arithmetic = trivial_schema
+  (type_arrow (type_arrow type_int type_int) type_int)
 
 let populate_base_scope () =
   scope :=
@@ -59,7 +63,8 @@ let scan () =
 
 let _ =
   let rec loop () =
-    try begin
+    try 
+      begin
       let lexbuf = Lexing.from_string (scan (print_string "# ")) in
         match parse Parser.eval lexbuf with
           | INothing -> print_endline "Done"
@@ -68,10 +73,10 @@ let _ =
                                | _ -> print_endline "Unknown command"; loop ()
             )
           | IValue res -> 
-              let (scope', value) = eval !scope res
-              in scope := scope'; print_endline (show value); 
-                 loop ()
-    end
+            let (scope', value) = eval !scope res
+            in scope := scope'; print_endline (show value); 
+            loop ()
+      end
     with exn -> handle_error exn; loop ()
   in try populate_base_scope (); loop ()
   with exn -> handle_error exn; loop ()
