@@ -6,9 +6,9 @@ open Helper
 
 let scope : (string * expression) list ref = ref []
 
-let rec filtrage valeur motif = match valeur, motif with
+let rec matching value pattern = match value, pattern with
   | (_, PAll) -> []
-  | (valeur, PVariable id) -> [id, valeur]
+  | (value, PVariable id) -> [id, value]
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -16,26 +16,26 @@ let rec filtrage valeur motif = match valeur, motif with
   | (EString s1, PString s2) ->
       if s1 = s2 then [] else raise MatchingFailure
   | (EPair(v1, v2), PPair (m1, m2)) ->
-      filtrage v1 m1 @ filtrage v2 m2
+      matching v1 m1 @ matching v2 m2
   | (ENil, PNil) -> []
   | (ECons (v1, v2), PCons(m1, m2)) ->
-      filtrage v1 m1 @ filtrage v2 m2
+      matching v1 m1 @ matching v2 m2
   | (ENone, PNone) -> []
-  | (ESome v, PSome m) -> filtrage v m
+  | (ESome v, PSome m) -> matching v m
   | (f, FunP_const m) ->
       (match const f with
-         | Some v -> filtrage v m
+         | Some v -> matching v m
          | None -> raise MatchingFailure
       )
   | (f, FunP_op(op, m1, m2)) ->
       (match decompose_op op f with
          | Some (f1, f2) ->
-             (filtrage f1 m1) @ (filtrage f2 m2)
+             (matching f1 m1) @ (matching f2 m2)
          | None -> raise MatchingFailure
       )
   | (f, FunP_m m) ->
       (match minus f with
-         | Some f -> filtrage f m
+         | Some f -> matching f m
          | None -> raise MatchingFailure
       )
   | (f, FunP_id) ->
@@ -47,17 +47,17 @@ let value (_, v) = v
 let env (e, _) = e
 
 (* Top level definitions that change the env globally *)
-let rec evalue env = function
+let rec eval env = function
   | ELet (def, None) ->
-      let (env', _) = evalue_definition env def
+      let (env', _) = eval_definition env def
       in (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_module env m
       in (env', EUnit)
-  | expr -> (env, evalue' env expr)
+  | expr -> (env, eval' env expr)
 
 (* Other expressions that only change the env locally *)
-and evalue' env expr = match expr with
+and eval' env expr = match expr with
   | EVariable s ->
       begin try List.assoc s env with _ -> raise (Error ("Unknown " ^ s)) end
 
@@ -69,51 +69,51 @@ and evalue' env expr = match expr with
       EFunction {def = def; env = Some env}
 
   | EApplication(f, e) ->
-      let eval_f = evalue' env f in
-      let eval_e = evalue' env e in
+      let eval_f = eval' env f in
+      let eval_e = eval' env e in
         begin match eval_f with
           | EPrimitive f -> f eval_e
           | EFunction {def = def; env = Some env_f} -> 
-              evalue_application env_f def eval_e
-          | _ -> raise (Error "application d'une valeur non fonctionelle")
+              eval_application env_f def eval_e
+          | _ -> raise (Error "Cannot apply non-functionnal expression")
         end
-  | EPair(e1, e2) -> EPair(evalue' env e1, evalue' env e2)
-  | ECons(e1, e2) -> ECons(evalue' env e1, evalue' env e2)
-  | ESome e -> ESome (evalue' env e)
+  | EPair(e1, e2) -> EPair(eval' env e1, eval' env e2)
+  | ECons(e1, e2) -> ECons(eval' env e1, eval' env e2)
+  | ESome e -> ESome (eval' env e)
   | EOpen (m, Some expr) ->
       let env' = open_module env m
-      in evalue' env' expr
+      in eval' env' expr
   | ELet(def, Some corps) ->
-      evalue' (fst (evalue_definition env def)) corps
+      eval' (fst (eval_definition env def)) corps
   | r -> r
 
-and evalue_application env list_de_cas argument = match list_de_cas with
-  | [] -> raise (Error "echec du filtrage")
-  | (motif, expr) :: autres_cas ->
+and eval_application env case_list argument = match case_list with
+  | [] -> raise (Error "Pattern matching failure")
+  | (pattern, expr) :: rest ->
       try
-        let env_etendu = filtrage argument motif @ env in
-          evalue' env_etendu expr
+        let extended_env = matching argument pattern @ env in
+          eval' extended_env expr
       with
-          MatchingFailure -> evalue_application env autres_cas argument
+          MatchingFailure -> eval_application env rest argument
 
-and evalue_definition env_courant def =
+and eval_definition curr_env def =
   match def.recursive with
     | false ->
-        let valeur = evalue' env_courant def.expr
-        in ((def.name, valeur)::env_courant, valeur)
+        let valeur = eval' curr_env def.expr
+        in ((def.name, valeur) :: curr_env, valeur)
     | true ->
         match def.expr with
-          | EFunction ferm ->
-              let fermeture = {def = ferm.def; env = None } in
-              let env_etendu = (def.name, EFunction fermeture)::env_courant in
-                fermeture.env <- Some env_etendu;
-                (env_etendu, EFunction fermeture)
-          | _ -> raise (Error "let rec non fonctionnel") 
+          | EFunction f ->
+              let closure = {def = f.def; env = None } in
+              let extended_env = (def.name, EFunction closure)::curr_env in
+                closure.env <- Some extended_env;
+                (extended_env, EFunction closure)
+          | _ -> raise (Error "Non-functionnal recursive let definition")
 
 and do_eval env = function
   | [] -> env
   | x :: xs -> 
-      let (env', _) = evalue env x
+      let (env', _) = eval env x
       in do_eval env' xs
 
 and open_module env m = 

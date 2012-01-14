@@ -4,7 +4,7 @@ exception MatchingFailure
 exception Error of string
 exception ParseError of Lexing.position * string;;
 
-let handleError = function
+let handle_error = function
   | Error s -> print_endline ("Error : " ^ s) 
   | ParseError (p, tok) -> 
       print_endline ("Parse error (line " 

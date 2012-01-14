@@ -1,17 +1,17 @@
 open OUnit
 open Lexer
-open Syntaxe
+open Syntax
 
 let parse str = 
   Parser.eval Lexer.token (Lexing.from_string (str ^ ";;"))
 
 let test_prio _ = 
   let ast = 
-    Application (Application (Variable "+", 
-                              Application (Application (Variable "*", 
-                                                        Nombre 1),
-                                           Nombre 2)),
-                 Nombre 3)
+    EApplication (EApplication (EVariable "+", 
+                                EApplication (EApplication (EVariable "*", 
+                                                            ENum 1),
+                                              ENum 2)),
+                  ENum 3)
   in assert_equal (IValue ast) (parse "1*2+3")
 
 let suite = "Test parser" >:::

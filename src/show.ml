@@ -1,64 +1,63 @@
 open Syntax
 
-let rec print_list = function
-  | [] -> print_string "[]"
-  | x::xs -> print_string (x^"::"); print_list xs
-
-let rec print_def def = 
+let rec show_def def = 
   Printf.sprintf "let %s%s = %s" 
     (if def.recursive then "rec " else "") 
     def.name 
-    (imprime def.expr)
+    (show def.expr)
 
-and print_motif = function
+and show_pattern = function
   | PAll -> "_"
   | PVariable s -> s
   | PBoolean b -> Printf.sprintf "%b" b;
   | PNum n -> string_of_int n
-  | PPair (e1, e2) -> Printf.sprintf "(%s,%s)" (print_motif e1) (print_motif e2)
+  | PPair (e1, e2) -> Printf.sprintf "(%s,%s)" (show_pattern e1) (show_pattern e2)
   | PNil -> "[]"
-  | PCons (e1, e2) -> Printf.sprintf "%s::%s" (print_motif e1) (print_motif e2) 
+  | PCons (e1, e2) -> Printf.sprintf "%s::%s" (show_pattern e1) (show_pattern e2) 
   | PNone -> "None"
-  | PSome m -> Printf.sprintf "Some %s" (print_motif m)
+  | PSome m -> Printf.sprintf "Some %s" (show_pattern m)
   | PString s -> Printf.sprintf "\"%s\"" s
-  | FunP_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (print_motif m1) op (print_motif m2)
-  | FunP_m m -> Printf.sprintf "-%s" (print_motif m)
+  | FunP_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (show_pattern m1) op (show_pattern m2)
+  | FunP_m m -> Printf.sprintf "-%s" (show_pattern m)
   | FunP_id -> "Id"
-  | FunP_const m -> Printf.sprintf "Const %s" (print_motif m)
+  | FunP_const m -> Printf.sprintf "Const %s" (show_pattern m)
 
-and print_fonction def = 
-  "function\n" ^ (String.concat "| " (List.map (fun (m, e) -> Printf.sprintf "%s -> %s\n" (print_motif m) (imprime e)) def))
+and show_function def = 
+  "function\n" 
+    ^ (String.concat "| " (List.map 
+        (fun (m, e) -> 
+           Printf.sprintf "%s -> %s\n" (show_pattern m) (show e)) def))
 
-and imprime = function
+and show = function
   | EVariable v -> v
   | ENum n -> string_of_int n
   | EString s -> Printf.sprintf "\"%s\"" s
   | EBoolean false -> "false"
   | EBoolean true -> "true"
   | EPair (e1, e2) ->
-      "("^imprime e1^", "^imprime e2^")"
+      "("^show e1^", "^show e2^")"
   | ENil -> "[]"
   | EUnit -> "()"
-  | EOpen (m, Some expr) -> "open " ^ m ^ " in " ^ imprime expr
+  | EOpen (m, Some expr) -> "open " ^ m ^ " in " ^ show expr
   | EOpen (m, None) -> "open " ^ m
   | ECons(e1, e2) ->
-      imprime e1 ^ "::" ^imprime e2
+      show e1 ^ "::" ^show e2
   | EApplication (EApplication (EVariable op, e1), e2) 
       when List.mem op ["+"; "*"; "/"] -> 
-      Printf.sprintf "(%s %s %s)" (imprime e1) op (imprime e2)
+      Printf.sprintf "(%s %s %s)" (show e1) op (show e2)
   | EApplication (f, e) ->
-      "("^imprime f^") "^"("^imprime e^")" 
+      "("^show f^") "^"("^show e^")" 
   | EFunction {def = def; env = _} -> 
       begin
         match def with
           | [PVariable v, expr] ->
-              Printf.sprintf "\\%s -> %s" v  (imprime expr)
-          | _ -> print_fonction def
+              Printf.sprintf "\\%s -> %s" v  (show expr)
+          | _ -> show_function def
       end
   | ENone -> "None"
-  | ESome e -> Printf.sprintf "Some %s" (imprime e) 
+  | ESome e -> Printf.sprintf "Some %s" (show e) 
   | ELet (def, Some expr) ->
-      (print_def def) ^ " in " ^ imprime expr
-  | ELet (def, None) -> print_def def
+      (show_def def) ^ " in " ^ show expr
+  | ELet (def, None) -> show_def def
 
 

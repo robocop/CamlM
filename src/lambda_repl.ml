@@ -14,23 +14,23 @@ let rec new_variable set v =
   if not (StringSet.mem v set) then v
   else new_variable set (next v)
 
-let rec get_var_motif = function
-  | PWhen (e, m) -> get_var_motif m
+let rec get_pattern_var = function
+  | PWhen (e, m) -> get_pattern_var m
   | PVariable v -> StringSet.singleton v
-  | PPair (m1, m2) -> StringSet.union (get_var_motif m1) (get_var_motif m2)
-  | PCons (m1, m2) ->  StringSet.union (get_var_motif m1) (get_var_motif m2)
-  | PSome m-> get_var_motif m
+  | PPair (m1, m2) -> StringSet.union (get_pattern_var m1) (get_pattern_var m2)
+  | PCons (m1, m2) ->  StringSet.union (get_pattern_var m1) (get_pattern_var m2)
+  | PSome m-> get_pattern_var m
   | FunP_op (_, m1, m2) ->
-      StringSet.union (get_var_motif m1) (get_var_motif m2)
-  | FunP_const m -> get_var_motif m
+      StringSet.union (get_pattern_var m1) (get_pattern_var m2)
+  | FunP_const m -> get_pattern_var m
   | _ -> StringSet.empty
 
 
-let rec free_bounds = function
+let rec free_vars = function
   | EVariable x -> StringSet.singleton x
   | EFunction {def = def} -> StringSet.empty
   | EApplication(m, n) ->
-      StringSet.union (free_bounds m) (free_bounds n)
+      StringSet.union (free_vars m) (free_vars n)
   | _ -> StringSet.empty
 
 
@@ -44,31 +44,31 @@ let rec is_simple_value = function
   | _ -> false
 
 
-let rec remplacement fv lv env = function
+let rec replace' fv lv env = function
   | EVariable x when StringSet.mem x fv  ->
       begin 
         try 
           let v = List.assoc x env in
-            if is_simple_value v then (v (*remplacement fv lv env v *))
+            if is_simple_value v then (v (*replace' fv lv env v *))
             else EVariable x
         with _ -> raise (Error ("Unknown " ^ x)) 
       end
   | EVariable x -> EVariable x
   | EApplication(m, n) ->
-      EApplication(remplacement fv lv env m, remplacement fv lv env n)
+      EApplication(replace' fv lv env m, replace' fv lv env n)
   | EFunction {def = def; env = e} ->
       let replace_def d = List.map 
                             (fun (m, e) -> 
-                               let variables = get_var_motif m in
+                               let variables = get_pattern_var m in
                                let lv' = StringSet.union lv variables in
-                               let fv' = StringSet.diff (free_bounds e) lv' in
-                                 (m, remplacement fv' lv' env e)
+                               let fv' = StringSet.diff (free_vars e) lv' in
+                                 (m, replace' fv' lv' env e)
                             ) d
       in
         EFunction {def = replace_def def; env = e} 
   | rest -> rest
 
-let replace env f = remplacement (free_bounds f) (StringSet.empty) env f
+let replace env f = replace' (free_vars f) (StringSet.empty) env f
 
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
@@ -76,7 +76,7 @@ let rec substitution expr arg x = match expr with
   | EFunction {def = [PVariable v, e]; env = env} when v = x->
     EFunction {def = [PVariable v, e]; env = env}
   | EFunction {def = [PVariable y, e]; env = env} when y <> x ->
-    let ens = StringSet.union (StringSet.union (free_bounds arg) (free_bounds e)) (StringSet.singleton x) in
+    let ens = StringSet.union (StringSet.union (free_vars arg) (free_vars e)) (StringSet.singleton x) in
     let z = new_variable ens y in
     let e1 = substitution e (EVariable z) y in
     let e2 = substitution e1 arg x in
