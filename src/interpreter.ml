@@ -24,10 +24,23 @@ let prim2 encoder computation decoder =
     EPrimitive (fun y -> encoder (computation (decoder x) (decoder y)))
   )
 
-let type_arithmetic = trivial_schema
-  (type_arrow (type_arrow type_int type_int) type_int)
+let type_prim1 a b = trivial_schema (type_arrow a b)
+let type_prim2 a b c = 
+  trivial_schema (type_arrow (type_arrow a b) c)
+  
+let type_arithmetic = type_prim2 type_int type_int type_int
+let type_logic = type_prim2 type_bool type_bool type_bool
 
 let populate_base_scope () =
+  type_scope :=
+   [("+", type_arithmetic);
+   ("*", type_arithmetic);
+   ("/", type_arithmetic);
+   ("==", type_logic);
+   ("!=", type_logic);
+   (">=", type_logic);
+   ("-", type_prim1 type_int type_int)
+   ];
   scope :=
   [("+", prim2 to_num (+) from_num);
    ("*", prim2 to_num ( * ) from_num);
@@ -36,8 +49,8 @@ let populate_base_scope () =
    ("!=", prim2 to_bool (<>) id);
    (">=", prim2 to_bool (>=) id);
    ("<=", prim2 to_bool (<=) id);
-   ("<", prim2 to_bool (<) id);
-   (">", prim2 to_bool (>) id);
+   ("<",  prim2 to_bool (<) id);
+   (">",  prim2 to_bool (>) id);
    ("&&", prim2 to_bool (&&) from_bool);
    ("||", prim2 to_bool (||) from_bool);
    ("++", prim2 to_string ( ^ ) from_string);
@@ -73,6 +86,10 @@ let _ =
                                | _ -> print_endline "Unknown command"; loop ()
             )
           | IValue res -> 
+	    (*
+	    let t = type_exp !type_scope res in
+            print_type t; print_string " "; 
+	    *)
             let (scope', value) = eval !scope res
             in scope := scope'; print_endline (show value); 
             loop ()
