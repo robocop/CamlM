@@ -25,7 +25,56 @@ let new_unknow () = Variable {level = !level_of_liaison; value = Unknow }
 
 let trivial_schema ty = {parameter = []; corps = ty}
 
-let unify a b = ();;
+let rec value_of = function
+  | Variable ({value = Know ty1} as var) ->
+    let value_of_ty1= value_of ty1 in
+    var.value <- Know value_of_ty1;
+    value_of_ty1
+  | ty -> ty
+
+
+
+
+
+let name_of_variables = ref ([] : (variable_of_type * string) list)
+
+let print_var var = 
+  print_string "`";
+  try print_string (List.assq var !name_of_variables) 
+  with Not_found ->
+    let variables = List.fold_left 
+      (fun set (_, x) -> StringSet.add x set) 
+      StringSet.empty !name_of_variables 
+    in
+    let name = new_variable variables "a" in
+    name_of_variables := (var, name) :: !name_of_variables;
+    print_string name
+;;
+let rec print ty = match value_of ty with
+  | Variable var -> print_var var
+  | Term(constructor, arguments) ->
+    match Array.length arguments with
+      | 0 -> print_string constructor
+      | 1 -> print arguments.(0); print_string " "; print_string constructor;
+      | 2 ->
+	begin
+	  print_string "("; print arguments.(0); 
+	  print_string " "; print_string constructor; 
+	  print_string " "; print arguments.(1); print_string ")";
+	end
+;;
+let print_type ty = 
+  name_of_variables := []; print ty
+;;
+
+
+
+
+
+let unify a b = 
+  print_string "unify "; print_type a; print_string " and "; print_type b; 
+  print_newline();
+;;
 
 let start_definition () = incr level_of_liaison
 let end_definition () = decr level_of_liaison
@@ -33,12 +82,6 @@ let specialisation s = s.corps;;
 let generalisation e = { parameter = []; corps = e}
 
 
-let rec value_of = function
-  | Variable ({value = Know ty1} as var) ->
-    let value_of_ty1= value_of ty1 in
-    var.value <- Know value_of_ty1;
-    value_of_ty1
-  | ty -> ty
 
 
 let type_scope : (string * type_schema) list ref = ref []
@@ -113,36 +156,5 @@ and type_def env def =
   (def.name, generalisation type_expr) :: env
 
 
-
-let name_of_variables = ref ([] : (variable_of_type * string) list)
-
-let print_var var = 
-  print_string "`";
-  try print_string (List.assq var !name_of_variables) 
-  with Not_found ->
-    let variables = List.fold_left 
-      (fun set (_, x) -> StringSet.add x set) 
-      StringSet.empty !name_of_variables 
-    in
-    let name = new_variable variables "a" in
-    name_of_variables := (var, name) :: !name_of_variables;
-    print_string name
-;;
-let rec print ty = match value_of ty with
-  | Variable var -> print_var var
-  | Term(constructor, arguments) ->
-    match Array.length arguments with
-      | 0 -> print_string constructor
-      | 1 -> print arguments.(0); print_string " "; print_string constructor;
-      | 2 ->
-	begin
-	  print_string "("; print arguments.(0); 
-	  print_string " "; print_string constructor; 
-	  print_string " "; print arguments.(1); print_string ")";
-	end
-;;
-let print_type ty = 
-  name_of_variables := []; print ty
-;;
 
 

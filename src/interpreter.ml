@@ -26,7 +26,7 @@ let prim2 encoder computation decoder =
 
 let type_prim1 a b = trivial_schema (type_arrow a b)
 let type_prim2 a b c = 
-  trivial_schema (type_arrow (type_arrow a b) c)
+  trivial_schema (type_arrow a (type_arrow b c))
   
 let type_arithmetic = type_prim2 type_int type_int type_int
 let type_logic = type_prim2 type_bool type_bool type_bool
@@ -86,10 +86,10 @@ let _ =
                                | _ -> print_endline "Unknown command"; loop ()
             )
           | IValue res -> 
-	    (*
+	    
 	    let t = type_exp !type_scope res in
             print_type t; print_string " "; 
-	    *)
+	    
             let (scope', value) = eval !scope res
             in scope := scope'; print_endline (show value); 
             loop ()
