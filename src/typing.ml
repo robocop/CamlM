@@ -1,4 +1,5 @@
 open Syntax
+open Modules
 open Error 
 open Helper
 
@@ -14,6 +15,7 @@ and value_of_variable =
 type type_schema = 
  { parameter : variable_of_type list; corps : simple_type }
 
+let type_unit = Term("unit", [||])
 let type_int = Term("int", [||])
 let type_bool = Term("bool", [||])
 let type_string = Term("string", [||])
@@ -83,8 +85,10 @@ let rec rectify_levels level_max ty = match value_of ty with
 
 
 let rec unify ty1 ty2 = 
+  (*
   print_string "unify "; print_string (print_type ty1); 
   print_string " and "; print_endline (print_type ty2);
+  *)
   let v1 = value_of ty1
   and v2 = value_of ty2 in
   if v1 == v2 then () else
@@ -185,7 +189,16 @@ let rec type_pattern env = function
     unify (type_arrow type_int type_int) ty1;
     (ty1, env2)
 
-let rec type_exp env = function
+let rec type_expr env = function
+  | ELet (def, None) ->
+      let t, env' = type_def env def in
+      (env', t)
+  | EOpen (m, None) -> 
+      let env' = open_module env m
+      in (env', type_unit)
+  | expr -> (env, type_exp env expr)
+
+and type_exp env = function
   | EVariable id ->
     begin 
       try specialisation (List.assoc id env)
@@ -209,7 +222,8 @@ let rec type_exp env = function
     unify type_func (type_arrow type_argument type_result);
     type_result
   | ELet(def, Some corps) -> 
-    type_exp (type_def env def) corps
+    let _, env' = type_def env def in
+    type_exp env' corps
   | EBoolean _ -> type_bool
   | ENum _-> type_int
   | EString _ -> type_string
@@ -235,7 +249,18 @@ and type_def env def =
       type_expr 
   in
   end_definition ();
-  (def.name, generalisation type_expr) :: env
+  (type_expr, (def.name, generalisation type_expr) :: env)
+
+and do_type env = function
+  | [] -> env
+  | x :: xs -> 
+      let (env', _) = type_expr env x
+      in do_type env' xs
+
+and open_module env m = 
+  let handle = open_in (file_from_module m) in
+  let ast = parse Parser.file (Lexing.from_channel handle) 
+  in close_in handle; do_type env ast
 
 
 

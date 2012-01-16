@@ -30,15 +30,19 @@ let type_prim2 a b c =
   
 let type_arithmetic = type_prim2 type_int type_int type_int
 let type_logic = type_prim2 type_bool type_bool type_bool
-
+let type_poly_logic = let v = new_unknow () in type_prim2 v v type_bool
 let populate_base_scope () =
   type_scope :=
    [("+", type_arithmetic);
    ("*", type_arithmetic);
    ("/", type_arithmetic);
-   ("==", type_logic);
-   ("!=", type_logic);
-   (">=", type_logic);
+   ("==", type_poly_logic);
+   ("!=", type_poly_logic);
+   (">=", type_poly_logic);
+   ("<=", type_poly_logic);
+   ("||", type_logic);
+   ("&&", type_logic);
+   ("not", type_prim1 type_bool type_bool);
    ("-", type_prim1 type_int type_int)
    ];
   scope :=
@@ -87,9 +91,9 @@ let _ =
             )
           | IValue res -> 
 	    
-	    let t = type_exp !type_scope res in
-            print_endline (print_type t); 
-	    
+	    let (scope_t', t) = type_expr !type_scope res in
+	    type_scope := scope_t';
+	    Printf.printf ":- %s = \n" (print_type t);	    
             let (scope', value) = eval !scope res
             in scope := scope'; print_endline (show value); 
             loop ()

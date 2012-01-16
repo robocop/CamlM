@@ -128,7 +128,6 @@ let simplify f =
 
 simplify (\x -> - ((-1) / x));;
 simplify (\x -> 1+x+1);;
-let fst = function (x, _) -> x;;
 simplify (\x -> 1*x+(1+3)+1);;
 let f = simplify (deriv (\x -> 1/x));;
 simplify (deriv f);;
