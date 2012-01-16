@@ -88,7 +88,7 @@ let _ =
           | IValue res -> 
 	    
 	    let t = type_exp !type_scope res in
-            print_type t; print_string " "; 
+            print_endline (print_type t); 
 	    
             let (scope', value) = eval !scope res
             in scope := scope'; print_endline (show value); 

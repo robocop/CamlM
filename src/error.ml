@@ -3,7 +3,8 @@ open Lexing
 exception MatchingFailure
 exception Error of string
 exception ParseError of Lexing.position * string;;
-
+exception Loop of string * string
+exception Conflit of string * string
 let handle_error = function
   | Error s -> print_endline ("Error : " ^ s) 
   | ParseError (p, tok) -> 

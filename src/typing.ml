@@ -16,8 +16,10 @@ type type_schema =
 
 let type_int = Term("int", [||])
 let type_bool = Term("bool", [||])
+let type_string = Term("string", [||])
 let type_product t1 t2 = Term("*", [|t1; t2|])
 let type_list t = Term("list", [|t|])
+let type_option t = Term("option", [|t|])
 let type_arrow t1 t2 = Term("->", [|t1; t2|])
 
 let level_of_liaison = ref 0;;
@@ -39,47 +41,103 @@ let rec value_of = function
 let name_of_variables = ref ([] : (variable_of_type * string) list)
 
 let print_var var = 
-  print_string "`";
-  try print_string (List.assq var !name_of_variables) 
-  with Not_found ->
+  "`" ^
+  (try List.assq var !name_of_variables
+   with Not_found ->
     let variables = List.fold_left 
       (fun set (_, x) -> StringSet.add x set) 
       StringSet.empty !name_of_variables 
     in
     let name = new_variable variables "a" in
     name_of_variables := (var, name) :: !name_of_variables;
-    print_string name
+    name)
 ;;
 let rec print ty = match value_of ty with
   | Variable var -> print_var var
   | Term(constructor, arguments) ->
     match Array.length arguments with
-      | 0 -> print_string constructor
-      | 1 -> print arguments.(0); print_string " "; print_string constructor;
+      | 0 -> constructor
+      | 1 -> Printf.sprintf "%s %s" (print arguments.(0)) constructor
       | 2 ->
-	begin
-	  print_string "("; print arguments.(0); 
-	  print_string " "; print_string constructor; 
-	  print_string " "; print arguments.(1); print_string ")";
-	end
+	Printf.sprintf "(%s %s %s)" (print arguments.(0)) constructor (print arguments.(1))
 ;;
 let print_type ty = 
   name_of_variables := []; print ty
 ;;
 
 
+let loop_test var ty =
+  let rec test t = match value_of t with
+      | Variable var' ->
+	if var == var' then raise(Loop (print_type (Variable var), print_type ty))
+      | Term(_, arguments) ->
+	Array.iter test arguments
+in test ty;;
 
 
+let rec rectify_levels level_max ty = match value_of ty with
+  | Variable var ->
+    if var.level > level_max then var.level <- level_max
+  | Term(_, arguments) ->
+    Array.iter (rectify_levels level_max) arguments;;
 
-let unify a b = 
-  print_string "unify "; print_type a; print_string " and "; print_type b; 
-  print_newline();
+
+let rec unify ty1 ty2 = 
+  print_string "unify "; print_string (print_type ty1); 
+  print_string " and "; print_endline (print_type ty2);
+  let v1 = value_of ty1
+  and v2 = value_of ty2 in
+  if v1 == v2 then () else
+    match (v1, v2) with
+      | Variable var, ty ->
+	loop_test var ty;
+	rectify_levels var.level ty;
+	var.value <- Know ty
+      | ty, Variable var ->
+	loop_test var ty;
+	rectify_levels var.level ty;
+	var.value <- Know ty
+      | Term(constr1, arguments1), Term(constr2, arguments2) ->
+	if constr1 <> constr2 then 
+	  raise (Conflit(print_type v1, print_type v2))
+	else
+	  for i = 0 to Array.length arguments1 - 1 do
+	    unify arguments1.(i) arguments2.(i)
+	  done
 ;;
+
 
 let start_definition () = incr level_of_liaison
 let end_definition () = decr level_of_liaison
-let specialisation s = s.corps;;
-let generalisation e = { parameter = []; corps = e}
+
+let generalisation ty =
+  let params = ref [] in
+  let rec find_parameters ty = match value_of ty with
+    | Variable var ->
+      if var.level > !level_of_liaison && not (List.memq var !params)
+      then params := var :: !params
+    | Term(_, arguments) ->
+      Array.iter find_parameters arguments 
+  in
+  find_parameters ty;
+  {parameter = !params; corps = ty}
+;;
+
+let specialisation schema = match schema.parameter with
+  | [] -> schema.corps
+  | params ->
+    let new_unknowns =
+      List.map (fun var -> (var, new_unknow ())) params 
+    in
+    let rec copy ty = match value_of ty with
+      | Variable var as ty ->
+	(try List.assq var new_unknowns with Not_found -> ty)
+      | Term(constr, arguments) ->
+	Term(constr, Array.map copy arguments) 
+    in
+    copy schema.corps
+;;
+
 
 
 
@@ -94,10 +152,15 @@ let rec type_pattern env = function
   | PBoolean b ->
     (type_bool, env)
   | PNum n -> (type_int, env) 
+  | PString _ -> (type_string, env)
   | PPair(m1, m2) ->
     let (ty1, env1) = type_pattern env m1 in
     let (ty2, env2) = type_pattern env1 m2 in
     (type_product ty1 ty2, env2)
+  | PNone -> (type_option (new_unknow ()), env)
+  | PSome p ->
+    let ty, env' = type_pattern env p in
+    (type_option ty, env')
   | PNil -> 
     (type_list (new_unknow ()), env)
   | PCons(m1, m2) ->
@@ -105,6 +168,7 @@ let rec type_pattern env = function
     let (ty2, env2) = type_pattern env m2 in
     unify (type_list ty1) ty2;
     (ty2, env2)
+  | PAll -> (new_unknow (), env)
 
 let rec type_exp env = function
   | EVariable id ->
@@ -133,7 +197,10 @@ let rec type_exp env = function
     type_exp (type_def env def) corps
   | EBoolean _ -> type_bool
   | ENum _-> type_int
+  | EString _ -> type_string
   | EPair (e1, e2) -> type_product (type_exp env e1) (type_exp env e2)
+  | ENone -> type_option (new_unknow ())
+  | ESome v -> type_option (type_exp env v)
   | ENil -> type_list (new_unknow ())
   | ECons(e1, e2) ->
     let t1 = type_exp env e1 in
