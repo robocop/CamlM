@@ -23,7 +23,7 @@ let scan () =
   in scan' 0 ""
 
 let _ =
-  let rec loop env =
+  let rec loop fn_env type_env =
     try 
       begin
       let lexbuf = Lexing.from_string (scan (print_string "# ")) in
@@ -31,17 +31,15 @@ let _ =
           | INothing -> print_endline "Done"
           | ICommand com -> (match com with
                                | "quit" -> print_endline "Done"
-                               | _ -> print_endline "Unknown command"; loop env
+                               | _ -> print_endline "Unknown command"; loop fn_env type_env
             )
           | IValue res -> 
-	    
-	    let (scope_t', t) = type_expr (builtin_types @ !type_scope) res in
-        let (env', value) = eval env res
-        in Printf.printf ":- %s = \n" (print_type t);	    
-           print_endline (show value); 
-           type_scope := scope_t'; 
-           loop (env' @ env)
+              let (type_env', t) = type_expr type_env res in
+              let (fn_env', value) = eval fn_env res
+              in Printf.printf ":- %s = \n" (print_type t);	    
+                 print_endline (show value); 
+                 loop (fn_env' @ fn_env) (type_env' @ type_env)
       end
-    with exn -> handle_error exn; loop env
-  in try loop builtin_fns
-  with exn -> handle_error exn; loop builtin_fns
+    with exn -> handle_error exn; loop fn_env type_env
+  in try loop builtin_fns builtin_types
+  with exn -> handle_error exn; loop builtin_fns builtin_types

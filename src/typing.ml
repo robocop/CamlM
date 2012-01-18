@@ -36,10 +36,6 @@ let rec value_of = function
     value_of_ty1
   | ty -> ty
 
-
-
-
-
 let name_of_variables = ref ([] : (variable_of_type * string) list)
 
 let print_var var = 
@@ -142,13 +138,6 @@ let specialisation schema = match schema.parameter with
     copy schema.corps
 ;;
 
-
-
-
-
-let type_scope : (string * type_schema) list ref = ref []
-
-
 let rec type_pattern env = function
   | PVariable id ->
     let ty = new_unknow () in
@@ -194,9 +183,9 @@ let rec type_expr env = function
       let t, env' = type_def env def in
       (env', t)
   | EOpen (m, None) -> 
-      let env' = open_module env m
+      let env' = open_module m
       in (env', type_unit)
-  | expr -> (env, type_exp env expr)
+  | expr -> ([], type_exp env expr)
 
 and type_exp env = function
   | EVariable id ->
@@ -223,7 +212,10 @@ and type_exp env = function
     type_result
   | ELet(def, Some corps) -> 
     let _, env' = type_def env def in
-    type_exp env' corps
+    type_exp (env' @ env) corps
+  | EOpen (m, Some body) ->
+      let env' = open_module m
+      in type_exp (env' @ env) body
   | EBoolean _ -> type_bool
   | ENum _-> type_int
   | EString _ -> type_string
@@ -249,7 +241,7 @@ and type_def env def =
       type_expr 
   in
   end_definition ();
-  (type_expr, (def.name, generalisation type_expr) :: env)
+  (type_expr, [def.name, generalisation type_expr])
 
 and do_type env = function
   | [] -> env
@@ -257,10 +249,10 @@ and do_type env = function
       let (env', _) = type_expr env x
       in do_type env' xs
 
-and open_module env m = 
+and open_module m = 
   let handle = open_in (file_from_module m) in
   let ast = parse Parser.file (Lexing.from_channel handle) 
-  in close_in handle; do_type env ast
+  in close_in handle; do_type [] ast
 
 
 
