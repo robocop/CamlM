@@ -18,8 +18,9 @@ caml: lexer.mll parser.mly syntax.ml helper.ml error.ml modules.ml typing.ml sho
 	$(CC) -o $(BUILD)/typing.cmo -c typing.ml
 	$(CC) -o $(BUILD)/lambda_repl.cmo -c lambda_repl.ml
 	$(CC) -o $(BUILD)/eval.cmo -c eval.ml
+	$(CC) -o $(BUILD)/builtin.cmo -c builtin.ml
 	$(CC) -o $(BUILD)/interpreter.cmo -c interpreter.ml
-	cd $(BUILD); $(CC) -o caml syntax.cmo lexer.cmo parser.cmo error.cmo helper.cmo show.cmo modules.cmo  typing.cmo lambda_repl.cmo eval.cmo interpreter.cmo
+	cd $(BUILD); $(CC) -o caml syntax.cmo lexer.cmo parser.cmo error.cmo helper.cmo show.cmo modules.cmo typing.cmo lambda_repl.cmo eval.cmo builtin.cmo interpreter.cmo
 	mv $(BUILD)/caml $(EXEC)
 
 clean:

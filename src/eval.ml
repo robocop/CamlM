@@ -4,8 +4,6 @@ open Lambda_repl
 open Error
 open Helper
 
-let scope : (string * expression) list ref = ref []
-
 let rec matching value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PVariable id) -> [id, value]
@@ -49,12 +47,12 @@ let env (e, _) = e
 (* Top level definitions that change the env globally *)
 let rec eval env = function
   | ELet (def, None) ->
-      let (env', _) = eval_definition env def
-      in (env', EUnit)
+      let (new_entry, _) = eval_definition env def
+      in (new_entry, EUnit)
   | EOpen (m, None) -> 
-      let env' = open_module env m
+      let env' = open_module m
       in (env', EUnit)
-  | expr -> (env, eval' env expr)
+  | expr -> ([], eval' env expr)
 
 (* Other expressions that only change the env locally *)
 and eval' env expr = match expr with
@@ -81,8 +79,8 @@ and eval' env expr = match expr with
   | ECons(e1, e2) -> ECons(eval' env e1, eval' env e2)
   | ESome e -> ESome (eval' env e)
   | EOpen (m, Some expr) ->
-      let env' = open_module env m
-      in eval' env' expr
+      let env' = open_module m
+      in eval' (env' @ env) expr
   | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | r -> r
@@ -105,19 +103,20 @@ and eval_definition curr_env def =
         match def.expr with
           | EFunction f ->
               let closure = {def = f.def; env = None } in
-              let extended_env = (def.name, EFunction closure)::curr_env in
+              let new_entry = def.name, EFunction closure in
+              let extended_env = new_entry :: curr_env in
                 closure.env <- Some extended_env;
-                (extended_env, EFunction closure)
+                ([new_entry], EFunction closure)
           | _ -> raise (Error "Non-functionnal recursive let definition")
 
 and do_eval env = function
   | [] -> env
   | x :: xs -> 
       let (env', _) = eval env x
-      in do_eval env' xs
+      in do_eval (env' @ env) xs
 
-and open_module env m = 
+and open_module m = 
   let handle = open_in (file_from_module m) in
   let ast = parse Parser.file (Lexing.from_channel handle) 
-  in close_in handle; do_eval env ast
+  in close_in handle; do_eval [] ast
 
