@@ -185,7 +185,7 @@ let rec type_expr env = function
   | EOpen (m, None) -> 
       let env' = open_module m
       in (env', type_unit)
-  | expr -> ([], type_exp env expr)
+  | expr -> (env, type_exp env expr)
 
 and type_exp env = function
   | EVariable id ->
@@ -212,7 +212,7 @@ and type_exp env = function
     type_result
   | ELet(def, Some corps) -> 
     let _, env' = type_def env def in
-    type_exp (env' @ env) corps
+    type_exp env' corps
   | EOpen (m, Some body) ->
       let env' = open_module m
       in type_exp (env' @ env) body
@@ -241,7 +241,7 @@ and type_def env def =
       type_expr 
   in
   end_definition ();
-  (type_expr, [def.name, generalisation type_expr])
+  (type_expr, (def.name, generalisation type_expr) :: env)
 
 and do_type env = function
   | [] -> env

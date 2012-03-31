@@ -38,7 +38,7 @@ let _ =
               let (fn_env', value) = eval fn_env res
               in Printf.printf ":- %s = \n" (print_type t);	    
                  print_endline (show value); 
-                 loop (fn_env' @ fn_env) (type_env' @ type_env)
+                 loop fn_env' type_env'
       end
     with exn -> handle_error exn; loop fn_env type_env
   in try loop builtin_fns builtin_types

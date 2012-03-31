@@ -47,12 +47,12 @@ let env (e, _) = e
 (* Top level definitions that change the env globally *)
 let rec eval env = function
   | ELet (def, None) ->
-      let (new_entry, _) = eval_definition env def
-      in (new_entry, EUnit)
+      let (env', _) = eval_definition env def
+      in (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_module m
       in (env', EUnit)
-  | expr -> ([], eval' env expr)
+  | expr -> (env, eval' env expr)
 
 (* Other expressions that only change the env locally *)
 and eval' env expr = match expr with
@@ -106,7 +106,7 @@ and eval_definition curr_env def =
               let new_entry = def.name, EFunction closure in
               let extended_env = new_entry :: curr_env in
                 closure.env <- Some extended_env;
-                ([new_entry], EFunction closure)
+                (extended_env, EFunction closure)
           | _ -> raise (Error "Non-functionnal recursive let definition")
 
 and do_eval env = function
