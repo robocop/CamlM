@@ -31,6 +31,13 @@ let type_logic = type_prim2 type_bool type_bool type_bool
 let type_poly_logic = let v = new_unknow () in type_prim2 v v type_bool
 
 
+let type_compose = 
+  let a, b, c = new_unknow (),  new_unknow (),  new_unknow () in
+  let tg = type_arrow a b in
+  let tf = type_arrow b c in
+  let tr = type_arrow a c in
+  trivial_schema (type_arrow  tg (type_arrow tf tr))
+
 let builtin_types = 
   [("+", type_arithmetic);
    ("*", type_arithmetic);
@@ -42,7 +49,8 @@ let builtin_types =
    ("||", type_logic);
    ("&&", type_logic);
    ("not", type_prim1 type_bool type_bool);
-   ("-", type_prim1 type_int type_int)
+   ("-", type_prim1 type_int type_int);
+   ("o", type_compose);
    ]
 
 let builtin_fns = 
@@ -59,6 +67,11 @@ let builtin_fns =
    ("||", prim2 to_bool (||) from_bool);
    ("++", prim2 to_string ( ^ ) from_string);
    ("not", EPrimitive (fun x -> to_bool (not (from_bool x))));
-   ("-", EPrimitive (fun x -> to_num (- (from_num x))))
+   ("-", EPrimitive (fun x -> to_num (- (from_num x))));
+   ("o", prim2 id 
+     (fun f g -> EFunction 
+       {def = [PVariable "x", EApplication(f, EApplication(g, EVariable "x"))]; 
+	env = None})
+     id)
   ]
 

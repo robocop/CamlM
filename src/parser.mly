@@ -39,7 +39,7 @@
 
     let mkMotifPreMinus = function
       | PNum n -> PNum (-n)
-      | motif -> FunP_m motif 
+      | motif -> PMinus motif 
 
 
 %}
@@ -49,11 +49,11 @@
 %token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS CONCAT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
-%token CONST ID
 %token <int> NUM
 %token <string> VAR STRING MODULE
 
 %right DOLLAR
+%right COMPOSE
 %nonassoc IN
 %nonassoc LET OPEN
 %nonassoc FUNCTION FUN WITH
@@ -200,12 +200,11 @@ case:
     | LSB list_pattern_sugar RSB { mkMotifList $2 }
     | LPA case RPA               { $2 }
     | LPA case COMMA case RPA    { PPair ($2, $4) }
-    | CONST case                 { FunP_const $2  }
-    | case PLUS case             { FunP_op ("+", $1, $3) }
-    | case TIMES case            { FunP_op ("*", $1, $3) }
+    | case PLUS case             { POp ("+", $1, $3) }
+    | case TIMES case            { POp ("*", $1, $3) }
     | MINUS case                 { mkMotifPreMinus $2 }
-    | case DIV case              { FunP_op ("/", $1, $3) }
-    | ID                         { FunP_id }
+    | case DIV case              { POp ("/", $1, $3) }
+    | case case                  { PApplication ($1, $2) }
 
 
 list_pattern_sugar:

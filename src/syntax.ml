@@ -32,10 +32,9 @@ and pattern =
   | PNone
   | PSome of pattern 
   | PString of string
-  | FunP_op of string * pattern * pattern
-  | FunP_m of pattern
-  | FunP_id
-  | FunP_const of pattern
+  | POp of string * pattern * pattern
+  | PMinus of pattern
+  | PApplication of pattern * pattern
 
 and definition = 
     {

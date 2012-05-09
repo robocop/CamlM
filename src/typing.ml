@@ -162,20 +162,15 @@ let rec type_pattern env = function
     unify (type_list ty1) ty2;
     (ty2, env2)
   | PAll -> (new_unknow (), env)
-  | FunP_id -> 
-    (type_arrow type_int type_int, env)
-  | FunP_const p -> 
+  | PMinus p ->
     let ty, env' = type_pattern env p in
-    (type_arrow type_int ty, env')
-  | FunP_m p ->
-    let ty, env' = type_pattern env p in
-    unify (type_arrow type_int type_int) ty;
+    unify type_int ty;
     (ty, env')
-  | FunP_op (_, p1, p2) ->
+  | POp (_, p1, p2) ->
     let (ty1, env1) = type_pattern env p1 in
     let (ty2, env2) = type_pattern env1 p2 in
     unify ty1 ty2;
-    unify (type_arrow type_int type_int) ty1;
+    unify type_int ty1;
     (ty1, env2)
 
 let rec type_expr env = function

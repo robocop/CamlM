@@ -17,10 +17,8 @@ and show_pattern = function
   | PNone -> "None"
   | PSome m -> Printf.sprintf "Some %s" (show_pattern m)
   | PString s -> Printf.sprintf "\"%s\"" s
-  | FunP_op (op, m1, m2) -> Printf.sprintf "%s %s %s" (show_pattern m1) op (show_pattern m2)
-  | FunP_m m -> Printf.sprintf "-%s" (show_pattern m)
-  | FunP_id -> "Id"
-  | FunP_const m -> Printf.sprintf "Const %s" (show_pattern m)
+  | POp (op, m1, m2) -> Printf.sprintf "%s %s %s" (show_pattern m1) op (show_pattern m2)
+  | PMinus m -> Printf.sprintf "-%s" (show_pattern m)
 
 and show_function def = 
   "function\n" 

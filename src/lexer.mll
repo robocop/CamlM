@@ -46,8 +46,6 @@ rule token = parse
   | "<-"        { LARROW }
   | "None"      { NONE }
   | "Some"      { SOME }
-  | "Const"     { CONST }
-  | "Id"        { ID }
   | "match"     { MATCH }
   | "with"      { WITH }
   | ";;"        { END_EXPR }

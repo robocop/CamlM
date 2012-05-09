@@ -20,25 +20,18 @@ let rec matching value pattern = match value, pattern with
       matching v1 m1 @ matching v2 m2
   | (ENone, PNone) -> []
   | (ESome v, PSome m) -> matching v m
-  | (f, FunP_const m) ->
-      (match const f with
-         | Some v -> matching v m
+
+  | (expr, POp(op, m1, m2)) ->
+      (match decompose_op op expr with
+         | Some (e1, e2) ->
+             (matching e1 m1) @ (matching e2 m2)
          | None -> raise MatchingFailure
       )
-  | (f, FunP_op(op, m1, m2)) ->
-      (match decompose_op op f with
-         | Some (f1, f2) ->
-             (matching f1 m1) @ (matching f2 m2)
+  | (expr, PMinus m) ->
+      (match minus expr with
+         | Some expr -> matching expr m
          | None -> raise MatchingFailure
       )
-  | (f, FunP_m m) ->
-      (match minus f with
-         | Some f -> matching f m
-         | None -> raise MatchingFailure
-      )
-  | (f, FunP_id) ->
-      if is_id f then []
-      else raise MatchingFailure
   | _ -> raise MatchingFailure
 
 let value (_, v) = v
@@ -56,7 +49,8 @@ let rec eval env = function
 
 (* Other expressions that only change the env locally *)
 and eval' env expr = match expr with
-  | EVariable s ->
+  | EVariable "/" -> EVariable "/"
+  | EVariable s -> 
       begin try List.assoc s env with _ -> raise (Error ("Unknown " ^ s)) end
 
   | EFunction {def = [PVariable v, expr]; env = None}->
@@ -73,7 +67,7 @@ and eval' env expr = match expr with
           | EPrimitive f -> f eval_e
           | EFunction {def = def; env = Some env_f} -> 
               eval_application env_f def eval_e
-          | _ -> raise (Error "Cannot apply non-functionnal expression")
+          | _ -> (*raise (Error "Cannot apply non-functionnal expression") *) EApplication(eval_f, eval_e)
         end
   | EPair(e1, e2) -> EPair(eval' env e1, eval' env e2)
   | ECons(e1, e2) -> ECons(eval' env e1, eval' env e2)
