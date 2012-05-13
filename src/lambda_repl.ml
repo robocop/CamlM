@@ -32,7 +32,6 @@ let rec is_simple_value = function
   | ESome e -> is_simple_value e
   | _ -> false
 
-
 let rec replace' fv lv env = function
   | EVariable x when StringSet.mem x fv  ->
       begin 
@@ -84,4 +83,3 @@ let rec normal_order_reduct = function
   | EApplication(m, n) ->
     EApplication(normal_order_reduct m, normal_order_reduct n)
   | rest -> rest
-

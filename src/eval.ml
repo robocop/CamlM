@@ -54,7 +54,6 @@ let rec eval env = function
 
 (* Other expressions that only change the env locally *)
 and eval' env expr = match expr with
-  | EVariable "/" -> EVariable "/"
   | EVariable s -> 
       begin try List.assoc s env with _ -> raise (Error ("Unknown " ^ s)) end
 
@@ -69,6 +68,14 @@ and eval' env expr = match expr with
     let f', x' = (eval' env f, eval' env e) in
         begin match EApplication(f', x') with
 	  | EApplication(EApplication(EVariable "+", ENum x), ENum y) -> ENum (x+y)
+	  | EApplication(EApplication(EVariable "*", ENum x), ENum y) -> ENum (x*y)
+	  | EApplication(EApplication(EVariable "/", ENum x), ENum y) ->
+	    if x mod y = 0 then ENum (x/y)
+	    else EApplication(f', x')
+	  | EApplication(EVariable "-", ENum x) -> ENum (-x)
+
+
+
           | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 
               eval_application env_f def arg
 
