@@ -22,16 +22,21 @@ let rec matching value pattern = match value, pattern with
   | (ESome v, PSome m) -> matching v m
 
   | (expr, POp(op, m1, m2)) ->
-      (match decompose_op op expr with
-         | Some (e1, e2) ->
+      (match expr with
+         | EApplication (EApplication (EVariable ope, e1), e2) when ope = op ->
              (matching e1 m1) @ (matching e2 m2)
-         | None -> raise MatchingFailure
+         | _ -> raise MatchingFailure
       )
   | (expr, PMinus m) ->
-      (match minus expr with
-         | Some expr -> matching expr m
-         | None -> raise MatchingFailure
+      (match expr with
+         | EApplication (EVariable "-", e) -> matching e m
+         | _ -> raise MatchingFailure
       )
+  | (expr, PApplication (f, x)) ->
+    (match expr with
+      | EApplication(f', x') ->  (matching f' f) @ (matching x' x)
+      | _ -> raise MatchingFailure
+    )
   | _ -> raise MatchingFailure
 
 let value (_, v) = v
@@ -61,14 +66,15 @@ and eval' env expr = match expr with
       EFunction {def = def; env = Some env}
 
   | EApplication(f, e) ->
-      let eval_f = eval' env f in
-      let eval_e = eval' env e in
-        begin match eval_f with
-          | EPrimitive f -> f eval_e
-          | EFunction {def = def; env = Some env_f} -> 
-              eval_application env_f def eval_e
-          | _ -> (*raise (Error "Cannot apply non-functionnal expression") *) EApplication(eval_f, eval_e)
+        begin match EApplication(eval' env f, eval' env e) with
+	  | EApplication(EApplication(EVariable "+", ENum x), ENum y) -> ENum (x+y)
+          | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 
+              eval_application env_f def arg
+
+          | EApplication(f, x) -> EApplication(f, x)
         end
+
+
   | EPair(e1, e2) -> EPair(eval' env e1, eval' env e2)
   | ECons(e1, e2) -> ECons(eval' env e1, eval' env e2)
   | ESome e -> ESome (eval' env e)

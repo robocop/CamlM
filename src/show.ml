@@ -20,6 +20,11 @@ and show_pattern = function
   | POp (op, m1, m2) -> Printf.sprintf "%s %s %s" (show_pattern m1) op (show_pattern m2)
   | PMinus m -> Printf.sprintf "-%s" (show_pattern m)
 
+  | PApplication (PVariable f, PVariable x) -> Printf.sprintf "%s %s" f x
+  | PApplication (PVariable s, PNum x) -> Printf.sprintf "%s %d" s x
+  | PApplication (f, x) ->
+     "("^show_pattern f^") "^"("^show_pattern x^")" 
+
 and show_function def = 
   "function\n" 
     ^ (String.concat "| " (List.map 
@@ -43,6 +48,8 @@ and show = function
   | EApplication (EApplication (EVariable op, e1), e2) 
       when List.mem op ["+"; "*"; "/"] -> 
       Printf.sprintf "(%s %s %s)" (show e1) op (show e2)
+  | EApplication (EVariable f, EVariable x) -> Printf.sprintf "%s %s" f x
+  | EApplication (EVariable s, ENum x) -> Printf.sprintf "%s %d" s x
   | EApplication (f, e) ->
       "("^show f^") "^"("^show e^")" 
   | EFunction {def = def; env = _} -> 

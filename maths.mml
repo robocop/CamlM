@@ -30,6 +30,11 @@ let rec concat l m = match l with
   | x::xs -> x :: (concat xs m)
 ;;
 
+let rec map f = function
+   [] -> []
+  | x::xs -> f x :: map f xs
+;;
+
 let rec fold_left f x0 = function
     [] -> x0
   | x::xs -> fold_left f (f x0 x) xs
@@ -40,6 +45,13 @@ let prod l = fold_left (\x y -> x*y) 1 l;;
 let rec decsum = function
    f+g -> concat (decsum f) (decsum g)
   | f -> [f]
+;;
+
+let rec comp_sum = function
+   [e] -> e
+  | f::xs -> 
+    let r = comp_sum xs in
+    (\x -> f x + r x)
 ;;
 let rec decprod = function
    f*g -> concat (decprod f) (decprod g)
@@ -62,6 +74,7 @@ let simpl_sum_const fonction =
       let s = sum cs in Some (s, Some sumf)
   )
 ;;
+
 let simpl_prod_const fonction = 
   let rec get l = function
       [] -> ([], l)
@@ -125,7 +138,19 @@ let simplify f =
   in test f
 ;;
 
+let rec expand = function
+   Const a -> (\x -> a)
+  | Id -> (\x -> x)
+  | f * g ->
+    let l = decsum g in
+    let nl = map (\h -> let hh x =  (f x) * (h x) in expand hh) in
+    comp_sum nl
+  | f + g -> let ff = expand f in let gg = expand g in
+	     (\x -> ff x + gg x)
+;;
 
+
+simplify (expand (\x -> x*(x+5*(x+1))));;
 simplify (\x -> - ((-1) / x));;
 simplify (\x -> 1+x+1);;
 simplify (\x -> 1*x+(1+3)+1);;

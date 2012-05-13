@@ -81,10 +81,10 @@ let rec rectify_levels level_max ty = match value_of ty with
 
 
 let rec unify ty1 ty2 = 
-  (*
+ 
   print_string "unify "; print_string (print_type ty1); 
   print_string " and "; print_endline (print_type ty2);
-  *)
+
   let v1 = value_of ty1
   and v2 = value_of ty2 in
   if v1 == v2 then () else
@@ -172,6 +172,13 @@ let rec type_pattern env = function
     unify ty1 ty2;
     unify type_int ty1;
     (ty1, env2)
+  | PApplication (f, x) ->
+     let (type_argument, env1) = type_pattern env x in
+     let (type_func, env2) = type_pattern env1 f in
+     let type_result = new_unknow() in
+     unify type_func (type_arrow type_argument type_result);
+     (type_result, env2)
+
 
 let rec type_expr env = function
   | ELet (def, None) ->

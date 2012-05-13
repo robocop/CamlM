@@ -11,6 +11,8 @@ let rec get_pattern_var = function
   | POp (_, m1, m2) ->
       StringSet.union (get_pattern_var m1) (get_pattern_var m2)
   | PMinus m -> get_pattern_var m
+  | PApplication (f, x) ->
+    StringSet.union (get_pattern_var f) (get_pattern_var x)
   | _ -> StringSet.empty
 
 
@@ -83,52 +85,4 @@ let rec normal_order_reduct = function
   | EApplication(m, n) ->
     EApplication(normal_order_reduct m, normal_order_reduct n)
   | rest -> rest
-
-let decompose_op op expr = match expr with
-  | EApplication (EApplication (EVariable ope, e1), e2) when ope = op ->
-    Some (e1, e2)
-  | _ -> None
-    
-let minus expr= match expr with
-  | EApplication (EVariable "-", e1) ->
-    Some e1
-  | _ -> None
-
-let var expr = match expr with
-    EVariable v -> Some v
-  | _ -> None
-(* let decompose_op op = function *)
-(*   | EFunction {def = [PVariable v, expr]; env = env} -> *)
-(*     (match expr with *)
-(*       | EApplication (EApplication (EVariable ope, e1), e2) when ope = op -> *)
-(* 	let make e = EFunction {def = [PVariable v, e]; env = env } in *)
-(* 	Some (make e1, make e2) *)
-(*       | _ -> None *)
-(*     ) *)
-(*   | _ -> None *)
-
-(* let minus = function *)
-(*   | EFunction {def = [PVariable v, expr]; env = env} -> *)
-(*     (match expr with *)
-(*       | EApplication (EVariable "-", e1) -> *)
-(* 	let f = EFunction {def = [PVariable v, e1]; env = env } in Some f *)
-(*       | _ -> None *)
-(*     ) *)
-(*   | _ -> None *)
-
-(* let is_id = function *)
-(*   | EFunction {def = [PVariable v, expr]} -> *)
-(*     (match expr with *)
-(*         EVariable v -> true *)
-(*       | _ -> false *)
-(*     ) *)
-(*   | _ -> false *)
-
-(* let const = function *)
-(*   | EFunction {def = [PVariable v, expr]; env = env} -> *)
-(*     (match expr with *)
-(*       | ENum n -> Some (ENum n) *)
-(*       | _ -> None *)
-(*     ) *)
-(*   | _ -> None *)
 

@@ -1,7 +1,6 @@
 type expression = 
   | EVariable of string
   | EFunction of closure
-  | EPrimitive of (expression -> expression)
   | EApplication of expression * expression
   | ELet of definition * expression option
   | EOpen of string * expression option
