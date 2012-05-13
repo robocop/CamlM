@@ -16,6 +16,7 @@ type type_schema =
  { parameter : variable_of_type list; corps : simple_type }
 
 let type_unit = Term("unit", [||])
+
 let type_int = Term("int", [||])
 let type_bool = Term("bool", [||])
 let type_string = Term("string", [||])
@@ -56,7 +57,7 @@ let rec print ty = match value_of ty with
     match Array.length arguments with
       | 0 -> constructor
       | 1 -> Printf.sprintf "%s %s" (print arguments.(0)) constructor
-      | 2 ->
+      | _ (* 2 *) ->
 	Printf.sprintf "(%s %s %s)" (print arguments.(0)) constructor (print arguments.(1))
 ;;
 let print_type ty = 
@@ -178,9 +179,12 @@ let rec type_pattern env = function
      let type_result = new_unknow() in
      unify type_func (type_arrow type_argument type_result);
      (type_result, env2)
+  | PWhen(expr, pattern) ->
+    let (t, env1) = type_pattern env pattern in
+    ignore (type_exp env1 expr); 
+    (t, env1)
 
-
-let rec type_expr env = function
+and type_expr env = function
   | ELet (def, None) ->
       let t, env' = type_def env def in
       (env', t)
@@ -225,11 +229,13 @@ and type_exp env = function
   | ENone -> type_option (new_unknow ())
   | ESome v -> type_option (type_exp env v)
   | ENil -> type_list (new_unknow ())
+  | EUnit -> type_unit
   | ECons(e1, e2) ->
     let t1 = type_exp env e1 in
     let t2 = type_exp env e2 in
     unify (type_list t1) t2;
     t2
+  | _ -> raise (Error "type_exp fail")
 
 and type_def env def = 
   start_definition ();

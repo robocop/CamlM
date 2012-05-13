@@ -66,12 +66,13 @@ and eval' env expr = match expr with
       EFunction {def = def; env = Some env}
 
   | EApplication(f, e) ->
-        begin match EApplication(eval' env f, eval' env e) with
+    let f', x' = (eval' env f, eval' env e) in
+        begin match EApplication(f', x') with
 	  | EApplication(EApplication(EVariable "+", ENum x), ENum y) -> ENum (x+y)
           | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 
               eval_application env_f def arg
 
-          | EApplication(f, x) -> EApplication(f, x)
+          | _ -> EApplication(f', x')
         end
 
 
