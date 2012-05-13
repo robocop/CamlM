@@ -3,7 +3,6 @@ open Error
 open Helper
 
 let rec get_pattern_var = function
-  | PWhen (e, m) -> get_pattern_var m
   | PVariable v -> StringSet.singleton v
   | PPair (m1, m2) -> StringSet.union (get_pattern_var m1) (get_pattern_var m2)
   | PCons (m1, m2) ->  StringSet.union (get_pattern_var m1) (get_pattern_var m2)

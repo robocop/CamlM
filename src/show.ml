@@ -24,7 +24,7 @@ and show_pattern = function
   | PApplication (PVariable s, PNum x) -> Printf.sprintf "%s %d" s x
   | PApplication (f, x) ->
      "("^show_pattern f^") "^"("^show_pattern x^")" 
-  | PWhen(expr, pattern) -> Printf.sprintf "%s when %s" (show_pattern pattern) (show expr)
+
     
 
 and show_function def = 

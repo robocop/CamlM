@@ -177,7 +177,7 @@ patterns:
     | patterns PIPE pattern  { $3 :: $1 }
 
 pattern:
-      case WHEN expr RARROW expr { (PWhen ($3, $1), $5) }
+    (*  case WHEN expr RARROW expr { (PWhen ($3, $1), $5) } *)
     | case RARROW expr           { ($1, $3) }
 
 cases_or_empty:

@@ -21,7 +21,6 @@ and env = (string * expression) list
 
 and pattern = 
   | PAll
-  | PWhen of expression * pattern
   | PVariable of string
   | PBoolean of bool
   | PNum of int

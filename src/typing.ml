@@ -179,10 +179,6 @@ let rec type_pattern env = function
      let type_result = new_unknow() in
      unify type_func (type_arrow type_argument type_result);
      (type_result, env2)
-  | PWhen(expr, pattern) ->
-    let (t, env1) = type_pattern env pattern in
-    ignore (type_exp env1 expr); 
-    (t, env1)
 
 and type_expr env = function
   | ELet (def, None) ->
