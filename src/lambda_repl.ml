@@ -2,26 +2,13 @@ open Syntax
 open Error
 open Helper
 
-let rec get_pattern_var = function
-  | PVariable v -> StringSet.singleton v
-  | PPair (m1, m2) -> StringSet.union (get_pattern_var m1) (get_pattern_var m2)
-  | PCons (m1, m2) ->  StringSet.union (get_pattern_var m1) (get_pattern_var m2)
-  | PSome m-> get_pattern_var m
-  | POp (_, m1, m2) ->
-      StringSet.union (get_pattern_var m1) (get_pattern_var m2)
-  | PMinus m -> get_pattern_var m
-  | PApplication (f, x) ->
-    StringSet.union (get_pattern_var f) (get_pattern_var x)
-  | _ -> StringSet.empty
-
-
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
-  | EFunction {def = def} -> StringSet.empty
+  | EFunction {def = [PVariable v, e]; env = env} ->
+    StringSet.diff (free_vars e) (StringSet.singleton v)
   | EApplication(m, n) ->
       StringSet.union (free_vars m) (free_vars n)
   | _ -> StringSet.empty
-
 
 let rec is_simple_value = function
   | EFunction {def = [PVariable _, expr]} -> is_simple_value expr
@@ -32,31 +19,23 @@ let rec is_simple_value = function
   | ESome e -> is_simple_value e
   | _ -> false
 
-let rec replace' fv lv env = function
+let rec replace' fv env = function
   | EVariable x when StringSet.mem x fv  ->
       begin 
         try 
           let v = List.assoc x env in
-            if is_simple_value v then (v (*replace' fv lv env v *))
+            if is_simple_value v then v
             else EVariable x
         with _ -> raise (Error ("Unknown " ^ x)) 
       end
   | EVariable x -> EVariable x
   | EApplication(m, n) ->
-      EApplication(replace' fv lv env m, replace' fv lv env n)
-  | EFunction {def = def; env = e} ->
-      let replace_def d = List.map 
-                            (fun (m, e) -> 
-                               let variables = get_pattern_var m in
-                               let lv' = StringSet.union lv variables in
-                               let fv' = StringSet.diff (free_vars e) lv' in
-                                 (m, replace' fv' lv' env e)
-                            ) d
-      in
-        EFunction {def = replace_def def; env = e} 
+      EApplication(replace' fv env m, replace' fv env n)
+  | EFunction {def = [PVariable v, expr]; env = Some e} ->
+        EFunction {def = [PVariable v, replace' fv e expr]; env = Some e} 
   | rest -> rest
 
-let replace env f = replace' (free_vars f) (StringSet.empty) env f
+let replace env f = replace' (free_vars f) env f
 
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
