@@ -6,7 +6,9 @@ open Helper
 
 let rec matching value pattern = match value, pattern with
   | (_, PAll) -> []
-  | (value, PVariable id) -> [id, value]
+  | (EVariable v1, PVariable v2) ->
+    if v1 = v2 then [] else raise MatchingFailure
+ (* | (value, PVariable id) -> [id, value] *)
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -35,6 +37,13 @@ let rec matching value pattern = match value, pattern with
   | (expr, PApplication (f, x)) ->
     (match expr with
       | EApplication(f', x') ->  (matching f' f) @ (matching x' x)
+      | _ -> raise MatchingFailure
+    )
+  | (expr, PFunction(arg, pexpr)) ->
+    (match expr with
+      | EFunction { def = [(PVariable v, expr)]} ->
+	let expr' = substitution expr (EVariable arg) v  in
+	matching expr' pexpr
       | _ -> raise MatchingFailure
     )
   | _ -> raise MatchingFailure
