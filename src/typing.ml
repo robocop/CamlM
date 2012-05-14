@@ -16,7 +16,6 @@ type type_schema =
  { parameter : variable_of_type list; corps : simple_type }
 
 let type_unit = Term("unit", [||])
-
 let type_int = Term("int", [||])
 let type_bool = Term("bool", [||])
 let type_string = Term("string", [||])
@@ -141,8 +140,12 @@ let specialisation schema = match schema.parameter with
 
 let rec type_pattern env = function
   | PVariable id ->
-    let ty = new_unknow () in
-    (ty, (id, trivial_schema ty) :: env)
+    begin 
+      try (specialisation (List.assoc id env), env)
+      with  Not_found  ->
+	let ty = new_unknow () in
+	(ty, (id, trivial_schema ty) :: env)
+    end
   | PBoolean b ->
     (type_bool, env)
   | PNum n -> (type_int, env) 
@@ -179,8 +182,19 @@ let rec type_pattern env = function
      let type_result = new_unknow() in
      unify type_func (type_arrow type_argument type_result);
      (type_result, env2)
+  | PFunction(var, pexpr) ->
+    let type_argument = new_unknow () in
+    let type_result = new_unknow () in
+    let (t_pattern, env1) = type_pattern env (PVariable var) in
+    unify t_pattern type_argument;
+    let (type_pexpr, env2) = type_pattern env1 pexpr in
+    unify type_pexpr type_result;
+    (type_arrow type_argument type_result, env2)
 
-and type_expr env = function
+
+
+
+let rec type_expr env = function
   | ELet (def, None) ->
       let t, env' = type_def env def in
       (env', t)

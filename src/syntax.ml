@@ -33,6 +33,7 @@ and pattern =
   | POp of string * pattern * pattern
   | PMinus of pattern
   | PApplication of pattern * pattern
+  | PFunction of string * pattern
 
 and definition = 
     {

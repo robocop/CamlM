@@ -24,6 +24,8 @@ and show_pattern = function
   | PApplication (PVariable s, PNum x) -> Printf.sprintf "%s %d" s x
   | PApplication (f, x) ->
      "("^show_pattern f^") "^"("^show_pattern x^")" 
+  | PFunction(var, pexpr) ->
+    Printf.sprintf "(\\%s -> %s)" var (show_pattern pexpr)
 
     
 

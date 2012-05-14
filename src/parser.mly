@@ -205,6 +205,7 @@ case:
     | MINUS case                 { mkMotifPreMinus $2 }
     | case DIV case              { POp ("/", $1, $3) }
     | case case                  { PApplication ($1, $2) }
+    | FUN VAR RARROW case        { PFunction($2, $4) }
 
 
 list_pattern_sugar:

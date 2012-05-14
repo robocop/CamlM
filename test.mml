@@ -8,9 +8,18 @@ let rec concat l m = match l with
   | x::xs -> x :: (concat xs m)
 ;;
 concat [1;2] [2; 3];;
-let rec fold_left f x0 = function
+let rec fold_left (f, x0) = function
     [] -> x0
-  | x::xs -> fold_left f (f x0 x) xs
+  | x::xs -> fold_left (f, f x0 x) xs
 ;;
-let sum s = fold_left (\x y -> x+y) 0 s;;
-sum [1; 2; 3];;
+let sum s = fold_left (\x -> \y -> x+y, 0) s;;
+sum [1; 2; 3/4; 1; 2];;
+
+
+let rec simplify = function
+    x / 1 -> x
+  | (a / b) / c -> a / (b*c)
+  | a / (b / c) -> (a * c) / b 
+  | (a / b) * c -> (a * c) / b 
+  | x -> x
+;;
