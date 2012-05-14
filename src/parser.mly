@@ -12,7 +12,7 @@
         | x :: xs -> mkFun (xs, EFunction {def = [x, e]; env = None})
 
     let mkLet r (n, pats, exp) in_clause = 
-        ELet ( { recursive = r
+        ELet ( Some { recursive = r
             ; name = n
             ; expr = mkFun (pats, exp) }
             , in_clause )  
@@ -46,7 +46,7 @@
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN LARROW
-%token LET EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
+%token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS CONCAT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token <int> NUM

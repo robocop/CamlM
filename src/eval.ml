@@ -6,9 +6,7 @@ open Helper
 
 let rec matching value pattern = match value, pattern with
   | (_, PAll) -> []
-  | (EVariable v1, PVariable v2) ->
-    if v1 = v2 then [] else raise MatchingFailure
- (* | (value, PVariable id) -> [id, value] *)
+  | (value, PVariable id) -> [id, value] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -39,13 +37,6 @@ let rec matching value pattern = match value, pattern with
       | EApplication(f', x') ->  (matching f' f) @ (matching x' x)
       | _ -> raise MatchingFailure
     )
-  | (expr, PFunction(arg, pexpr)) ->
-    (match expr with
-      | EFunction { def = [(PVariable v, expr)]} ->
-	let expr' = substitution expr (EVariable arg) v  in
-	matching expr' pexpr
-      | _ -> raise MatchingFailure
-    )
   | _ -> raise MatchingFailure
 
 let value (_, v) = v
@@ -53,7 +44,7 @@ let env (e, _) = e
 
 (* Top level definitions that change the env globally *)
 let rec eval env = function
-  | ELet (def, None) ->
+  | ELet (Some def, None) ->
       let (env', _) = eval_definition env def
       in (env', EUnit)
   | EOpen (m, None) -> 
@@ -98,7 +89,7 @@ and eval' env expr = match expr with
   | EOpen (m, Some expr) ->
       let env' = open_module m
       in eval' (env' @ env) expr
-  | ELet(def, Some corps) ->
+  | ELet(Some def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | r -> r
 

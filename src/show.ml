@@ -65,8 +65,8 @@ and show = function
       end
   | ENone -> "None"
   | ESome e -> Printf.sprintf "Some %s" (show e) 
-  | ELet (def, Some expr) ->
+  | ELet (Some def, Some expr) ->
       (show_def def) ^ " in " ^ show expr
-  | ELet (def, None) -> show_def def
+  | ELet (Some def, None) -> show_def def
 
 

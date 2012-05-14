@@ -2,7 +2,7 @@ type expression =
   | EVariable of string
   | EFunction of closure
   | EApplication of expression * expression
-  | ELet of definition * expression option
+  | ELet of definition option * expression option
   | EOpen of string * expression option
   | EBoolean of bool
   | ENum of int

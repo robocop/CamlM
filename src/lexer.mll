@@ -39,6 +39,7 @@ rule token = parse
   | "open"      { OPEN }
   | "when"      { WHEN }
   | "let"       { LET }
+  | "declare"   { DECLARE }
   | "rec"       { REC }
   | "function"  { FUNCTION }
   | "in"        { IN  }

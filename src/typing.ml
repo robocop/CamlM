@@ -141,8 +141,9 @@ let specialisation schema = match schema.parameter with
 let rec type_pattern env = function
   | PVariable id ->
     begin 
-      try (specialisation (List.assoc id env), env)
+   (*   try (specialisation (List.assoc id env), env)
       with  Not_found  ->
+   *)
 	let ty = new_unknow () in
 	(ty, (id, trivial_schema ty) :: env)
     end
@@ -182,7 +183,7 @@ let rec type_pattern env = function
      let type_result = new_unknow() in
      unify type_func (type_arrow type_argument type_result);
      (type_result, env2)
-  | PFunction(var, pexpr) ->
+(*  | PFunction(var, pexpr) ->
     let type_argument = new_unknow () in
     let type_result = new_unknow () in
     let (t_pattern, env1) = type_pattern env (PVariable var) in
@@ -191,11 +192,11 @@ let rec type_pattern env = function
     unify type_pexpr type_result;
     (type_arrow type_argument type_result, env2)
 
-
+*)
 
 
 let rec type_expr env = function
-  | ELet (def, None) ->
+  | ELet (Some def, None) ->
       let t, env' = type_def env def in
       (env', t)
   | EOpen (m, None) -> 
@@ -226,7 +227,7 @@ and type_exp env = function
     let type_result = new_unknow () in
     unify type_func (type_arrow type_argument type_result);
     type_result
-  | ELet(def, Some corps) -> 
+  | ELet(Some def, Some corps) -> 
     let _, env' = type_def env def in
     type_exp env' corps
   | EOpen (m, Some body) ->
