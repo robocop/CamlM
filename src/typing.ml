@@ -140,12 +140,16 @@ let specialisation schema = match schema.parameter with
 
 let rec type_pattern env = function
   | PVariable id ->
+    let new_v () = 
+      	let ty = new_unknow () in
+	(ty, (id, (trivial_schema ty, false)) :: env)
+    in
     begin 
-   (*   try (specialisation (List.assoc id env), env)
-      with  Not_found  ->
-   *)
-	let ty = new_unknow () in
-	(ty, (id, trivial_schema ty) :: env)
+      try 
+	let t, r = List.assoc id env in
+	if r = true then (specialisation t, env)
+	else new_v ()
+      with Not_found -> new_v ()
     end
   | PBoolean b ->
     (type_bool, env)
@@ -196,18 +200,21 @@ let rec type_pattern env = function
 
 
 let rec type_expr env = function
-  | ELet (Some def, None) ->
+  | ELet (def, None) ->
       let t, env' = type_def env def in
       (env', t)
+  | EDeclare (var, None) -> 
+    let ty = new_unknow () in
+    (((var, (trivial_schema ty, true)) :: env), ty)
   | EOpen (m, None) -> 
       let env' = open_module m
       in (env', type_unit)
   | expr -> (env, type_exp env expr)
 
 and type_exp env = function
-  | EVariable id ->
+  | EVariable id | EAtom id ->
     begin 
-      try specialisation (List.assoc id env)
+      try specialisation (fst (List.assoc id env))
       with Not_found -> raise (Error (id ^ " not found"))
     end
   | EFunction { def = list_of_cases } ->
@@ -227,8 +234,12 @@ and type_exp env = function
     let type_result = new_unknow () in
     unify type_func (type_arrow type_argument type_result);
     type_result
-  | ELet(Some def, Some corps) -> 
+  | ELet(def, Some corps) -> 
     let _, env' = type_def env def in
+    type_exp env' corps
+  | EDeclare(var, Some corps) ->
+    let ty = new_unknow () in
+    let env' = (var, (trivial_schema ty, true)) :: env in
     type_exp env' corps
   | EOpen (m, Some body) ->
       let env' = open_module m
@@ -255,12 +266,12 @@ and type_def env def =
     | true ->
       let type_temporary = new_unknow () in
       let type_expr = 
-	type_exp ((def.name, trivial_schema type_temporary) :: env) def.expr in
+	type_exp ((def.name, (trivial_schema type_temporary, false)) :: env) def.expr in
       unify type_expr type_temporary;
       type_expr 
   in
   end_definition ();
-  (type_expr, (def.name, generalisation type_expr) :: env)
+  (type_expr, (def.name, (generalisation type_expr, false)) :: env)
 
 and do_type env = function
   | [] -> env

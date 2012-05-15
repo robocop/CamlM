@@ -37,6 +37,7 @@ and show_function def =
 
 and show = function
   | EVariable v -> v
+  | EAtom v -> v
   | ENum n -> string_of_int n
   | EString s -> Printf.sprintf "\"%s\"" s
   | EBoolean false -> "false"
@@ -54,6 +55,7 @@ and show = function
       Printf.sprintf "(%s %s %s)" (show e1) op (show e2)
   | EApplication (EVariable f, EVariable x) -> Printf.sprintf "%s %s" f x
   | EApplication (EVariable s, ENum x) -> Printf.sprintf "%s %d" s x
+  | EApplication(EVariable f, r) -> f ^ " (" ^ show r ^ ")"
   | EApplication (f, e) ->
       "("^show f^") "^"("^show e^")" 
   | EFunction {def = def; env = _} -> 
@@ -65,8 +67,10 @@ and show = function
       end
   | ENone -> "None"
   | ESome e -> Printf.sprintf "Some %s" (show e) 
-  | ELet (Some def, Some expr) ->
+  | ELet (def, Some expr) ->
       (show_def def) ^ " in " ^ show expr
-  | ELet (Some def, None) -> show_def def
-
+  | ELet (def, None) -> show_def def
+  | EDeclare (var, Some expr) ->
+      var ^ " in " ^ show expr
+  | EDeclare (var, None) -> var
 

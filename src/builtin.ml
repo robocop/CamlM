@@ -3,9 +3,9 @@ open Error
 open Typing
 open Eval
 
-let type_prim1 a b = trivial_schema (type_arrow a b)
+let type_prim1 a b = (trivial_schema (type_arrow a b), false)
 let type_prim2 a b c = 
-  trivial_schema (type_arrow a (type_arrow b c))
+  (trivial_schema (type_arrow a (type_arrow b c)), false)
   
 let type_arithmetic = type_prim2 type_int type_int type_int
 let type_logic = type_prim2 type_bool type_bool type_bool

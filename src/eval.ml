@@ -4,8 +4,14 @@ open Lambda_repl
 open Error
 open Helper
 
-let rec matching value pattern = match value, pattern with
+let rec matching env value pattern = match value, pattern with
   | (_, PAll) -> []
+  | (EAtom v, PVariable v2) -> if v = v2 then [] else raise MatchingFailure
+  | (value, PVariable id) when List.mem_assoc id env -> 
+    begin match value  with
+      | (EVariable v) when v = id -> []
+      | _ -> raise MatchingFailure
+    end 
   | (value, PVariable id) -> [id, value] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
@@ -14,27 +20,27 @@ let rec matching value pattern = match value, pattern with
   | (EString s1, PString s2) ->
       if s1 = s2 then [] else raise MatchingFailure
   | (EPair(v1, v2), PPair (m1, m2)) ->
-      matching v1 m1 @ matching v2 m2
+      matching env v1 m1 @ matching env v2 m2
   | (ENil, PNil) -> []
   | (ECons (v1, v2), PCons(m1, m2)) ->
-      matching v1 m1 @ matching v2 m2
+      matching env v1 m1 @ matching env v2 m2
   | (ENone, PNone) -> []
-  | (ESome v, PSome m) -> matching v m
+  | (ESome v, PSome m) -> matching env v m
 
   | (expr, POp(op, m1, m2)) ->
       (match expr with
          | EApplication (EApplication (EVariable ope, e1), e2) when ope = op ->
-             (matching e1 m1) @ (matching e2 m2)
+             (matching env e1 m1) @ (matching env e2 m2)
          | _ -> raise MatchingFailure
       )
   | (expr, PMinus m) ->
       (match expr with
-         | EApplication (EVariable "-", e) -> matching e m
+         | EApplication (EVariable "-", e) -> matching env e m
          | _ -> raise MatchingFailure
       )
   | (expr, PApplication (f, x)) ->
     (match expr with
-      | EApplication(f', x') ->  (matching f' f) @ (matching x' x)
+      | EApplication(f', x') ->  (matching env f' f) @ (matching env x' x)
       | _ -> raise MatchingFailure
     )
   | _ -> raise MatchingFailure
@@ -44,9 +50,12 @@ let env (e, _) = e
 
 (* Top level definitions that change the env globally *)
 let rec eval env = function
-  | ELet (Some def, None) ->
+  | ELet (def, None) ->
       let (env', _) = eval_definition env def
       in (env', EUnit)
+  | EDeclare(var, None) ->
+    let env' = (var, EAtom var)::env in
+    (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_module m
       in (env', EUnit)
@@ -89,15 +98,18 @@ and eval' env expr = match expr with
   | EOpen (m, Some expr) ->
       let env' = open_module m
       in eval' (env' @ env) expr
-  | ELet(Some def, Some corps) ->
+  | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
+  | EDeclare(var, Some corps) ->
+    let env' = (var, EAtom var)::env in
+    eval' env' corps
   | r -> r
 
 and eval_application env case_list argument = match case_list with
   | [] -> raise (Error "Pattern matching failure")
   | (pattern, expr) :: rest ->
       try
-        let extended_env = matching argument pattern @ env in
+        let extended_env = matching env argument pattern @ env in
           eval' extended_env expr
       with
           MatchingFailure -> eval_application env rest argument

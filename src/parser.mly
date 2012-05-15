@@ -12,7 +12,7 @@
         | x :: xs -> mkFun (xs, EFunction {def = [x, e]; env = None})
 
     let mkLet r (n, pats, exp) in_clause = 
-        ELet ( Some { recursive = r
+        ELet ( { recursive = r
             ; name = n
             ; expr = mkFun (pats, exp) }
             , in_clause )  
@@ -96,6 +96,7 @@ file:
 toplevel:
       LET rec_flag let_bindings END_EXPR
         { mkLet $2 $3 None }
+    | DECLARE VAR END_EXPR { EDeclare($2, None) }
     | OPEN MODULE END_EXPR
         { mkOpen $2 None }
     | expr END_EXPR
@@ -106,6 +107,7 @@ expr:
         { mkApp $1 (List.rev $2) }
     | LET rec_flag let_bindings IN expr
         { mkLet $2 $3 (Some $5) }
+    | DECLARE VAR IN expr { EDeclare ($2, Some $4) }
     | OPEN MODULE IN expr
         { mkOpen $2 (Some $4) }
     | a=expr; f=op; b=expr

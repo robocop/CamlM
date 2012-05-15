@@ -1,8 +1,10 @@
 type expression = 
   | EVariable of string
+  | EAtom of string
   | EFunction of closure
   | EApplication of expression * expression
-  | ELet of definition option * expression option
+  | ELet of definition * expression option
+  | EDeclare of string * expression option
   | EOpen of string * expression option
   | EBoolean of bool
   | ENum of int
