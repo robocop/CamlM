@@ -46,6 +46,22 @@ let rec matching env value pattern = match value, pattern with
       | EApplication(f', x') ->  (matching env f' f) @ (matching env x' x)
       | _ -> raise MatchingFailure
     )
+  | (expr, PFunction(arg, pexpr)) ->
+    (match expr with
+      | EFunction ({def = [(PVariable v, e)]; env = Some env'}) ->
+	(* on récupère une variable libre à la fois de pexpr et de expr *)
+	let pfree_vars = pattern_free_vars pexpr in
+	let efree_vars = free_vars expr in
+	let ens = StringSet.union pfree_vars efree_vars in
+	let new_arg = new_variable ens arg in
+	(* on subsitutitue pexpr et expr par la nouvelle variable *)
+	let expr' = substitution e (EVariable new_arg) v in
+	let pexpr' = pattern_substitution pexpr new_arg arg in
+
+	let env2 = (new_arg, (EVariable new_arg, true))::env' in
+	matching env2 expr' pexpr'
+      | _ -> raise MatchingFailure
+    )
   | _ -> raise MatchingFailure
 
 let value (_, v) = v

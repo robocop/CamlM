@@ -36,7 +36,7 @@ let _ =
           | IValue res -> 
               let (type_env', t) = type_expr type_env res in
               let (fn_env', value) = eval fn_env res
-              in Printf.printf ":- %s = \n" (print_type t);	    
+              in Printf.printf ":- %s = " (print_type t);	    
                  print_endline (show value); 
                  loop fn_env' type_env'
       end

@@ -34,7 +34,19 @@ let rec simplify = function
   | x * y -> (simplify x) * (simplify y)
   | x -> x
 ;;
+let rec deriv = function
+    (\x -> x) -> (\x -> 1)
+  | (\x -> a + b) -> 
+    let f = deriv (\x -> a) in
+    let g = deriv (\x -> b) in
+    \x -> f x + g x
+  | (\x -> a * b) ->
+    let a' = deriv (\x -> a) in
+    let b' = deriv (\x -> b) in
+    \x -> (a' x) * (b x) + (a x) * (b' x) 
+;;
 
+deriv (\x -> x*x*x);;
 simplify ((exp 1) * (exp 2));;
 
 let f (a, x) = a+x;;

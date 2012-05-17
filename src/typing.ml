@@ -187,16 +187,14 @@ let rec type_pattern env = function
      let type_result = new_unknow() in
      unify type_func (type_arrow type_argument type_result);
      (type_result, env2)
-(*  | PFunction(var, pexpr) ->
-    let type_argument = new_unknow () in
+  | PFunction(var, pexpr) ->
     let type_result = new_unknow () in
-    let (t_pattern, env1) = type_pattern env (PVariable var) in
-    unify t_pattern type_argument;
+    let type_argument = new_unknow () in
+    let env1 = (var, (trivial_schema type_argument, true)) :: env in
     let (type_pexpr, env2) = type_pattern env1 pexpr in
     unify type_pexpr type_result;
     (type_arrow type_argument type_result, env2)
 
-*)
 
 
 let rec type_expr env = function
