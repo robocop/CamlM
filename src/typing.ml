@@ -212,7 +212,7 @@ let rec type_expr env = function
   | expr -> (env, type_exp env expr)
 
 and type_exp env = function
-  | EVariable id | EAtom id ->
+  | EVariable id ->
     begin 
       try specialisation (fst (List.assoc id env))
       with Not_found -> raise (Error (id ^ " not found"))

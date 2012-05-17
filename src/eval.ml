@@ -6,13 +6,16 @@ open Helper
 
 let rec matching env value pattern = match value, pattern with
   | (_, PAll) -> []
-  | (EAtom v, PVariable v2) -> if v = v2 then [] else raise MatchingFailure
-  | (value, PVariable id) when List.mem_assoc id env -> 
-    begin match value  with
-      | (EVariable v) when v = id -> []
-      | _ -> raise MatchingFailure
-    end 
-  | (value, PVariable id) -> [id, value] 
+  | (value, PVariable id) ->
+    if List.mem_assoc id env then
+      begin
+	match value, List.assoc id env with
+	  | _, (_, false) -> [id, (value, false)]
+	  | EVariable v, (EVariable v', true)  when v = v' -> [] (* si la variable id est de type declare, on test si value = PVariable id (when implicite) *)
+	  | _ -> raise MatchingFailure
+      end
+    else
+      [id, (value, false)] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -54,7 +57,7 @@ let rec eval env = function
       let (env', _) = eval_definition env def
       in (env', EUnit)
   | EDeclare(var, None) ->
-    let env' = (var, EAtom var)::env in
+    let env' = (var, (EVariable var, true))::env in
     (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_module m
@@ -64,7 +67,7 @@ let rec eval env = function
 (* Other expressions that only change the env locally *)
 and eval' env expr = match expr with
   | EVariable s -> 
-      begin try List.assoc s env with _ -> raise (Error ("Unknown " ^ s)) end
+      begin try fst (List.assoc s env) with _ -> raise (Error ("Unknown " ^ s)) end
 
   | EFunction {def = [PVariable v, expr]; env = None}->
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in
@@ -101,7 +104,7 @@ and eval' env expr = match expr with
   | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | EDeclare(var, Some corps) ->
-    let env' = (var, EAtom var)::env in
+    let env' = (var, (EVariable var, true))::env in
     eval' env' corps
   | r -> r
 
@@ -118,12 +121,12 @@ and eval_definition curr_env def =
   match def.recursive with
     | false ->
         let valeur = eval' curr_env def.expr
-        in ((def.name, valeur) :: curr_env, valeur)
+        in ((def.name, (valeur, false)) :: curr_env, valeur)
     | true ->
         match def.expr with
           | EFunction f ->
               let closure = {def = f.def; env = None } in
-              let new_entry = def.name, EFunction closure in
+              let new_entry = def.name, (EFunction closure, false) in
               let extended_env = new_entry :: curr_env in
                 closure.env <- Some extended_env;
                 (extended_env, EFunction closure)

@@ -1,6 +1,5 @@
 type expression = 
   | EVariable of string
-  | EAtom of string
   | EFunction of closure
   | EApplication of expression * expression
   | ELet of definition * expression option
@@ -19,7 +18,7 @@ type expression =
 and closure = 
       { def : (pattern * expression) list; 
 	mutable env : env option }
-and env = (string * expression) list
+and env = (string * (expression * bool) ) list
 
 and pattern = 
   | PAll

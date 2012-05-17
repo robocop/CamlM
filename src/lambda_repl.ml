@@ -23,7 +23,7 @@ let rec replace' fv env = function
   | EVariable x when StringSet.mem x fv  ->
       begin 
         try 
-          let v = List.assoc x env in
+          let v, _ = List.assoc x env in
             if is_simple_value v then v
             else EVariable x
         with _ -> raise (Error ("Unknown " ^ x)) 

@@ -37,7 +37,6 @@ and show_function def =
 
 and show = function
   | EVariable v -> v
-  | EAtom v -> v
   | ENum n -> string_of_int n
   | EString s -> Printf.sprintf "\"%s\"" s
   | EBoolean false -> "false"

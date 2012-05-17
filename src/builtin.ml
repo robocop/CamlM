@@ -27,18 +27,18 @@ let builtin_types =
    ]
 
 let builtin_fns = 
-   [("+", EVariable "+");
-   ("*", EVariable "*");
-   ("/", EVariable "/");
-   ("==", EVariable "==");
-   ("!=", EVariable "!=");
-   (">=", EVariable ">=");
-   ("<=", EVariable "<=");
-   ("<",  EVariable "<");
-   (">",  EVariable ">");
-   ("&&", EVariable "&&");
-   ("||", EVariable "||");
-   ("++", EVariable "++");
-   ("not", EVariable "not");
-   ("-", EVariable "-");
+   [("+", (EVariable "+", false));
+   ("*", (EVariable "*", false));
+   ("/", (EVariable "/", false));
+   ("==", (EVariable "==", false));
+   ("!=", (EVariable "!=", false));
+   (">=", (EVariable ">=", false));
+   ("<=", (EVariable "<=", false));
+   ("<",  (EVariable "<", false));
+   (">",  (EVariable ">", false));
+   ("&&", (EVariable "&&", false));
+   ("||", (EVariable "||", false));
+   ("++", (EVariable "++", false));
+   ("not", (EVariable "not", false));
+   ("-", (EVariable "-", false));
   ]
