@@ -1,5 +1,13 @@
+declare exp;;
+declare ln;;
+declare cos;;
+declare sin;;
+
 let rec deriv = function
-    Id -> \x -> 1
+    exp -> exp
+  | sin -> cos
+  | ln -> (\x -> 1/x)
+  | Id -> \x -> 1
   | Const _ -> \x -> 0
   | f+g -> 
     let df = deriv f in let dg = deriv g in
@@ -13,17 +21,25 @@ let rec deriv = function
   | f / g -> 
     let df = deriv f in let dg = deriv g in
     \x -> (df x * g x - dg x * f x)/(g x * g x)
+  | f . g -> 
+    let df = deriv f in
+    let dg = deriv g in
+    \x -> df (g x) * (dg x)
 ;;
 
+
+let f' = 5;;
 
 let rec compare_expr f g = match (f, g) with
    (Const a, Const b) -> a == b
   | (Id, Id) -> true
   | (f+g, h+j) -> (compare_expr f h) && (compare_expr g j)
   | (f*g, h*j) -> (compare_expr f h) && (compare_expr g j)
+  | (f . g, f' . g') -> (compare_expr f f') && (compare_expr g g') 
   | _ -> false
 ;;
 
+compare_expr (\x -> 2*cos x) (\y -> 2*cos y);;
 
 let rec concat l m = match l with
    [] -> m
@@ -57,6 +73,7 @@ let rec decprod = function
    f*g -> concat (decprod f) (decprod g)
   | f -> [f]
 ;;
+
 
 let simpl_sum_const fonction = 
   let rec get l = function
@@ -138,22 +155,13 @@ let simplify f =
   in test f
 ;;
 
-let rec expand = function
-   Const a -> (\x -> a)
-  | Id -> (\x -> x)
-  | f * g ->
-    let l = decsum g in
-    let nl = map (\h -> let hh x =  (f x) * (h x) in expand hh) in
-    comp_sum nl
-  | f + g -> let ff = expand f in let gg = expand g in
-	     (\x -> ff x + gg x)
-;;
-
-
-simplify (expand (\x -> x*(x+5*(x+1))));;
+declare exp;;
+(simplify (\x -> exp 7)) 0;;
 simplify (\x -> - ((-1) / x));;
 simplify (\x -> 1+x+1);;
 simplify (\x -> 1*x+(1+3)+1);;
-let f = simplify (deriv (\x -> 1/x));;
+let f = deriv (\x -> 1/x);;
+f;;
+simplify f;;
 simplify (deriv f);;
 

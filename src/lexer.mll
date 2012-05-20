@@ -43,6 +43,8 @@ rule token = parse
   | "rec"       { REC }
   | "function"  { FUNCTION }
   | "in"        { IN  }
+  | "Id"        { ID  }
+  | "Const"     { CONST }
   | "->"        { RARROW }
   | "<-"        { LARROW }
   | "None"      { NONE }
@@ -58,5 +60,6 @@ rule token = parse
   | downcase id*{ VAR (Lexing.lexeme lexbuf) }
   | upcase id*  { MODULE (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
+  | '.'         { POINT }
   | _           { token lexbuf }
   | eof         { EOF }

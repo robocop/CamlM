@@ -81,10 +81,10 @@ let rec rectify_levels level_max ty = match value_of ty with
 
 
 let rec unify ty1 ty2 = 
- 
+ (*
   print_string "unify "; print_string (print_type ty1); 
   print_string " and "; print_endline (print_type ty2);
-
+ *)
   let v1 = value_of ty1
   and v2 = value_of ty2 in
   if v1 == v2 then () else
@@ -171,31 +171,48 @@ let rec type_pattern env = function
     unify (type_list ty1) ty2;
     (ty2, env2)
   | PAll -> (new_unknow (), env)
-  | PMinus p ->
-    let ty, env' = type_pattern env p in
-    unify type_int ty;
-    (ty, env')
+  | PMinus p1 ->
+    let type_arg = new_unknow() in
+    let type_result = new_unknow() in
+    let (ty1, env1) = type_pattern env p1 in
+
+    unify ty1 (type_arrow type_arg type_result);
+    unify type_int type_result;
+    (type_arrow type_arg type_result, env1)
+
   | POp (_, p1, p2) ->
+    let type_arg = new_unknow() in
+    let type_result = new_unknow() in
+
     let (ty1, env1) = type_pattern env p1 in
     let (ty2, env2) = type_pattern env1 p2 in
-    unify ty1 ty2;
-    unify type_int ty1;
-    (ty1, env2)
-  | PApplication (f, x) ->
-     let (type_argument, env1) = type_pattern env x in
-     let (type_func, env2) = type_pattern env1 f in
-     let type_result = new_unknow() in
-     unify type_func (type_arrow type_argument type_result);
-     (type_result, env2)
-  | PFunction(var, pexpr) ->
-    let type_result = new_unknow () in
-    let type_argument = new_unknow () in
-    let env1 = (var, (trivial_schema type_argument, true)) :: env in
-    let (type_pexpr, env2) = type_pattern env1 pexpr in
-    unify type_pexpr type_result;
-    (type_arrow type_argument type_result, env2)
 
+    unify ty1 (type_arrow type_arg type_result);
+    unify ty2 (type_arrow type_arg type_result);
+    unify type_int type_result;
+    (type_arrow type_arg type_result, env2)
 
+  | PCompose (pf, pg) ->
+    let type_arg = new_unknow() in
+    let type_result = new_unknow() in
+    let type_inter = new_unknow() in
+    
+    let (ty1, env1) = type_pattern env pg in
+    let (ty2, env2) = type_pattern env1 pf in
+
+    unify ty1 (type_arrow type_arg type_inter);
+    unify ty2 (type_arrow type_inter type_result);
+    
+     (type_arrow type_arg type_result, env2)
+  | PIdentity ->
+    let t = new_unknow() in
+    (type_arrow t t, env) 
+  | PConst p ->
+    let type_arg = new_unknow() in
+    let type_result = new_unknow() in
+    let (ty1, env1) = type_pattern env p in
+    unify ty1 type_result;
+    (type_arrow type_arg type_result, env1)
 
 let rec type_expr env = function
   | ELet (def, None) ->

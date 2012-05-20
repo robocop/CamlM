@@ -19,14 +19,11 @@ and show_pattern = function
   | PString s -> Printf.sprintf "\"%s\"" s
   | POp (op, m1, m2) -> Printf.sprintf "%s %s %s" (show_pattern m1) op (show_pattern m2)
   | PMinus m -> Printf.sprintf "-%s" (show_pattern m)
-
-  | PApplication (PVariable f, PVariable x) -> Printf.sprintf "%s %s" f x
-  | PApplication (PVariable s, PNum x) -> Printf.sprintf "%s %d" s x
-  | PApplication (f, x) ->
-     "("^show_pattern f^") "^"("^show_pattern x^")" 
-  | PFunction(var, pexpr) ->
-    Printf.sprintf "(\\%s -> %s)" var (show_pattern pexpr)
-
+  | PIdentity -> "Id"
+  | PConst p -> "Const "^(show_pattern p)
+  | PCompose (f, g) ->
+     "("^show_pattern f^") "^". ("^show_pattern g^")" 
+ 
     
 
 and show_function def = 

@@ -33,8 +33,9 @@ and pattern =
   | PString of string
   | POp of string * pattern * pattern
   | PMinus of pattern
-  | PApplication of pattern * pattern
-  | PFunction of string * pattern
+  | PCompose of pattern * pattern
+  | PIdentity
+  | PConst of pattern
 
 and definition = 
     {

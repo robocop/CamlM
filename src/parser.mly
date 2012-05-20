@@ -47,8 +47,9 @@
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN LARROW
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
-%token PLUS MINUS TIMES DIV CONS CONCAT
+%token PLUS MINUS TIMES DIV CONS CONCAT POINT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
+%token ID CONST
 %token <int> NUM
 %token <string> VAR STRING MODULE
 
@@ -65,6 +66,7 @@
 %left BLEQ BGEQ BLT BGT
 %left BEQ BNEQ
 %right CONS 
+%left POINT
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
@@ -206,8 +208,9 @@ case:
     | case TIMES case            { POp ("*", $1, $3) }
     | MINUS case                 { mkMotifPreMinus $2 }
     | case DIV case              { POp ("/", $1, $3) }
-    | case case                  { PApplication ($1, $2) }
-    | FUN VAR RARROW case        { PFunction($2, $4) }
+    | case POINT case            { PCompose ($1, $3) }
+    | ID                         { PIdentity }
+    | CONST case                 { PConst $2 }
 
 
 list_pattern_sugar:

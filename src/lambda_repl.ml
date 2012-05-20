@@ -6,8 +6,11 @@ let rec free_vars = function
   | EVariable x -> StringSet.singleton x
   | EFunction {def = [PVariable v, e]; env = env} ->
     StringSet.diff (free_vars e) (StringSet.singleton v)
-  | EApplication(m, n) ->
+  | EApplication(m, n) 
+  | EPair(m, n)
+  | ECons(m, n) ->
       StringSet.union (free_vars m) (free_vars n)
+  | ESome n -> free_vars n
   | _ -> StringSet.empty
 
 let rec is_simple_value = function
@@ -65,40 +68,3 @@ let rec normal_order_reduct = function
     EApplication(normal_order_reduct m, normal_order_reduct n)
   | rest -> rest
 
-
-
-
-let rec pattern_free_vars = function
-  | PVariable x -> StringSet.singleton x
-  | PFunction(arg, pexpr)->
-    StringSet.diff (pattern_free_vars pexpr) (StringSet.singleton arg)     
-  | PPair (p1, p2) | PCons(p1, p2) | POp(_, p1, p2) | PApplication(p1, p2) ->
-    StringSet.union (pattern_free_vars p1) (pattern_free_vars p2)
-  | PSome p | PMinus p -> pattern_free_vars p
-  | _ -> StringSet.empty
-
-let rec pattern_substitution expr v_arg x = match expr with
-  | PVariable v when v = x -> PVariable v_arg
-  | PVariable y when y <> x -> PVariable y
-  | PFunction(v, pexpr) when v = x-> PFunction(v, pexpr)
-  | PFunction(y, pexpr)  when y <> x ->
-    let ens = StringSet.union 
-      (StringSet.union (StringSet.singleton v_arg) (pattern_free_vars pexpr))
-      (StringSet.singleton x) 
-    in
-    let z = new_variable ens y in
-    let pe1 = pattern_substitution pexpr z y in
-    let pe2 = pattern_substitution pe1 v_arg x in
-    PFunction(z, pe2)
-  | PApplication(p1, p2) ->
-    PApplication(pattern_substitution p1 v_arg x, pattern_substitution p2 v_arg x)
-  | PPair (p1,p2) -> 
-    PPair(pattern_substitution p1 v_arg x, pattern_substitution p2 v_arg x)
-  | PCons(p1, p2) -> 
-    PCons(pattern_substitution p1 v_arg x, pattern_substitution p2 v_arg x)
-  | POp(op, p1, p2) -> 
-    POp(op, pattern_substitution p1 v_arg x, pattern_substitution p2 v_arg x)
-  | PSome p -> PSome (pattern_substitution p v_arg x)
-  | PMinus p ->  PMinus (pattern_substitution p v_arg x)
-  | rest -> rest
-    

@@ -46,7 +46,7 @@ let rec deriv = function
     \x -> (a' x) * (b x) + (a x) * (b' x) 
 ;;
 
-deriv (\x -> x*x*x);;
+deriv (\x -> x+x);;
 simplify ((exp 1) * (exp 2));;
 
 let f (a, x) = a+x;;

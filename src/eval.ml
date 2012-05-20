@@ -30,36 +30,51 @@ let rec matching env value pattern = match value, pattern with
   | (ENone, PNone) -> []
   | (ESome v, PSome m) -> matching env v m
 
-  | (expr, POp(op, m1, m2)) ->
-      (match expr with
-         | EApplication (EApplication (EVariable ope, e1), e2) when ope = op ->
-             (matching env e1 m1) @ (matching env e2 m2)
+  | (expr, POp(op, pf, pg)) ->
+    (match expr with
+         | EFunction
+	     ({def = [PVariable v, 
+		      EApplication(EApplication (EVariable op', e1), e2)]; 
+	      env = envi}) when op = op' ->
+           let f = EFunction({def = [PVariable v, e1]; env = envi }) in
+	   let g = EFunction({def = [PVariable v, e2]; env = envi }) in
+           (matching env f pf) @ (matching env g pg)
          | _ -> raise MatchingFailure
-      )
+    )
+
   | (expr, PMinus m) ->
       (match expr with
-         | EApplication (EVariable "-", e) -> matching env e m
+         | EFunction
+	     ({def = [PVariable v, EApplication (EVariable "-", e)]; 
+	      env = envi}) ->
+            let f' = EFunction({def = [PVariable v, e]; env = envi }) in
+            matching env f' m
          | _ -> raise MatchingFailure
       )
-  | (expr, PApplication (f, x)) ->
+  | (expr, PCompose (pf, pg)) ->
     (match expr with
-      | EApplication(f', x') ->  (matching env f' f) @ (matching env x' x)
+         | EFunction
+	     ({def = [PVariable v, EApplication(e1, e2)]; env = envi})  ->
+           let f = match e1 with
+	     | EVariable f -> EVariable f
+	     | (EFunction _) as f -> f
+	     | _ -> EFunction({def = [PVariable v, EApplication(e1, EVariable v)]; env = envi })
+	   in
+	   let g = EFunction({def = [PVariable v, e2]; env = envi }) in
+           (matching env f pf) @ (matching env g pg)
+         | _ -> raise MatchingFailure
+    )
+  | (expr, PIdentity) ->
+    (match expr with
+       EFunction({def = [PVariable v, EVariable v']}) when v = v' -> []
       | _ -> raise MatchingFailure
     )
-  | (expr, PFunction(arg, pexpr)) ->
-    (match expr with
-      | EFunction ({def = [(PVariable v, e)]; env = Some env'}) ->
-	(* on récupère une variable libre à la fois de pexpr et de expr *)
-	let pfree_vars = pattern_free_vars pexpr in
-	let efree_vars = free_vars expr in
-	let ens = StringSet.union pfree_vars efree_vars in
-	let new_arg = new_variable ens arg in
-	(* on subsitutitue pexpr et expr par la nouvelle variable *)
-	let expr' = substitution e (EVariable new_arg) v in
-	let pexpr' = pattern_substitution pexpr new_arg arg in
-
-	let env2 = (new_arg, (EVariable new_arg, true))::env' in
-	matching env2 expr' pexpr'
+  | (expr, PConst p) ->
+     (match expr with
+       EFunction({def = [PVariable v, e]})  -> 
+	 let fv = free_vars e in
+	 if StringSet.mem v fv then raise MatchingFailure
+	 else matching env e p
       | _ -> raise MatchingFailure
     )
   | _ -> raise MatchingFailure
@@ -101,7 +116,9 @@ and eval' env expr = match expr with
 	    if x mod y = 0 then ENum (x/y)
 	    else EApplication(f', x')
 	  | EApplication(EVariable "-", ENum x) -> ENum (-x)
-
+	  | EApplication(EApplication(EVariable "==", a), b) -> EBoolean (a = b)
+	  | EApplication(EApplication(EVariable "&&", EBoolean x), EBoolean y) -> EBoolean (x&&y)
+	  | EApplication(EApplication(EVariable "||", EBoolean x), EBoolean y) -> EBoolean (x||y)
 
 
           | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 
