@@ -58,7 +58,7 @@ let rec matching env value pattern = match value, pattern with
            let f = match e1 with
 	     | EVariable f -> EVariable f
 	     | (EFunction _) as f -> f
-	     | _ -> EFunction({def = [PVariable v, EApplication(e1, EVariable v)]; env = envi })
+	     | _ -> (* EFunction({def = [PVariable v, EApplication(e1, EVariable v)]; env = envi }) *) raise MatchingFailure
 	   in
 	   let g = EFunction({def = [PVariable v, e2]; env = envi }) in
            (matching env f pf) @ (matching env g pg)

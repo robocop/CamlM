@@ -178,6 +178,7 @@ let rec type_pattern env = function
 
     unify ty1 (type_arrow type_arg type_result);
     unify type_int type_result;
+
     (type_arrow type_arg type_result, env1)
 
   | POp (_, p1, p2) ->
