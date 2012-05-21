@@ -222,7 +222,7 @@ let rec type_expr env = function
     let ty = new_unknow () in
     (((var, (trivial_schema ty, true)) :: env), ty)
   | EOpen (m, None) -> 
-      let env' = open_module m
+      let env' = open_module env m
       in (env', type_unit)
   | expr -> (env, type_exp env expr)
 
@@ -257,8 +257,8 @@ and type_exp env = function
     let env' = (var, (trivial_schema ty, true)) :: env in
     type_exp env' corps
   | EOpen (m, Some body) ->
-      let env' = open_module m
-      in type_exp (env' @ env) body
+      let env' = open_module env m
+      in type_exp env' body
   | EBoolean _ -> type_bool
   | ENum _-> type_int
   | EString _ -> type_string
@@ -294,10 +294,10 @@ and do_type env = function
       let (env', _) = type_expr env x
       in do_type env' xs
 
-and open_module m = 
+and open_module env m = 
   let handle = open_in (file_from_module m) in
   let ast = parse Parser.file (Lexing.from_channel handle) 
-  in close_in handle; do_type [] ast
+  in close_in handle; do_type env ast
 
 
 

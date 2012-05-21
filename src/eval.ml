@@ -91,7 +91,7 @@ let rec eval env = function
     let env' = (var, (EVariable var, true))::env in
     (env', EUnit)
   | EOpen (m, None) -> 
-      let env' = open_module m
+      let env' = open_module env m
       in (env', EUnit)
   | expr -> (env, eval' env expr)
 
@@ -132,8 +132,8 @@ and eval' env expr = match expr with
   | ECons(e1, e2) -> ECons(eval' env e1, eval' env e2)
   | ESome e -> ESome (eval' env e)
   | EOpen (m, Some expr) ->
-      let env' = open_module m
-      in eval' (env' @ env) expr
+      let env' = open_module env m
+      in eval' env' expr
   | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | EDeclare(var, Some corps) ->
@@ -169,10 +169,10 @@ and do_eval env = function
   | [] -> env
   | x :: xs -> 
       let (env', _) = eval env x
-      in do_eval (env' @ env) xs
+      in do_eval env' xs
 
-and open_module m = 
+and open_module env m = 
   let handle = open_in (file_from_module m) in
   let ast = parse Parser.file (Lexing.from_channel handle) 
-  in close_in handle; do_eval [] ast
+  in close_in handle; do_eval env ast
 
