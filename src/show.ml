@@ -9,6 +9,7 @@ let rec show_def def =
 and show_pattern = function
   | PAll -> "_"
   | PVariable s -> s
+  | PAxiom s -> "@"^s
   | PBoolean b -> Printf.sprintf "%b" b;
   | PNum n -> string_of_int n
   | PPair (e1, e2) -> Printf.sprintf "(%s,%s)" (show_pattern e1) (show_pattern e2)

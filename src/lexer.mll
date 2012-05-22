@@ -16,6 +16,7 @@ rule token = parse
   | '*'         { TIMES }
   | '/'         { DIV }
   | '$'         { DOLLAR }
+  | '@'         { AT }
   | "::"        { CONS }
   | "=="        { BEQ }
   | "!="        { BNEQ }

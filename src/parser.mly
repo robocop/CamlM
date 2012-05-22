@@ -49,12 +49,11 @@
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS CONCAT POINT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
-%token ID CONST
+%token ID CONST AT
 %token <int> NUM
 %token <string> VAR STRING MODULE
 
 %right DOLLAR
-%right COMPOSE
 %nonassoc IN
 %nonassoc LET OPEN
 %nonassoc FUNCTION FUN WITH
@@ -70,7 +69,7 @@
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
-%nonassoc SOME BNOT CONST ID
+%nonassoc SOME BNOT CONST ID AT
 %left funapp
 
 %start eval
@@ -165,11 +164,11 @@ list_sugar:
 list_rest:
       expr                { [$1] }
     | expr SEMI list_rest { $1 :: $3 }
-
+(*
 list_comp:
     | VAR LARROW expr                   { [$1, $3] }
     | VAR LARROW expr SEMI list_comp    { ($1, $3) :: $5 }
-
+*)
 let_bindings:
     VAR cases_or_empty EQ expr             { ($1, $2, $4) }
 
@@ -199,6 +198,7 @@ case:
     | NUM                        { PNum $1 }
     | BTRUE                      { PBoolean true }
     | BFALSE                     { PBoolean false }
+    | AT VAR                     { PAxiom $2 }
     | STRING                     { PString $1 }
     | VAR                        { PVariable $1 }
     | LSB list_pattern_sugar RSB { mkMotifList $2 }

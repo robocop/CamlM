@@ -6,16 +6,18 @@ open Helper
 
 let rec matching env value pattern = match value, pattern with
   | (_, PAll) -> []
-  | (value, PVariable id) ->
-    if List.mem_assoc id env then
-      begin
-	match value, List.assoc id env with
-	  | _, (_, false) -> [id, (value, false)]
-	  | EVariable v, (EVariable v', true)  when v = v' -> [] (* si la variable id est de type declare, on test si value = PVariable id (when implicite) *)
-	  | _ -> raise MatchingFailure
-      end
-    else
-      [id, (value, false)] 
+  | (value, PAxiom id) ->
+    begin
+    try 
+      (match value, List.assoc id env with
+	| EVariable v, (EVariable v', true) when v = v' -> []
+	| _ -> raise MatchingFailure
+      )
+    with
+      | Not_found -> raise (Error (id ^ "is not found"))
+    end
+
+  | (value, PVariable id) -> [id, (value, false)] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->

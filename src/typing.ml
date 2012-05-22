@@ -139,18 +139,18 @@ let specialisation schema = match schema.parameter with
 ;;
 
 let rec type_pattern env = function
-  | PVariable id ->
-    let new_v () = 
-      	let ty = new_unknow () in
-	(ty, (id, (trivial_schema ty, false)) :: env)
-    in
+  | PAxiom id ->
     begin 
       try 
 	let t, r = List.assoc id env in
 	if r = true then (specialisation t, env)
-	else new_v ()
-      with Not_found -> new_v ()
+	else raise (Error (id ^ " is not an axiom"))
+      with Not_found -> raise (Error (id ^ " is not found"))
     end
+  | PVariable id -> 
+      	let ty = new_unknow () in
+	(ty, (id, (trivial_schema ty, false)) :: env)
+
   | PBoolean b ->
     (type_bool, env)
   | PNum n -> (type_int, env) 

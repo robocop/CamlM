@@ -23,6 +23,7 @@ and env = (string * (expression * bool) ) list
 and pattern = 
   | PAll
   | PVariable of string
+  | PAxiom of string
   | PBoolean of bool
   | PNum of int
   | PPair of pattern * pattern

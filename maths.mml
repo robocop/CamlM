@@ -4,9 +4,9 @@ declare cos;;
 declare sin;;
 
 let rec deriv = function
-    exp -> exp
-  | sin -> cos
-  | ln -> (\x -> 1/x)
+    @exp -> exp
+  | @sin -> cos
+  | @ln -> (\x -> 1/x)
   | Id -> \x -> 1
   | Const _ -> \x -> 0
   | f+g -> 
@@ -37,20 +37,23 @@ let rec compare_expr f g = match (f, g) with
   | (f+g, f'+g') -> (compare_expr f f') && (compare_expr g g')
   | (f*g, f'*g') -> (compare_expr f f') && (compare_expr g g')
   | (f . g, f' . g') -> (compare_expr f f') && (compare_expr g g') 
-  | (exp, exp) -> true
-  | (ln, ln) -> true
-  | (cos, cos) -> true
-  | (sin, sin) -> true
+  | (@exp, @exp) -> true
+  | (@ln, @ln) -> true
+  | (@cos, @cos) -> true
+  | (@sin, @sin) -> true
   | _ -> false
 ;;
 
-compare_expr (\y -> cos (y+1)) (\z -> cos (z+1));;
+declare x;;
+
+compare_expr (\y -> x+0) (\x -> x+0);;
 
 
 let rec concat l m = match l with
    [] -> m
   | t::q -> t :: (concat q m)
 ;;
+
 
 
 let rec map f = function
