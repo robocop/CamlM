@@ -121,6 +121,10 @@ and eval' env expr = match expr with
 	  | EApplication(EApplication(EVariable "==", a), b) -> EBoolean (a = b)
 	  | EApplication(EApplication(EVariable "&&", EBoolean x), EBoolean y) -> EBoolean (x&&y)
 	  | EApplication(EApplication(EVariable "||", EBoolean x), EBoolean y) -> EBoolean (x||y)
+	  | EApplication(EApplication(EVariable "<=", ENum x), ENum y) -> EBoolean (x<=y)
+	  | EApplication(EApplication(EVariable ">=", ENum x), ENum y) -> EBoolean (x>=y)
+	  | EApplication(EApplication(EVariable "<", ENum x), ENum y) -> EBoolean (x<y)
+	  | EApplication(EApplication(EVariable ">", ENum x), ENum y) -> EBoolean (x>y)
 
 
           | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 

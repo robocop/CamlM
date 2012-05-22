@@ -1,0 +1,80 @@
+let fst = function (x, y) -> x;;
+let snd = function (x, y) -> y;;
+
+let hd = function x::xs -> x;;
+let tl = function x::xs -> xs;;
+
+let rec length = function
+    [] -> 0
+  | x::xs -> 1+length xs
+;;
+let rev =
+  let rec reverse l = function
+  [] -> l
+    | x::xs -> reverse (x::l) xs
+  in reverse []
+;;
+
+let rec concat l m  = match l with
+   [] -> m
+  | x::xs -> x :: (concat xs m)
+;;
+
+let rec flatten = function
+    [] -> []
+  | l1::reste -> concat l1 (flatten reste)
+;;
+
+let rec fold_left f x0 = function
+    [] -> x0
+  | x::xs -> fold_left f (f x0 x) xs
+;;
+let sum s = fold_left (\x -> \y -> x+y) 0 s;;
+let rec map f = function
+    [] -> []
+  | x::xs -> (f x)::(map f  xs)
+;;
+let rec mem e = function
+    [] -> false
+  | x::xs -> 
+    (match x == e with
+        true -> true
+      | false -> mem e xs
+    )
+;;
+let rec partition f = function
+    [] -> ([], [])
+  | x::xs ->
+    let r = partition f xs in
+    let l1 = fst r in let l2 = snd r in
+    (match f x with
+        true ->  (x::l1, l2) 
+      | false ->  (l1, x::l2)
+    )
+;;
+
+let sort l = 
+  let rec split (l1, l2) = function
+  [] -> (l1, l2)
+    | x::xs -> split (l2, x::l1) xs
+  in
+  let rec fusion l1 l2 = match (l1, l2) with
+      ([], l) -> l
+    | (l, []) -> l
+    | (x1::xs1, x2::xs2) ->
+      (match x1 <= x2 with
+	  true -> x1 :: fusion xs1 l2
+	| false -> x2 ::  fusion l1 xs2
+      )
+  in
+  let rec tri = function
+  [] -> []
+    | [e] -> [e]
+    | l -> 
+      let r = split ([], []) l in
+      let l1 = fst r in
+      let l2 = snd r in
+      fusion (tri l1) (tri l2)
+  in
+  tri l
+;;
