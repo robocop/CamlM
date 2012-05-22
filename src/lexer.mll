@@ -5,7 +5,7 @@ let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
 let letter = ['a'-'z' 'A'-'Z']
 let downcase = ['a'-'z']
 let upcase = ['A'-'Z']
-let id = letter | ['0'-'9' '_']
+let id = letter | ['0'-'9' '_' '\'']
 
 rule token = parse
   | '#'         { HASH }
