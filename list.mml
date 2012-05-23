@@ -78,3 +78,9 @@ let sort l =
   in
   tri l
 ;;
+
+
+let rec decompose_sum = function
+   f+g -> concat (decompose_sum f) (decompose_sum g)
+  | f -> [f]
+;;

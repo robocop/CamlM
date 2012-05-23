@@ -54,6 +54,7 @@ rule token = parse
   | "with"      { WITH }
   | ";;"        { END_EXPR }
   | '\\'        { FUN }
+  | "Num"       { PNUM }
   | '"' char* '"' 
     { let str = (Lexing.lexeme lexbuf)
       in STRING (String.sub str 1 (String.length str - 2)) }

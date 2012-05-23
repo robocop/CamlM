@@ -49,7 +49,7 @@
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV CONS CONCAT POINT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
-%token ID CONST AT
+%token ID CONST AT PNUM
 %token <int> NUM
 %token <string> VAR STRING MODULE
 
@@ -69,7 +69,7 @@
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
-%nonassoc SOME BNOT CONST ID AT
+%nonassoc SOME BNOT CONST ID AT PNUM
 %left funapp
 
 %start eval
@@ -180,7 +180,7 @@ patterns:
     | patterns PIPE pattern  { $3 :: $1 }
 
 pattern:
-    (*  case WHEN expr RARROW expr { (PWhen ($3, $1), $5) } *)
+      case WHEN expr RARROW expr { (PWhen ($3, $1), $5) } 
     | case RARROW expr           { ($1, $3) }
 
 cases_or_empty:
@@ -211,6 +211,7 @@ case:
     | case POINT case            { PCompose ($1, $3) }
     | ID                         { PIdentity }
     | CONST case                 { PConst $2 }
+    | PNUM case                  { PIsnum $2 }
 
 
 list_pattern_sugar:

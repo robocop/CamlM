@@ -4,6 +4,9 @@ open Lambda_repl
 open Error
 open Helper
 
+let value (_, v) = v
+let env (e, _) = e
+
 let rec matching env value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PAxiom id) ->
@@ -79,13 +82,24 @@ let rec matching env value pattern = match value, pattern with
 	 else matching env e p
       | _ -> raise MatchingFailure
     )
+  | (expr, PIsnum p) ->
+    (match expr with
+      | ENum x -> matching env expr p
+      | _ -> raise MatchingFailure
+    )
+  | (expr, PWhen(cond, p)) ->
+    let r = matching env expr p in
+    let env' = r @ env  in
+    (match eval env' cond with
+      | _, (EBoolean true) -> r
+      | _ -> raise MatchingFailure
+    )
   | _ -> raise MatchingFailure
 
-let value (_, v) = v
-let env (e, _) = e
+
 
 (* Top level definitions that change the env globally *)
-let rec eval env = function
+and eval env = function
   | ELet (def, None) ->
       let (env', _) = eval_definition env def
       in (env', EUnit)

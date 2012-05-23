@@ -37,6 +37,8 @@ and pattern =
   | PCompose of pattern * pattern
   | PIdentity
   | PConst of pattern
+  | PIsnum of pattern
+  | PWhen of expression * pattern
 
 and definition = 
     {

@@ -4,11 +4,12 @@ declare exp;;
 declare ln;;
 declare cos;;
 declare sin;;
-
+declare sqrt;;
 let rec deriv = function
     @exp -> exp
   | @sin -> cos
   | @ln -> (\x -> 1/x)
+  | @sqrt -> (\x -> 1/(2*sqrt x))
   | Id -> \x -> 1
   | Const _ -> \x -> 0
   | f+g -> 
@@ -28,9 +29,15 @@ let rec deriv = function
     let dg = deriv g in
     \x -> df (g x) * (dg x)
 ;;
+let rec simplify = function
+    @cos * @sin -> \x -> 1/2 * sin (2*x)
+  | @ln . @exp -> (\x -> x)
+  | f -> f
+;;
 
-deriv (\x -> sin (x*x));;
-
+simplify (\x -> ln x);;
+let f = deriv (\x -> sqrt (sin (x*x)));;
+simplify f;;
 
 
 let rec compare_expr f g = match (f, g) with

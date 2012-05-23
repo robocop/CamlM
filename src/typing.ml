@@ -214,8 +214,16 @@ let rec type_pattern env = function
     let (ty1, env1) = type_pattern env p in
     unify ty1 type_result;
     (type_arrow type_arg type_result, env1)
+  | PIsnum p ->
+    let (ty1, env1) =  type_pattern env p in
+    unify ty1 type_int;
+    (type_int, env1)
+  | PWhen(expr, pattern) ->
+    let (t, env1) = type_pattern env pattern in
+    ignore (type_exp env1 expr); 
+    (t, env1)
 
-let rec type_expr env = function
+and type_expr env = function
   | ELet (def, None) ->
       let t, env' = type_def env def in
       (env', t)
