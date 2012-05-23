@@ -1,5 +1,9 @@
 open Syntax
 
+let show_list l = 
+  "["^(String.concat "; " l)^"]"
+
+
 let rec show_def def = 
   Printf.sprintf "let %s%s = %s" 
     (if def.recursive then "rec " else "") 
@@ -27,8 +31,6 @@ and show_pattern = function
   | PIsnum p -> "Num "^(show_pattern p)
   | PWhen(expr, pattern) -> Printf.sprintf "%s when %s" (show_pattern pattern) (show expr)
  
-    
-
 and show_function def = 
   "function\n" 
     ^ (String.concat "| " (List.map 
@@ -48,7 +50,8 @@ and show = function
   | EOpen (m, Some expr) -> "open " ^ m ^ " in " ^ show expr
   | EOpen (m, None) -> "open " ^ m
   | ECons(e1, e2) ->
-      show e1 ^ "::" ^show e2
+    show_list (get_list (ECons(e1, e2)))
+   
   | EApplication (EApplication (EVariable op, e1), e2) 
       when List.mem op ["+"; "*"; "/"] -> 
       Printf.sprintf "(%s %s %s)" (show e1) op (show e2)
@@ -73,3 +76,6 @@ and show = function
       var ^ " in " ^ show expr
   | EDeclare (var, None) -> var
 
+and get_list = function
+  | ECons(x, xs) -> (show x)::get_list xs
+  | _ -> []

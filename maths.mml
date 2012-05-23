@@ -29,127 +29,101 @@ let rec deriv = function
     let dg = deriv g in
     \x -> df (g x) * (dg x)
 ;;
-let rec simplify = function
-    @cos * @sin -> \x -> 1/2 * sin (2*x)
-  | @ln . @exp -> (\x -> x)
-  | f -> f
-;;
 
-simplify (\x -> ln x);;
-let f = deriv (\x -> sqrt (sin (x*x)));;
-simplify f;;
-
-
-let rec compare_expr f g = match (f, g) with
-   (Const a, Const b) -> a == b
+let rec compare f g = match (f, g) with
+    (Const (Num a), Const (Num b)) -> a == b
   | (Id, Id) -> true
-  | (f+g, f'+g') -> (compare_expr f f') && (compare_expr g g')
-  | (f*g, f'*g') -> (compare_expr f f') && (compare_expr g g')
-  | (f . g, f' . g') -> (compare_expr f f') && (compare_expr g g') 
+  | (-f, -g) -> compare f g
+  | (f+g, f'+g') -> (compare f f') && (compare g g')
+  | (f*g, f'*g') -> (compare f f') && (compare g g')
+  | (f/g, f'/g') ->  (compare f f') && (compare g g')
+  | (f . g, f' . g') -> (compare f f') && (compare g g') 
   | (@exp, @exp) -> true
   | (@ln, @ln) -> true
   | (@cos, @cos) -> true
   | (@sin, @sin) -> true
+  | (@sqrt, @sqrt) -> true
+  | (Const a, Const b) -> a == b
   | _ -> false
 ;;
 
-let prod l = fold_left (\x y -> x*y) 1 l;;
-
-let rec decsum = function
-   f+g -> concat (decsum f) (decsum g)
-  | f -> [f]
+let rec similitude f g = match (f, g) with
+    (Const (Num a), Const (Num b)) -> true
+  | (-f, -g) -> similitude f g
+  | (f, -g) -> similitude f g
+  | (-f, g) -> similitude f g
+  | _ -> compare f g
 ;;
 
-let rec comp_sum = function
-   [e] -> e
-  | f::xs -> 
-    let r = comp_sum xs in
-    (\x -> f x + r x)
-;;
-let rec decprod = function
-   f*g -> concat (decprod f) (decprod g)
-  | f -> [f]
+let rec regroupe = function
+    [] -> []
+  | f::rest ->
+    let r = partition (similitude f) rest in
+    let g1 = fst r in let g2 = snd r in
+    (f::g1) :: regroupe g2
 ;;
 
+let rec sum = function
+  [] -> (\x -> 0)
+  | [e] -> e
+  | f::rest -> 
+    let f' = sum rest in
+    \x -> f x + f' x
+;;
+let rec simplify_moins = function
+   - (- f) -> simplify_moins f
+  | f -> f
+;;
 
-let simpl_sum_const fonction = 
-  let rec get l = function
-      [] -> ([], l)
-    | (Const x)::fs -> 
-      (match get l fs with (cst, fs) -> (x::cst, fs))
-    | f::fs -> get (f::l) fs
+let simplify_sum f = 
+  let simplify_pair = function
+  (- Const Num a, - Const Num b) -> let r = a+b in \x -> r
+    | (- Const Num a, Const Num b) -> let r = b-a in \x -> r
+    | (Const Num a, -Const Num b) -> let r = a-b in \x -> r
+    | (Const Num a, Const Num b) -> let r = a+b in \x -> r
+    | (Const 0, f) -> f
+    | (Const 0 * f, g) -> g
+    | (- (Const 0) * f, g) -> g
+    | (- (Const Num n)*f, -g) -> let r = n+1 in \x -> - r * (g x)
+    | ((Const Num n)*f, -g) -> let r = n-1 in \x -> (r * (g x))
+    | (- (Const Num n)*f, g) -> let r = n-1 in \x -> - (r * (g x))
+    | ((Const Num n)*f, g) -> let r = n+1 in \x -> r * (g x)
+    | (-f, -g) -> \x -> - (2 * f x) 
+    | (f, -g) -> \x -> 0
+    | (-f, g) -> \x -> 0
+    | (f, g) -> \x -> 2 * f x
   in
-  (match get [] (decsum fonction) with
-      ([_], _) -> None
-    | ([], _) -> None
-    | (cs, []) -> Some (sum cs, None)
-    | (cs, f::fs) -> 
-      let sumf = fold_left (\fs f -> (\x -> fs x + f x)) f fs in 
-      let s = sum cs in Some (s, Some sumf)
-  )
-;;
-
-let simpl_prod_const fonction = 
-  let rec get l = function
-      [] -> ([], l)
-    | (Const x)::fs -> 
-      (match get l fs with (cst, fs) -> (x::cst, fs))
-    | f::fs -> get (f::l) fs
+  let simplify_group g = 
+    let e1 = hd g in
+    let r = tl g in
+    match (fold_left (\x y ->simplify_pair (x, y)) e1 r) with
+	Const 0 -> []
+      | Const 1 * f -> [f]
+      | Const 0 * f -> []
+      | - Const 1 * f -> [f]
+      | - Const 0 * f -> []
+      | f -> [f]
   in
-  (match get [] (decprod fonction) with
-      ([_], _) -> None
-    | ([], _) -> None
-    | (cs, []) -> Some (prod cs, None)
-    | (cs, f::fs) -> 
-      let prodf = fold_left (\fs f -> (\x -> fs x * f x)) f fs in 
-      let s = prod cs in Some (s, Some prodf)
-  )
+  sum (flatten (map simplify_group (regroupe (map simplify_moins (decompose_sum f)))))
+;;
+
+let rec simpl f = match f with
+   (@sqrt . f) * (@sqrt . g) when compare f g -> simpl f
+  | @exp . (@ln . f)  -> simpl f
+  | @ln . (@exp . f)-> simpl f
+  | Const 1 * f -> simpl f
+  | f * Const 1 -> simpl f
+  | Const 0 * f -> (\x -> 0)
+  | Const 0 * f -> (\x -> 0)
+  | f . g -> 
+    let f' = simpl f in let g' = simpl g in (\x -> f (g x))
+  | _ + _ -> 
+    simplify_sum (sum (map simpl (decompose_sum f)))
+  | f * g -> 
+    let f' = simpl f in let g' = simpl g in
+    \x -> f' x * g' x
+  | f -> f
 ;;
 
 
-let simplify f = 
-  let rec simpl fonction = match fonction with
-      (Const a) + (Const b) -> let r = a+b in (\x -> r, true)
-    | (Const a) * (Const b) -> let r = a*b in (\x -> r, true)
-    | (Const 1) * g -> (g, true)
-    | g * (Const 1) -> (g, true)
-    | (Const 0) * f -> (\x -> 0, true)
-    | Id + Id -> (\x -> 2*x, true)
-    | f + (Const 0) -> (f, true)
-    | (Const 0) +f -> (f, true)
-    | f+g -> 
-      (match simpl_sum_const fonction with
-	  Some(c, Some f) -> ((\x -> f x + c), true)
-	| Some(c, None) -> (\x -> c, true)
-	| None -> 
-	  (match (simpl f, simpl g) with
-	      ((f, a), (g, b)) -> ((\x -> f x + g x), a||b)
-	  )
-      )
-    | f*g -> 
-      (match simpl_prod_const fonction with
-	  Some(c, Some f) -> ((\x -> c * f x), true)
-	| Some(c, None) -> (\x -> c, true)
-	| None -> 
-	  (match (simpl f, simpl g) with
-	      ((f, a), (g, b)) -> ((\x -> f x * g x), a||b)
-	  )
-      )
-    | (Const 0) / _ -> (\x -> 0, true)
-    | f / g -> 
-       (match (simpl f, simpl g) with
-	      ((f, a), (g, b)) -> ((\x -> f x / g x), a||b)
-       )
-    | - (Const x) -> let c = -x in  (\x -> c, true)
-    | - (- f) -> (f, true)
-    | - g -> 
-      (match simpl g with (f, r) -> (\x -> - f x, r))
-    | f -> (f, false)
-  in
-  let rec test f= match simpl f with
-      (f, true) -> test f
-    | (f, false) -> f 
-  in test f
-;;
-
-
+simpl (deriv (\x -> sqrt (x*x*x)));;
