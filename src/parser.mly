@@ -47,7 +47,7 @@
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN LARROW
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
-%token PLUS MINUS TIMES DIV CONS CONCAT POINT
+%token PLUS MINUS TIMES DIV POW CONS CONCAT POINT
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token ID CONST AT PNUM
 %token <int> NUM
@@ -55,21 +55,22 @@
 
 %right DOLLAR
 %nonassoc IN
-%nonassoc LET OPEN
-%nonassoc FUNCTION FUN WITH
+(* %nonassoc LET OPEN *)
+%nonassoc FUNCTION (*FUN*) WITH
 %left PIPE
-%left COMMA
-%nonassoc RARROW LARROW
-%nonassoc WHEN
+(*%left COMMA*)
+%nonassoc RARROW (*LARROW*)
+(* %nonassoc WHEN *)
 %left BAND BOR
 %left BLEQ BGEQ BLT BGT
 %left BEQ BNEQ
 %right CONS 
 %left POINT
+%right POW
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
-%nonassoc SOME BNOT CONST ID AT PNUM
+%nonassoc SOME BNOT CONST (*ID AT*) PNUM
 %left funapp
 
 %start eval
@@ -126,6 +127,7 @@ expr:
   | MINUS  { fun x y -> cons_op "+" x (EApplication (EVariable "-", y)) }
   | TIMES  { cons_op "*" }
   | DIV    { cons_op "/" }
+  | POW    { cons_op "^" }
   | CONS   { fun x y -> ECons (x, y) }
   | DOLLAR { fun x y -> EApplication (x, y)}
   | BEQ    { cons_op "==" }
@@ -208,6 +210,7 @@ case:
     | case TIMES case            { POp ("*", $1, $3) }
     | MINUS case                 { mkMotifPreMinus $2 }
     | case DIV case              { POp ("/", $1, $3) }
+    | case POW case              { POp("^", $1, $3) }
     | case POINT case            { PCompose ($1, $3) }
     | ID                         { PIdentity }
     | CONST case                 { PConst $2 }

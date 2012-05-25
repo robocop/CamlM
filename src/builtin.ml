@@ -16,6 +16,7 @@ let builtin_types =
   [("+", type_arithmetic);
    ("*", type_arithmetic);
    ("/", type_arithmetic);
+   ("^", type_arithmetic);
    ("==", type_poly_logic);
    ("!=", type_poly_logic);
    (">=", type_poly_logic);
@@ -30,6 +31,7 @@ let builtin_fns =
    [("+", (EVariable "+", false));
    ("*", (EVariable "*", false));
    ("/", (EVariable "/", false));
+   ("^", (EVariable "^", false));
    ("==", (EVariable "==", false));
    ("!=", (EVariable "!=", false));
    (">=", (EVariable ">=", false));

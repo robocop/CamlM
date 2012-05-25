@@ -53,7 +53,7 @@ and show = function
     show_list (get_list (ECons(e1, e2)))
    
   | EApplication (EApplication (EVariable op, e1), e2) 
-      when List.mem op ["+"; "*"; "/"] -> 
+      when List.mem op ["+"; "*"; "/"; "^"; "=="; ">="; "<="; ">"; "<"] -> 
       Printf.sprintf "(%s %s %s)" (show e1) op (show e2)
   | EApplication (EVariable f, EVariable x) -> Printf.sprintf "%s %s" f x
   | EApplication (EVariable s, ENum x) -> Printf.sprintf "%s %d" s x

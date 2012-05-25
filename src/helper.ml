@@ -14,6 +14,11 @@ let rec new_variable set v =
   if not (StringSet.mem v set) then v
   else new_variable set (next v)
 
+let rec puis a n = match n with
+  | 0 -> 1
+  | n -> 
+    let r = puis a (n/2) in
+    if n mod 2 = 0 then r*r else r*r*a
 
 let parse f lexbuf =
   try

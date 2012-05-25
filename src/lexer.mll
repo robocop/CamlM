@@ -15,6 +15,7 @@ rule token = parse
   | '-'         { MINUS }
   | '*'         { TIMES }
   | '/'         { DIV }
+  | '^'         { POW }
   | '$'         { DOLLAR }
   | '@'         { AT }
   | "::"        { CONS }

@@ -132,6 +132,7 @@ and eval' env expr = match expr with
 	    if x mod y = 0 then ENum (x/y)
 	    else EApplication(f', x')
 	  | EApplication(EVariable "-", ENum x) -> ENum (-x)
+	  | EApplication(EApplication(EVariable "^", ENum x), ENum y) -> ENum (puis x y)
 	  | EApplication(EApplication(EVariable "==", a), b) -> EBoolean (a = b)
 	  | EApplication(EApplication(EVariable "&&", EBoolean x), EBoolean y) -> EBoolean (x&&y)
 	  | EApplication(EApplication(EVariable "||", EBoolean x), EBoolean y) -> EBoolean (x||y)
