@@ -118,7 +118,7 @@ and eval' env expr = match expr with
 
   | EFunction {def = [PVariable v, expr]; env = None}->
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in
-        normal_order_reduct (replace env f)
+      normal_order_reduct  (replace env f)
 
   | EFunction {def = def; env = None} -> 
       EFunction {def = def; env = Some env}
