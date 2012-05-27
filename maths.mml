@@ -151,8 +151,7 @@ let simplify_prod f =
   prod (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f)))))
 ;;
 
-
-simplify_prod (\x -> 1*x*x*(x^2)*5*x*(x^5)*0);;
+simplify_prod (\x -> x);;
 
 let rec simpl f = match f with
    (@sqrt . f) * (@sqrt . g) when compare f g -> simpl f
@@ -231,3 +230,6 @@ let rec deriv = function
 
 
 let d f = simplify (deriv (simplify f));;
+
+
+d (\x -> 3*x);;
