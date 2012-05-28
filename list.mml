@@ -96,3 +96,10 @@ let rec decompose_prod = function
    f*g -> concat (decompose_prod f) (decompose_prod g)
   | f -> [f]
 ;;
+
+
+let rec concat_strings sep = function
+    [] -> ""
+  | [e] -> e
+  | x::xs -> x ++ sep ++ (concat_strings sep xs)
+;;

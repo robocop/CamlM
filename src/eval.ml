@@ -140,6 +140,10 @@ and eval' env expr = match expr with
 	  | EApplication(EApplication(EVariable ">=", ENum x), ENum y) -> EBoolean (x>=y)
 	  | EApplication(EApplication(EVariable "<", ENum x), ENum y) -> EBoolean (x<y)
 	  | EApplication(EApplication(EVariable ">", ENum x), ENum y) -> EBoolean (x>y)
+	  | EApplication(EApplication(EVariable "++", EString x), EString y) -> EString (x^y)
+	  | EApplication(EVariable "string_of_int", ENum x) -> EString (string_of_int x)
+
+
 
 
           | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 
