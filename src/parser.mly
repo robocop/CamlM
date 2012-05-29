@@ -66,10 +66,10 @@
 %left BEQ BNEQ
 %right CONS 
 %left POINT
-%right POW
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
+%right POW
 %nonassoc SOME BNOT CONST (*ID AT*) PNUM
 %left funapp
 
