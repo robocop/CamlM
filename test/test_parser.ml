@@ -12,7 +12,8 @@ let test_prio _ =
                                                             ENum 1),
                                               ENum 2)),
                   ENum 3)
-  in assert_equal (IValue ast) (parse "1*2+3")
+  in 
+  assert_equal (IValue ast) (parse "1*2+3")
 
 let suite = "Test parser" >:::
             ["Test operator priority" >:: test_prio]

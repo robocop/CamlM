@@ -1,0 +1,50 @@
+declare exp;;
+declare ln;;
+declare cos;;
+declare sin;;
+declare sqrt;;
+
+let rec compare f g = match (f, g) with
+    (Const (Num a), Const (Num b)) -> a == b
+  | (Id, Id) -> true
+  | (-f, -g) -> compare f g
+  | (f+g, f'+g') -> (compare f f') && (compare g g')
+  | (f*g, f'*g') -> (compare f f') && (compare g g')
+  | (f/g, f'/g') ->  (compare f f') && (compare g g')
+  | (f . g, f' . g') -> (compare f f') && (compare g g') 
+  | (f ^ g, f' ^ g') -> (compare f f') && (compare g g') 
+  | (@exp, @exp) -> true
+  | (@ln, @ln) -> true
+  | (@cos, @cos) -> true
+  | (@sin, @sin) -> true
+  | (@sqrt, @sqrt) -> true
+  | (Const a, Const b) -> a == b
+  | _ -> false
+;;
+
+let rec map_fun app f = match app f with
+    (f', true) -> map_fun app f'
+  | (_, false) ->
+    (match f with
+        f / g -> 
+	let f' = map_fun app f in let g' = map_fun app g in
+        \x -> (f' x) / (g' x)
+      | f + g ->  
+	let f' = map_fun app f in let g' = map_fun app g in
+	\x -> f' x + g' x 	
+      | f * g ->  
+	let f' = map_fun app f in let g' = map_fun app g in
+	\x -> f' x * g' x 
+      | f ^ g ->  
+	let f' = map_fun app f in let g' = map_fun app g in
+	\x -> (f' x) ^ (g' x) 
+      | f . g ->  
+	let f' = map_fun app f in let g' = map_fun app g in
+	\x -> f' (g' x) 
+      | - f -> let f' = map_fun app f in (\x -> - f' x)
+      | f -> f	
+    )
+;;
+
+
+				

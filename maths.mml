@@ -1,28 +1,5 @@
 open List;;
-
-declare exp;;
-declare ln;;
-declare cos;;
-declare sin;;
-declare sqrt;;
-
-let rec compare f g = match (f, g) with
-    (Const (Num a), Const (Num b)) -> a == b
-  | (Id, Id) -> true
-  | (-f, -g) -> compare f g
-  | (f+g, f'+g') -> (compare f f') && (compare g g')
-  | (f*g, f'*g') -> (compare f f') && (compare g g')
-  | (f/g, f'/g') ->  (compare f f') && (compare g g')
-  | (f . g, f' . g') -> (compare f f') && (compare g g') 
-  | (f ^ g, f' ^ g') -> (compare f f') && (compare g g') 
-  | (@exp, @exp) -> true
-  | (@ln, @ln) -> true
-  | (@cos, @cos) -> true
-  | (@sin, @sin) -> true
-  | (@sqrt, @sqrt) -> true
-  | (Const a, Const b) -> a == b
-  | _ -> false
-;;
+open Formel;;	       
 
 let rec simplify_minus = function
    - (- f) -> simplify_minus f
@@ -36,6 +13,11 @@ let rec sum = function
     \x -> f x + f' x
 ;;
 let simplify_sum f = 
+  let regroup_mult = function
+      (Const (Num a) * Const (Num b)) * f -> let r = a*b in (\x -> r * f x, true)
+    | Const (Num a) * (Const (Num b) * f) -> let r = a*b in (\x -> r * f x, true)
+    | f -> (f, false)
+  in
   let rec similitude f g = match (f, g) with
       (Const (Num a), Const (Num b)) -> true
     | (Const (Num a) * f, g) -> similitude f g  
@@ -89,7 +71,8 @@ let simplify_sum f =
       | - Const 0 * f -> []
       | f -> [f]
   in
-  sum (flatten (map simplify_group (regroupe (map simplify_minus (decompose_sum f)))))
+  let f' = map_fun regroup_mult f in
+  sum (flatten (map simplify_group (regroupe (map simplify_minus (decompose_sum f')))))
 ;;
 let rec prod = function
     [] -> (\x -> 1)
@@ -99,6 +82,10 @@ let rec prod = function
     \x -> f x * f' x
 ;;
 let simplify_prod f = 
+   let regroup_pow = function
+      (f ^ (Const (Num a))) ^ (Const (Num b)) -> let r = a*b in (\x -> (f x) ^ r, true)
+    | f -> (f, false)
+  in
   let rec similitude f g = match (f, g) with
       (Const (Num a), Const (Num b)) -> true
     | (f^Const (Num a), g) -> similitude f g  
@@ -144,19 +131,31 @@ let simplify_prod f =
     let r = tl g in
     match (fold_left (\x y ->simplify_pair (x, y)) e1 r) with
 	Const 1 -> []
+      | f^(Const 0) -> [\x -> 1]
       | f^ (Const 1) -> [f]
       | - (f^(Const 1)) -> [(\x -> - f x)]
       | f -> [f]
   in
-  prod (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f)))))
+  let f' = map_fun regroup_pow f in
+  prod (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f')))))
 ;;
 
-simplify_prod (\x -> x);;
+let normalise = function
+    @sqrt .  f -> (\x -> (f x)^(1/2), true)
+  | f / g -> (\x -> (f x) * (g x)^(-1), true)
+  | f -> (f, false)		    
+;;
+let unnormalise = function
+    f ^ (Const 1 / Const 2) -> (\x -> sqrt (f x), true)
+  | f ^ (Const (-1)) -> (\x -> 1/(f x), true)
+  | f -> (f, false)		    
+;;
 
 let rec simpl f = match f with
-   (@sqrt . f) * (@sqrt . g) when compare f g -> simpl f
+   f ^(Const a) * g ^(Const b) when compare f g -> 
+    let r = a+b in \x -> (f x)^r
+  | (f * g) ^ h -> \x -> (f x)^(h x) * (g x) ^ (h x) 
   | f * g when compare f g -> \x -> (f x) ^2
-  | @sqrt . (f ^ (Const 2)) ->f
   | f ^ (Const 1) -> f
   | f ^ (Const 0) -> (\x -> 1)
   | (Const 0)^ _ -> (\x -> 0) 
@@ -171,17 +170,9 @@ let rec simpl f = match f with
     let f' = simpl f in let g' = simpl g in (\x -> f' (g' x))
   | _ + _ -> 
     simplify_sum (sum (map simpl (decompose_sum f)))
-  | f / g when compare f g -> (\x -> 1)
-  | (f / g) * h -> \x -> (f x * h x)/(g x) 
-
   | _ * _ -> 
      simplify_prod (prod (map simpl (decompose_prod f)))
   | -f -> let f' = simpl f in \x -> - f x
-  | (f / g) / h -> 
-    \x -> (f x) / (g x * h x)
-  | f / g -> 
-    let f' = simpl f in let g' = simpl g in
-    \x -> (f' x) / (g' x)
   | f ^ g -> 
     let f' = simpl f in let g' = simpl g in
     \x -> (f' x) ^ (g' x)
@@ -192,10 +183,8 @@ let simplify f =
 let rec test f = match simpl f with
     g when compare f g -> f
   | g -> test g
-in test f
+in map_fun unnormalise (test (map_fun normalise f))
 ;;
-
-
 
 let rec deriv = function
     @exp -> exp
