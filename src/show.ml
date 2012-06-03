@@ -73,8 +73,8 @@ and show = function
       (show_def def) ^ " in " ^ show expr
   | ELet (def, None) -> show_def def
   | EDeclare (var, Some expr) ->
-      var ^ " in " ^ show expr
-  | EDeclare (var, None) -> var
+      "declare " ^ var ^ " in " ^ show expr
+  | EDeclare (var, None) -> "declare "^var
 
 and get_list = function
   | ECons(x, xs) -> (show x)::get_list xs

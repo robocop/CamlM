@@ -4,7 +4,7 @@ open Helper
 
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
-  | EFunction {def = [PVariable v, e]; env = Some _} ->
+  | EFunction {def = [PVariable v, e]; env = _} ->
     StringSet.diff (free_vars e) (StringSet.singleton v)
   | EApplication(m, n) 
   | EPair(m, n)
@@ -14,12 +14,12 @@ let rec free_vars = function
   | _ -> StringSet.empty
 
 let rec is_simple_value = function
-  | EFunction {def = [PVariable _, expr]; env = Some _} -> is_simple_value expr
+  | EFunction {def = [PVariable _, expr]; env = _} -> is_simple_value expr
   | ENum _ | EBoolean _ | ENil | ENone | EString _ | EVariable _ -> true
   | EPair (a, b) | ECons (a, b) | EApplication(a, b)-> 
       is_simple_value a && is_simple_value b
   | ESome e -> is_simple_value e
-  | _ -> false
+  | f -> false
 
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
@@ -54,7 +54,7 @@ let replace env f =
     | ECons(m, n) 
     | EApplication(m, n) ->
       StringSet.union (to_replace fv env m) (to_replace fv env n)
-    | EFunction {def = [PVariable v, expr]; env = Some _} ->
+    | EFunction {def = [PVariable v, expr]; env = _} ->
       to_replace fv env expr
     | ESome n -> to_replace fv env n
     | rest -> StringSet.empty

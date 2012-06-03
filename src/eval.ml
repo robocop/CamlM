@@ -125,30 +125,25 @@ and eval' env expr = match expr with
 
   | EApplication(f, e) ->
     let f', x' = (eval' env f, eval' env e) in
-        begin match EApplication(f', x') with
-	  | EApplication(EApplication(EVariable "+", ENum x), ENum y) -> ENum (x+y)
-	  | EApplication(EApplication(EVariable "*", ENum x), ENum y) -> ENum (x*y)
-	  | EApplication(EApplication(EVariable "/", ENum x), ENum y) ->
+        begin match f', x' with
+	  | EApplication(EVariable "+", ENum x), ENum y -> ENum (x+y)
+	  | EApplication(EVariable "*", ENum x), ENum y -> ENum (x*y)
+	  | EApplication(EVariable "/", ENum x), ENum y ->
 	    if x mod y = 0 then ENum (x/y)
 	    else EApplication(f', x')
-	  | EApplication(EVariable "-", ENum x) -> ENum (-x)
-	  | EApplication(EApplication(EVariable "^", ENum x), ENum y) -> ENum (puis x y)
-	  | EApplication(EApplication(EVariable "==", a), b) -> EBoolean (a = b)
-	  | EApplication(EApplication(EVariable "&&", EBoolean x), EBoolean y) -> EBoolean (x&&y)
-	  | EApplication(EApplication(EVariable "||", EBoolean x), EBoolean y) -> EBoolean (x||y)
-	  | EApplication(EApplication(EVariable "<=", ENum x), ENum y) -> EBoolean (x<=y)
-	  | EApplication(EApplication(EVariable ">=", ENum x), ENum y) -> EBoolean (x>=y)
-	  | EApplication(EApplication(EVariable "<", ENum x), ENum y) -> EBoolean (x<y)
-	  | EApplication(EApplication(EVariable ">", ENum x), ENum y) -> EBoolean (x>y)
-	  | EApplication(EApplication(EVariable "++", EString x), EString y) -> EString (x^y)
-	  | EApplication(EVariable "string_of_int", ENum x) -> EString (string_of_int x)
-
-
-
-
-          | EApplication(EFunction {def = def; env = Some env_f}, arg) -> 
+	  | EVariable "-", ENum x -> ENum (-x)
+	  | EApplication(EVariable "^", ENum x), ENum y -> ENum (puis x y)
+	  | EApplication(EVariable "==", a), b -> EBoolean (a = b)
+	  | EApplication(EVariable "&&", EBoolean x), EBoolean y -> EBoolean (x&&y)
+	  | EApplication(EVariable "||", EBoolean x), EBoolean y -> EBoolean (x||y)
+	  | EApplication(EVariable "<=", ENum x), ENum y -> EBoolean (x<=y)
+	  | EApplication(EVariable ">=", ENum x), ENum y -> EBoolean (x>=y)
+	  | EApplication(EVariable "<", ENum x), ENum y -> EBoolean (x<y)
+	  | EApplication(EVariable ">", ENum x), ENum y -> EBoolean (x>y)
+	  | EApplication(EVariable "++", EString x), EString y -> EString (x^y)
+	  | EVariable "string_of_int", ENum x -> EString (string_of_int x)
+          | EFunction {def = def; env = Some env_f}, arg -> 
               eval_application env_f def arg
-
           | _ -> EApplication(f', x')
         end
 
