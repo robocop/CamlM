@@ -203,8 +203,7 @@ let rec deriv = function
   | f*g -> 
     let df = deriv f in let dg = deriv g in
     \x -> df x * g x + dg x * f x
-  | Id^(Const (Num a)) ->
-    let b = a-1 in (\x -> a * (x ^ b))
+
   | f ^ g -> 
     let df = deriv f in let dg = deriv g in
     \x -> (dg x * ln (f x) + (g x * df x)/ (f x)) * ((f x)^(g x)) 

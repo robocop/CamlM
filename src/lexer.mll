@@ -25,6 +25,7 @@ rule token = parse
   | ">="        { BGEQ }
   | "<"         { BLT }
   | ">"         { BGT }
+  | "(*"        { comment 1 lexbuf }
   | "not"       { BNOT }
   | "&&"        { BAND }
   | "||"        { BOR }
@@ -66,3 +67,11 @@ rule token = parse
   | '.'         { POINT }
   | _           { token lexbuf }
   | eof         { EOF }
+
+and comment depth = parse
+  | "(*" { comment (depth + 1) lexbuf }
+  | "*)" {
+    if depth = 1 then token lexbuf
+    else comment (depth - 1) lexbuf
+  }
+  | _ { comment depth lexbuf }
