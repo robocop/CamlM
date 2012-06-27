@@ -47,7 +47,7 @@
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN LARROW
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
-%token PLUS MINUS TIMES DIV POW CONS CONCAT POINT
+%token PLUS MINUS TIMES DIV POW CONS CONCAT POINT MOD
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token ID CONST AT PNUM
 %token <int> NUM
@@ -70,6 +70,7 @@
 %right CONCAT
 %left TIMES DIV
 %right POW
+%left MOD
 %nonassoc SOME BNOT CONST (*ID AT*) PNUM
 %left funapp
 
@@ -138,6 +139,7 @@ expr:
   | BGT    { cons_op ">" }
   | BAND   { cons_op "&&" }
   | BOR    { cons_op "||" }
+  | MOD    { cons_op "mod" }
 
 
 simple_expr_list:

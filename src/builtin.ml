@@ -27,6 +27,7 @@ let builtin_types =
    ("not", type_prim1 type_bool type_bool);
    ("-", type_prim1 type_int type_int);
    ("++", type_lexical);
+   ("mod", type_arithmetic);
    ("string_of_int", type_prim1 type_int type_string)
    ]
 
@@ -47,5 +48,6 @@ let builtin_fns =
    ("not", (EVariable "not", false));
    ("-", (EVariable "-", false));
    ("++", (EVariable "++", false));
+   ("mod", (EVariable "mod", false));
    ("string_of_int", (EVariable "string_of_int", false))
   ]

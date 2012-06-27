@@ -1,9 +1,11 @@
+(* Déclaration des fonctions mathématiques usuelles *)
 declare exp;;
 declare ln;;
 declare cos;;
 declare sin;;
 declare sqrt;;
 
+(* Compare formellement deux fonctions *)
 let rec compare f g = match (f, g) with
     (Const (Num a), Const (Num b)) -> a == b
   | (Id, Id) -> true
@@ -21,6 +23,11 @@ let rec compare f g = match (f, g) with
   | (Const a, Const b) -> a == b
   | _ -> false
 ;;
+
+(* Applique récusivement une fonction de réduction (f) d'une fonction   *)
+(* f a le type : (int -> int) -> (int -> int) * bool                    *)
+(* Le booléen doit être à vrai quand f réduit effectivement la fonction *)
+(* map_fun réduit le plus possible l'entrée à l'aide de f               *)
 
 let rec map_fun app f = match app f with
     (f', true) -> map_fun app f'

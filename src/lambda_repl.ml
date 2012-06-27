@@ -2,6 +2,19 @@ open Syntax
 open Error
 open Helper
 
+(* Définit récursivement les expressions qui seront réduites par des opérations de lambda calcul. *)
+(* f est dite de type 'fonction formelle' si is_simple_value f                                    *)
+(* Seules les fonctions formelles sont réduites par replace et normal_order_reduct                *)
+let rec is_simple_value = function
+  | EFunction {def = [PVariable _, expr]; env = _} -> is_simple_value expr
+  | ENum _ | EBoolean _ | ENil | ENone | EString _ | EVariable _ -> true
+  | EPair (a, b) | ECons (a, b) | EApplication(a, b)-> 
+      is_simple_value a && is_simple_value b
+  | ESome e -> is_simple_value e
+  | f -> false
+
+
+(* Calcule les variables libres (ie celle qui sont présent dans l'environnemet global) d'une fonction formelle *)
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
   | EFunction {def = [PVariable v, e]; env = _} ->
@@ -13,14 +26,9 @@ let rec free_vars = function
   | ESome n -> free_vars n
   | _ -> StringSet.empty
 
-let rec is_simple_value = function
-  | EFunction {def = [PVariable _, expr]; env = _} -> is_simple_value expr
-  | ENum _ | EBoolean _ | ENil | ENone | EString _ | EVariable _ -> true
-  | EPair (a, b) | ECons (a, b) | EApplication(a, b)-> 
-      is_simple_value a && is_simple_value b
-  | ESome e -> is_simple_value e
-  | f -> false
 
+(* Réalise la substitution d'une variable (x) par une autre expression (arg) dans expr *)
+(* La substitution est définie récursivement par les règles de lambda calcul           *)
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
   | EVariable y when y <> x -> EVariable y
@@ -39,6 +47,9 @@ let rec substitution expr arg x = match expr with
   | ESome(n) -> ESome(substitution n arg x)
   | rest -> rest
 
+
+(* Remplace toutes les variables libres de type is_simple_value d'une expression par leur expression dans l'environnement env *)
+(* Utilise substitution pour faire un remplacement valide                                                                     *)
 let replace env f = 
   let rec to_replace fv env = function
     | EVariable x when StringSet.mem x fv ->
@@ -65,6 +76,7 @@ let replace env f =
     f
 
 
+(* Effectue une beta reduction *)
 let rec normal_order_reduct = function
   | EApplication
       (EFunction {def = [PVariable x, m]}, n) ->

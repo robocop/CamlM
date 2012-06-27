@@ -6,6 +6,7 @@ open Typing
 open Builtin
 open Show
 
+(* Lit une entrée à la manière d'ocaml : celle-ci doit se terminer par ';;' *)
 let scan () = 
   let rec scan' n s = 
     let ns = read_line () in

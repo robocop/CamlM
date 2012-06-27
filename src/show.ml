@@ -1,5 +1,8 @@
 open Syntax
 
+(* Affichage des expressions réduites par eval    *)
+(* N'affiche pas les environnements des fonctions *)
+
 let show_list l = 
   "["^(String.concat "; " l)^"]"
 

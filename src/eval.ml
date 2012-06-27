@@ -7,6 +7,8 @@ open Helper
 let value (_, v) = v
 let env (e, _) = e
 
+(* Fait correspondre une expression à un pattern, et calcule les nouvelles variables   *)
+(* Renvoit un bout d'environnement que l'on colle à l'environnement précédant         *)
 let rec matching env value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PAxiom id) ->
@@ -112,18 +114,19 @@ and eval env = function
   | expr -> (env, eval' env expr)
 
 (* Other expressions that only change the env locally *)
+(* eval' réduit récursivement une expression 'le plus possible'  *)
 and eval' env expr = match expr with
   | EVariable s -> 
       begin try fst (List.assoc s env) with _ -> raise (Error ("Unknown " ^ s)) end
 
-  | EFunction {def = [PVariable v, expr]; env = None}->
+  | EFunction {def = [PVariable v, expr]; env = None}-> (* Seules les fonctions formelles sont réduites par lambda calcul *)
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in
       if is_simple_value f then normal_order_reduct (replace env f) else f
 
   | EFunction {def = def; env = None} -> 
       EFunction {def = def; env = Some env}
 
-  | EApplication(f, e) ->
+  | EApplication(f, e) -> (* On evalue quelques primitives *)
     let f', x' = (eval' env f, eval' env e) in
         begin match f', x' with
 	  | EApplication(EVariable "+", ENum x), ENum y -> ENum (x+y)
@@ -133,6 +136,7 @@ and eval' env expr = match expr with
 	    else EApplication(f', x')
 	  | EVariable "-", ENum x -> ENum (-x)
 	  | EApplication(EVariable "^", ENum x), ENum y -> ENum (puis x y)
+	  | EApplication(EVariable "mod", ENum x), ENum y -> ENum (x mod y)
 	  | EApplication(EVariable "==", a), b -> EBoolean (a = b)
 	  | EApplication(EVariable "&&", EBoolean x), EBoolean y -> EBoolean (x&&y)
 	  | EApplication(EVariable "||", EBoolean x), EBoolean y -> EBoolean (x||y)
@@ -175,7 +179,7 @@ and eval_definition curr_env def =
     | false ->
         let valeur = eval' curr_env def.expr
         in ((def.name, (valeur, false)) :: curr_env, valeur)
-    | true ->
+    | true -> (* Evaluation d'une définition récusive *)
         match def.expr with
           | EFunction f ->
               let closure = {def = f.def; env = None } in

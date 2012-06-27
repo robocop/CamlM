@@ -1,3 +1,5 @@
+(* Définition de la représentation interne d'une code CamlM *)
+
 type expression = 
   | EVariable of string
   | EFunction of closure

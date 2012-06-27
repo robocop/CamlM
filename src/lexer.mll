@@ -11,6 +11,7 @@ rule token = parse
   | '#'         { HASH }
   | '_'         { UNDERSCORE }
   | "++"        { CONCAT }
+  | "mod"       { MOD    }
   | '+'         { PLUS }
   | '-'         { MINUS }
   | '*'         { TIMES }
