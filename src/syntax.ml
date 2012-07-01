@@ -20,7 +20,7 @@ type expression =
 and closure = 
       { def : (pattern * expression) list; 
 	mutable env : env option }
-and env = (string * (expression * bool) ) list
+and env = (string * (expression option) ) list
 
 and pattern = 
   | PAll

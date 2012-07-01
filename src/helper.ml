@@ -28,3 +28,7 @@ let parse f lexbuf =
     let tok = Lexing.lexeme lexbuf in
     raise (ParseError (p, tok))
 
+
+let get = function
+  | Some e -> e
+  | None -> failwith "Tried to extract from a none value"

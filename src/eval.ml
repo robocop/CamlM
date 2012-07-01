@@ -15,14 +15,14 @@ let rec matching env value pattern = match value, pattern with
     begin
     try 
       (match value, List.assoc id env with
-	| EVariable v, (EVariable v', true) when v = v' -> []
+	| EVariable v, Some (EVariable v') when v = v' -> []
 	| _ -> raise MatchingFailure
       )
     with
       | Not_found -> raise (Error (id ^ "is not found"))
     end
 
-  | (value, PVariable id) -> [id, (value, false)] 
+  | (value, PVariable id) -> [id, Some value] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -106,7 +106,7 @@ and eval env = function
       let (env', _) = eval_definition env def
       in (env', EUnit)
   | EDeclare(var, None) ->
-    let env' = (var, (EVariable var, true))::env in
+    let env' = (var, None)::env in
     (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_module env m
@@ -117,11 +117,17 @@ and eval env = function
 (* eval' réduit récursivement une expression 'le plus possible'  *)
 and eval' env expr = match expr with
   | EVariable s -> 
-      begin try fst (List.assoc s env) with _ -> raise (Error ("Unknown " ^ s)) end
-
+      begin try 
+	      (match List.assoc s env with
+		| Some e -> e
+		| None -> EVariable s
+	      )
+	with _ -> raise (Error ("Unknown " ^ s)) 
+      end
   | EFunction {def = [PVariable v, expr]; env = None}-> (* Seules les fonctions formelles sont réduites par lambda calcul *)
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in
-      if is_simple_value f then normal_order_reduct (replace env f) else f
+      if is_simple_value f then normal_order_reduct (replace env f)
+      else f
 
   | EFunction {def = def; env = None} -> 
       EFunction {def = def; env = Some env}
@@ -161,7 +167,7 @@ and eval' env expr = match expr with
   | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | EDeclare(var, Some corps) ->
-    let env' = (var, (EVariable var, true))::env in
+    let env' = (var, None)::env in
     eval' env' corps
   | r -> r
 
@@ -177,13 +183,13 @@ and eval_application env case_list argument = match case_list with
 and eval_definition curr_env def =
   match def.recursive with
     | false ->
-        let valeur = eval' curr_env def.expr
-        in ((def.name, (valeur, false)) :: curr_env, valeur)
+        let value = eval' curr_env def.expr
+        in ((def.name, Some value) :: curr_env, value)
     | true -> (* Evaluation d'une définition récusive *)
         match def.expr with
           | EFunction f ->
               let closure = {def = f.def; env = None } in
-              let new_entry = def.name, (EFunction closure, false) in
+              let new_entry = def.name, Some (EFunction closure) in
               let extended_env = new_entry :: curr_env in
                 closure.env <- Some extended_env;
                 (extended_env, EFunction closure)

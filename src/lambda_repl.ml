@@ -55,9 +55,10 @@ let replace env f =
     | EVariable x when StringSet.mem x fv ->
       begin 
         try 
-          let v, r = List.assoc x env in
-            if (not r) && is_simple_value v then StringSet.singleton x
-            else StringSet.empty
+          (match List.assoc x env with
+	    | Some v  -> if is_simple_value v then StringSet.singleton x else StringSet.empty
+	    | None -> StringSet.empty
+	  )
         with _ -> raise (Error ("Unknown " ^ x)) 
       end
     | EVariable x -> StringSet.empty
@@ -71,7 +72,7 @@ let replace env f =
     | rest -> StringSet.empty
   in
   StringSet.fold 
-    (fun var expr -> substitution expr (fst (List.assoc var env)) var)
+    (fun var expr -> substitution expr (get (List.assoc var env)) var)
     (to_replace (free_vars f) env f)
     f
 

@@ -32,22 +32,22 @@ let builtin_types =
    ]
 
 let builtin_fns = 
-   [("+", (EVariable "+", false));
-   ("*", (EVariable "*", false));
-   ("/", (EVariable "/", false));
-   ("^", (EVariable "^", false));
-   ("==", (EVariable "==", false));
-   ("!=", (EVariable "!=", false));
-   (">=", (EVariable ">=", false));
-   ("<=", (EVariable "<=", false));
-   ("<",  (EVariable "<", false));
-   (">",  (EVariable ">", false));
-   ("&&", (EVariable "&&", false));
-   ("||", (EVariable "||", false));
-   ("++", (EVariable "++", false));
-   ("not", (EVariable "not", false));
-   ("-", (EVariable "-", false));
-   ("++", (EVariable "++", false));
-   ("mod", (EVariable "mod", false));
-   ("string_of_int", (EVariable "string_of_int", false))
+   [("+", Some (EVariable "+"));
+   ("*", Some (EVariable "*"));
+   ("/", Some (EVariable "/"));
+   ("^", Some (EVariable "^"));
+   ("==", Some (EVariable "=="));
+   ("!=", Some (EVariable "!="));
+   (">=", Some (EVariable ">="));
+   ("<=", Some (EVariable "<="));
+   ("<",  Some (EVariable "<"));
+   (">",  Some (EVariable ">"));
+   ("&&", Some (EVariable "&&"));
+   ("||", Some (EVariable "||"));
+   ("++", Some (EVariable "++"));
+   ("not", Some (EVariable "not"));
+   ("-", Some (EVariable "-"));
+   ("++", Some (EVariable "++"));
+   ("mod", Some (EVariable "mod"));
+   ("string_of_int", Some (EVariable "string_of_int"))
   ]
