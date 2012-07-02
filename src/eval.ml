@@ -26,7 +26,7 @@ let rec matching (com_test, assoc_test) (env, env_ops) value pattern = match val
     begin
     try 
       (match value, List.assoc id env with
-	| EVariable v, Some (EVariable v') when v = v' -> []
+	| EVariable v, None when v = id -> []
 	| _ -> raise MatchingFailure
       )
     with
@@ -76,7 +76,8 @@ let rec matching (com_test, assoc_test) (env, env_ops) value pattern = match val
          | _ -> raise MatchingFailure
       )
   | (expr, PCompose (pf, pg)) ->
-    (match expr with
+    begin
+      match expr with
          | EFunction
 	     ({def = [PVariable v, EApplication(e1, e2)]; env = envi})  ->
            let f = match e1 with
@@ -87,32 +88,36 @@ let rec matching (com_test, assoc_test) (env, env_ops) value pattern = match val
 	   let g = EFunction({def = [PVariable v, e2]; env = envi }) in
            (matching (false, false) (env, env_ops) f pf) @ (matching (false, false) (env, env_ops) g pg)
          | _ -> raise MatchingFailure
-    )
+    end
   | (expr, PIdentity) ->
-    (match expr with
-       EFunction({def = [PVariable v, EVariable v']}) when v = v' -> []
-      | _ -> raise MatchingFailure
-    )
+    begin
+      match expr with
+	  EFunction({def = [PVariable v, EVariable v']}) when v = v' -> []
+	| _ -> raise MatchingFailure
+    end
   | (expr, PConst p) ->
-     (match expr with
+    begin
+    match expr with
        EFunction({def = [PVariable v, e]})  -> 
 	 let fv = free_vars e in
 	 if StringSet.mem v fv then raise MatchingFailure
 	 else matching (false, false) (env, env_ops) e p
       | _ -> raise MatchingFailure
-    )
+    end
   | (expr, PIsnum p) ->
-    (match expr with
-      | ENum x -> matching (false, false) (env, env_ops) expr p
-      | _ -> raise MatchingFailure
-    )
+    begin
+      match expr with
+	| ENum x -> matching (false, false) (env, env_ops) expr p
+	| _ -> raise MatchingFailure
+    end
   | (expr, PWhen(cond, p)) ->
     let r = matching (false, false) (env, env_ops) expr p in
     let env' = r @ env  in
-    (match eval (env', env_ops) cond with
-      | _, (EBoolean true) -> r
-      | _ -> raise MatchingFailure
-    )
+    begin
+      match eval (env', env_ops) cond with
+	| _, (EBoolean true) -> r
+	| _ -> raise MatchingFailure
+    end
   | _ -> raise MatchingFailure
 
 
