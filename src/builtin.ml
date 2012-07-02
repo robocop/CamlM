@@ -51,3 +51,11 @@ let builtin_fns =
    ("mod", Some (EVariable "mod"));
    ("string_of_int", Some (EVariable "string_of_int"))
   ]
+
+
+let builtin_ops = 
+ [("+", [Assoc; Com]);
+  ("*", [Assoc; Com]);
+  ("/", []);
+  ("^", [])
+ ]

@@ -21,7 +21,10 @@ and closure =
       { def : (pattern * expression) list; 
 	mutable env : env option }
 and env = (string * (expression option) ) list
-
+and env_op = (string * (prop list)) list
+and prop = 
+  | Com
+  | Assoc
 and pattern = 
   | PAll
   | PVariable of string
