@@ -11,11 +11,16 @@ let is_com op env_ops =
   try 
     List.mem Com (List.assoc op env_ops)
   with _ -> false
+let is_assoc op env_ops = 
+  try 
+    List.mem Assoc (List.assoc op env_ops)
+  with _ -> false
+
 
 (* Fait correspondre une expression à un pattern, et calcule les nouvelles variables   *)
 (* Renvoit un bout d'environnement que l'on colle à l'environnement précédant         *)
 
-let rec matching com_test (env, env_ops) value pattern = match value, pattern with
+let rec matching (com_test, assoc_test) (env, env_ops) value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PAxiom id) ->
     begin
@@ -36,36 +41,38 @@ let rec matching com_test (env, env_ops) value pattern = match value, pattern wi
   | (EString s1, PString s2) ->
       if s1 = s2 then [] else raise MatchingFailure
   | (EPair(v1, v2), PPair (m1, m2)) ->
-      matching false (env, env_ops) v1 m1 @ matching false (env, env_ops) v2 m2
+      matching (false, false) (env, env_ops) v1 m1 @ matching (false, false) (env, env_ops) v2 m2
   | (ENil, PNil) -> []
   | (ECons (v1, v2), PCons(m1, m2)) ->
-      matching false (env, env_ops) v1 m1 @ matching false (env, env_ops) v2 m2
+      matching (false, false) (env, env_ops) v1 m1 @ matching (false, false) (env, env_ops) v2 m2
   | (ENone, PNone) -> []
-  | (ESome v, PSome m) -> matching false (env, env_ops) v m
-
+  | (ESome v, PSome m) -> matching (false, false) (env, env_ops) v m
+  | (expr, POp(op1, POp(op2, a, b), c)) when op1 = op2 && is_assoc op1 env_ops && not assoc_test->
+    begin
+      try matching (com_test, true) (env, env_ops) expr pattern 
+      with MatchingFailure -> matching (com_test, true) (env, env_ops) expr  (POp(op1, a, POp(op2, b, c)))
+    end
+  | (expr, POp(op, a, b)) when is_com op env_ops && not com_test ->
+    (try matching (true, assoc_test) (env, env_ops) expr pattern 
+    with MatchingFailure -> matching (true, assoc_test) (env, env_ops) expr (POp(op, b, a))
+    )
   | (expr, POp(op, pf, pg)) ->
-      (match expr with
-         | EFunction
-	     ({def = [PVariable v, 
-		      EApplication(EApplication (EVariable op', e1), e2)]; 
-	      env = envi}) when op = op' ->
-           let f = EFunction({def = [PVariable v, e1]; env = envi }) in
-	   let g = EFunction({def = [PVariable v, e2]; env = envi }) in
-	   (try 
-             (matching false (env, env_ops) f pf) @ (matching false (env, env_ops) g pg)
-	   with MatchingFailure ->
-	      if not com_test && is_com op env_ops  then matching true (env, env_ops) expr (POp(op, pg, pf))
-	      else raise MatchingFailure
-	   )
-         | _ -> raise MatchingFailure
-      )
+    begin
+      match expr with
+        | EFunction ({def = [PVariable v, EApplication(EApplication (EVariable op', e1), e2)]; env = envi}) when op = op' ->
+          let f = EFunction({def = [PVariable v, e1]; env = envi }) in
+	  let g = EFunction({def = [PVariable v, e2]; env = envi }) in
+	  (matching (false, false) (env, env_ops) f pf) @ (matching (false, false) (env, env_ops) g pg)
+        | _ -> raise MatchingFailure
+    end 
+     
   | (expr, PMinus m) ->
       (match expr with
          | EFunction
 	     ({def = [PVariable v, EApplication (EVariable "-", e)]; 
 	      env = envi}) ->
             let f' = EFunction({def = [PVariable v, e]; env = envi }) in
-            matching false (env, env_ops) f' m
+            matching (false, false) (env, env_ops) f' m
          | _ -> raise MatchingFailure
       )
   | (expr, PCompose (pf, pg)) ->
@@ -78,7 +85,7 @@ let rec matching com_test (env, env_ops) value pattern = match value, pattern wi
 	     | _ -> raise MatchingFailure
 	   in
 	   let g = EFunction({def = [PVariable v, e2]; env = envi }) in
-           (matching false (env, env_ops) f pf) @ (matching false (env, env_ops) g pg)
+           (matching (false, false) (env, env_ops) f pf) @ (matching (false, false) (env, env_ops) g pg)
          | _ -> raise MatchingFailure
     )
   | (expr, PIdentity) ->
@@ -91,16 +98,16 @@ let rec matching com_test (env, env_ops) value pattern = match value, pattern wi
        EFunction({def = [PVariable v, e]})  -> 
 	 let fv = free_vars e in
 	 if StringSet.mem v fv then raise MatchingFailure
-	 else matching false (env, env_ops) e p
+	 else matching (false, false) (env, env_ops) e p
       | _ -> raise MatchingFailure
     )
   | (expr, PIsnum p) ->
     (match expr with
-      | ENum x -> matching false (env, env_ops) expr p
+      | ENum x -> matching (false, false) (env, env_ops) expr p
       | _ -> raise MatchingFailure
     )
   | (expr, PWhen(cond, p)) ->
-    let r = matching false (env, env_ops) expr p in
+    let r = matching (false, false) (env, env_ops) expr p in
     let env' = r @ env  in
     (match eval (env', env_ops) cond with
       | _, (EBoolean true) -> r
@@ -185,7 +192,7 @@ and eval_application (env, env_ops) case_list argument = match case_list with
   | [] -> raise (Error "Pattern matching failure")
   | (pattern, expr) :: rest ->
       try
-        let extended_env = matching false (env, env_ops) argument pattern @ env in
+        let extended_env = matching (false, false) (env, env_ops) argument pattern @ env in
           eval' (extended_env, env_ops) expr
       with
           MatchingFailure -> eval_application (env, env_ops) rest argument
