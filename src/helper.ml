@@ -14,11 +14,14 @@ let rec new_variable set v =
   if not (StringSet.mem v set) then v
   else new_variable set (next v)
 
+let two = Int32.of_int 2
+
 let rec puis a n = match n with
-  | 0 -> 1
-  | n -> 
-    let r = puis a (n/2) in
-    if n mod 2 = 0 then r*r else r*r*a
+  | n when n=Int32.zero -> Int32.one
+  | _ -> 
+    let r = puis a (Int32.div n two) in
+    let rr = Int32.mul r r in
+    if Int32.rem n two = Int32.zero then rr else Int32.mul rr a
 
 let parse f lexbuf =
   try

@@ -8,7 +8,7 @@ type expression =
   | EDeclare of string * expression option
   | EOpen of string * expression option
   | EBoolean of bool
-  | ENum of int
+  | ENum of int32
   | EPair of expression * expression
   | EUnit
   | ENil
@@ -30,7 +30,7 @@ and pattern =
   | PVariable of string
   | PAxiom of string
   | PBoolean of bool
-  | PNum of int
+  | PNum of int32
   | PPair of pattern * pattern
   | PNil
   | PCons of pattern * pattern

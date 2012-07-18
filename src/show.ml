@@ -18,7 +18,7 @@ and show_pattern = function
   | PVariable s -> s
   | PAxiom s -> "@"^s
   | PBoolean b -> Printf.sprintf "%b" b;
-  | PNum n -> string_of_int n
+  | PNum n -> Int32.to_string n
   | PPair (e1, e2) -> Printf.sprintf "(%s,%s)" (show_pattern e1) (show_pattern e2)
   | PNil -> "[]"
   | PCons (e1, e2) -> Printf.sprintf "%s::%s" (show_pattern e1) (show_pattern e2) 
@@ -42,7 +42,7 @@ and show_function def =
 
 and show = function
   | EVariable v -> v
-  | ENum n -> string_of_int n
+  | ENum n -> Int32.to_string n
   | EString s -> Printf.sprintf "\"%s\"" s
   | EBoolean false -> "false"
   | EBoolean true -> "true"
@@ -59,7 +59,7 @@ and show = function
       when List.mem op ["+"; "*"; "/"; "^"; "=="; ">="; "<="; ">"; "<"] -> 
       Printf.sprintf "(%s %s %s)" (show e1) op (show e2)
   | EApplication (EVariable f, EVariable x) -> Printf.sprintf "%s %s" f x
-  | EApplication (EVariable s, ENum x) -> Printf.sprintf "%s %d" s x
+  | EApplication (EVariable s, ENum x) -> Printf.sprintf "%s %s" s (Int32.to_string x)
   | EApplication(EVariable f, r) -> f ^ " (" ^ show r ^ ")"
   | EApplication (f, e) ->
       "("^show f^") "^"("^show e^")" 

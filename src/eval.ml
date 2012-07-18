@@ -157,14 +157,14 @@ and eval' (env, env_ops) expr = match expr with
   | EApplication(f, e) -> (* On evalue quelques primitives *)
     let f', x' = (eval' (env, env_ops) f, eval' (env, env_ops) e) in
         begin match f', x' with
-	  | EApplication(EVariable "+", ENum x), ENum y -> ENum (x+y)
-	  | EApplication(EVariable "*", ENum x), ENum y -> ENum (x*y)
+	  | EApplication(EVariable "+", ENum x), ENum y -> ENum (Int32.add x y)
+	  | EApplication(EVariable "*", ENum x), ENum y -> ENum (Int32.mul x y)
 	  | EApplication(EVariable "/", ENum x), ENum y ->
-	    if x mod y = 0 then ENum (x/y)
+	    if Int32.rem x y = Int32.zero then ENum (Int32.div x y)
 	    else EApplication(f', x')
-	  | EVariable "-", ENum x -> ENum (-x)
+	  | EVariable "-", ENum x -> ENum (Int32.neg x)
 	  | EApplication(EVariable "^", ENum x), ENum y -> ENum (puis x y)
-	  | EApplication(EVariable "mod", ENum x), ENum y -> ENum (x mod y)
+	  | EApplication(EVariable "mod", ENum x), ENum y -> ENum (Int32.rem x y)
 	  | EApplication(EVariable "==", a), b -> EBoolean (a = b)
 	  | EApplication(EVariable "&&", EBoolean x), EBoolean y -> EBoolean (x&&y)
 	  | EApplication(EVariable "||", EBoolean x), EBoolean y -> EBoolean (x||y)
@@ -173,7 +173,7 @@ and eval' (env, env_ops) expr = match expr with
 	  | EApplication(EVariable "<", ENum x), ENum y -> EBoolean (x<y)
 	  | EApplication(EVariable ">", ENum x), ENum y -> EBoolean (x>y)
 	  | EApplication(EVariable "++", EString x), EString y -> EString (x^y)
-	  | EVariable "string_of_int", ENum x -> EString (string_of_int x)
+	  | EVariable "string_of_int", ENum x -> EString (Int32.to_string x)
           | EFunction {def = def; env = Some env_f}, arg -> 
               eval_application (env_f, env_ops) def arg
           | _ -> EApplication(f', x')

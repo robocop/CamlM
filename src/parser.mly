@@ -34,11 +34,11 @@
     let fn e = EFunction {def = List.rev e; env = None}
 
     let mkPreMinus = function
-      | ENum n -> ENum (-n)
+      | ENum n -> ENum (Int32.neg n)
       | expr -> EApplication (EVariable "-", expr) 
 
     let mkMotifPreMinus = function
-      | PNum n -> PNum (-n)
+      | PNum n -> PNum (Int32.neg n)
       | motif -> PMinus motif 
 
 
@@ -50,7 +50,7 @@
 %token PLUS MINUS TIMES DIV POW CONS CONCAT POINT MOD
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token ID CONST AT PNUM
-%token <int> NUM
+%token <int32> NUM
 %token <string> VAR STRING MODULE
 
 %right DOLLAR

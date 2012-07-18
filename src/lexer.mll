@@ -61,7 +61,7 @@ rule token = parse
   | '"' char* '"' 
     { let str = (Lexing.lexeme lexbuf)
       in STRING (String.sub str 1 (String.length str - 2)) }
-  | num         { NUM (int_of_string (Lexing.lexeme lexbuf)) }
+  | num         { NUM (Int32.of_string (Lexing.lexeme lexbuf)) }
   | downcase id*{ VAR (Lexing.lexeme lexbuf) }
   | upcase id*  { MODULE (Lexing.lexeme lexbuf) }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
