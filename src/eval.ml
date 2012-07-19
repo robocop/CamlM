@@ -7,6 +7,7 @@ open Helper
 let value (_, v) = v
 let env (e, _) = e
 
+
 let is_com op env_ops = 
   try 
     List.mem Com (List.assoc op env_ops)
@@ -17,9 +18,10 @@ let is_assoc op env_ops =
   with _ -> false
 
 
-(* Fait correspondre une expression à un pattern, et calcule les nouvelles variables   *)
-(* Renvoit un bout d'environnement que l'on colle à l'environnement précédant         *)
-
+(* Fait correspondre une expression à un pattern, et calcule les nouvelles variables définies par le pattern  *)
+(* Renvoit un bout d'environnement que l'on colle à l'environnement précédent                                 *)
+(* On gère l'associativité et la commutativité des opérateurs grâce aux variables 
+  booléeennes  (com_test, assoc_test) et à env_ops                                                            *)
 let rec matching (com_test, assoc_test) (env, env_ops) value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PAxiom id) ->
@@ -137,12 +139,13 @@ and eval (env, env_ops) = function
 
 (* Other expressions that only change the env locally *)
 (* eval' réduit récursivement une expression 'le plus possible'  *)
+(* Les fonctions formelles sont réduites à l'aide des règles de lambda calcul définies dans lambda_repl.ml *)
 and eval' (env, env_ops) expr = match expr with
   | EVariable s -> 
       begin try 
 	      (match List.assoc s env with
 		| Some e -> e
-		| None -> EVariable s
+		| None -> EVariable s (* Si la variable a été définie par la syntaxe 'declare' sans expression *)
 	      )
 	with _ -> raise (Error ("Unknown " ^ s)) 
       end

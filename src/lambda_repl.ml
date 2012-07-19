@@ -14,7 +14,7 @@ let rec is_simple_value = function
   | f -> false
 
 
-(* Calcule les variables libres (ie celle qui sont présent dans l'environnemet global) d'une fonction formelle *)
+(* Calcule les variables libres (ie celles qui sont présentes dans l'environnement global) d'une fonction formelle *)
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
   | EFunction {def = [PVariable v, e]; env = _} ->
