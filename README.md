@@ -7,10 +7,13 @@ CamlM est un langage de programmation basé sur le langage caml et étendu pour 
 Nécessite Linux ou Mac, ainsi qu'une installation de OCaml (=> 3.10) et de Menhir.
 
 1. Faire une copie du dépot : `git clone git://github.com/robocop/CamlM.git`
-2. Créer le dossier build/
+2. Executer la commande : `./configure`
 3. Executer la commande : `make`
-4. Lancer l'interpreteur avec `rlwrap ./caml` (on peut aussi utiliser emacs avec le tuareg-mode)
+4. Lancer l'interpreteur avec `rlwrap ./camlm.native` (on peut aussi utiliser emacs avec le tuareg-mode)
 
+## Développement
+
+Si le fichier \_oasis est modifié, le regénérer avec la commande `oasis setup`
 
 ## Exemples de programmes
 
