@@ -4,7 +4,7 @@ open Lambda_repl
 open Error
 open Helper
 
-let op_property prop op env = match op_prop (lookup_env op env) with
+let op_property prop op env = match op_prop (lookup_fun_env op env) with
   | None -> raise (Error "tried to get op properties from a non-op object")
   | Some p -> List.mem prop p
 
@@ -17,8 +17,8 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
   | (_, PAll) -> []
   | (value, PAxiom id) ->
       begin
-        match value, lookup_env id env with
-          | EVariable v, (_, None, _) when v = id -> []
+        match value, lookup_fun_env id env with
+          | EVariable v, (_, (None, _)) when v = id -> []
           | _ -> raise MatchingFailure
       end
 
@@ -131,9 +131,9 @@ and eval env = function
 and eval' env expr = match expr with
   | EVariable s -> 
       begin  
-        match lookup_env s env with
-          | (_, Some e, _) -> e
-          | (_, None, _) -> EVariable s
+        match lookup_fun_env s env with
+          | (_, (Some e, _)) -> e
+          | (_, (None, _)) -> EVariable s
       end
   | EFunction {def = [PVariable v, expr]; env = None}-> (* Seules les fonctions formelles sont réduites par lambda calcul *)
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in

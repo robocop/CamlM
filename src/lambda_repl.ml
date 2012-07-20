@@ -54,7 +54,7 @@ let rec substitution expr arg x = match expr with
 let replace env f = 
   let rec to_replace fv env = function
     | EVariable x when StringSet.mem x fv ->
-        (match value (lookup_env x env) with
+        (match value (lookup_fun_env x env) with
            | Some v  -> if is_simple_value v then StringSet.singleton x else StringSet.empty
            | None -> StringSet.empty
         )
@@ -69,7 +69,7 @@ let replace env f =
     | rest -> StringSet.empty
   in
     StringSet.fold 
-      (fun var expr -> substitution expr (get (value (lookup_env var env))) var)
+      (fun var expr -> substitution expr (get (value (lookup_fun_env var env))) var)
       (to_replace (free_vars f) env f)
       f
 

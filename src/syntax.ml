@@ -19,7 +19,7 @@ type expression =
 
 and closure = 
     { def : (pattern * expression) list; 
-	    mutable env : fun_env option }
+	    mutable env : (fun_env_content env) option }
 
 (* In order : 
  *  - name (e.g. "+", "foo")
@@ -38,11 +38,10 @@ and fun_env_content = string * (expression option) * ((prop list) option)
  *     - qualified module : A.bob ()
  * modules : list of module names and content
  *)
-
-and fun_env = {
+and 'a env = {
   this: string;
   anon_modules: string list;
-  modules: (string * fun_env_content list) list
+  modules: (string * 'a list) list
 }
 
 and prop = 

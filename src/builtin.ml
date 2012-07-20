@@ -12,8 +12,7 @@ let type_lexical = type_prim2 type_string type_string type_string
 let type_logic = type_prim2 type_bool type_bool type_bool
 let type_poly_logic = let v = new_unknow () in type_prim2 v v type_bool
 
-
-let builtin_types = 
+let builtin_types = List.map (function (a, (b, c)) -> (a, b, c))
   [("+", type_arithmetic);
    ("*", type_arithmetic);
    ("/", type_arithmetic);

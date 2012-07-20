@@ -13,27 +13,41 @@ let file_from_module module_name =
     with Not_found -> raise (Error ("Could not find module " ^ module_name ^ " in search path"))
 
 let value = function
-  | (_, v, _) -> v
+  | (_, (v, _)) -> v
 
 let op_prop = function
-  | (_, _, op) -> op
+  | (_, (_, op)) -> op
 
-let rec lookup_env' f = function
+let type_ = function
+  | (_, (t, _)) -> t
+
+let rec lookup_env' f name = function
   | [] -> []
-  | (m, m_env) :: xs -> 
-      let rec lookup_env_content = function
-        | [] -> None
-        | (y, value, op) :: _ when y = f -> 
-            Some (value, op)
-        | _ :: ys -> lookup_env_content ys
-      in (match lookup_env_content m_env with
-            | None -> lookup_env' f xs
-            | Some (value, op) -> (m, value, op) :: lookup_env' f xs)
+  | (m, m_env) :: xs ->
+    (match f name m_env with
+       | None -> lookup_env' f name xs
+       | Some x -> (m, x) :: lookup_env' f name xs)
 
-let lookup_env f env = match lookup_env' f env.modules with
-  | [] -> raise (Undef f)
+let rec lookup_env f name env = match lookup_env' f name env.modules with
+  | [] -> raise (Undef name)
   | [x] -> x
-  | xs -> raise (MultiDef (f, List.map (function (m, _, _) -> m) xs))
+  | xs -> raise (MultiDef (name, List.map (function (m, _) -> m) xs))
+
+let lookup_fun_env name env =
+  let rec aux name = function
+    | [] -> None
+    | (y, value, op) :: _ when y = name -> 
+        Some (value, op)
+    | _ :: ys -> aux name ys
+  in lookup_env aux name env
+
+let lookup_type_env name env =
+  let rec aux name = function
+    | [] -> None
+    | (y, t, r) :: _ when y = name -> 
+        Some (t, r)
+    | _ :: ys -> aux name ys
+  in lookup_env aux name env
 
 let rec add_mod m content = function
   | [] -> [(m, content)]

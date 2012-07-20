@@ -36,6 +36,8 @@ let _ =
   let input () = if not !minimal then "# " else "" in
   let prelude = ("Prelude", builtin_fns) in
   let default_env = {this = "_toplevel"; anon_modules = []; modules = [prelude] } in
+  let prelude_type = ("Prelude", builtin_types) in
+  let default_type_env = {this = "_toplevel"; anon_modules = []; modules = [prelude_type] } in
   let rec loop fn_env type_env =
     try 
       begin
@@ -58,5 +60,5 @@ let _ =
     Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
       usage; 
 
-    try loop default_env builtin_types
-    with exn -> handle_error exn; loop default_env builtin_types
+    try loop default_env default_type_env
+    with exn -> handle_error exn; loop default_env default_type_env
