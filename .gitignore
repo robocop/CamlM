@@ -1,1 +1,5 @@
-caml
+camlm.native
+camlm.byte
+_build/
+setup.data
+setup.log
