@@ -1,8 +1,14 @@
 open Error
 open Syntax
 
+let include_path = ref ["."]
+
 let file_from_module module_name = 
-  String.uncapitalize module_name ^ ".mml"
+  let files = 
+    List.map (function p -> p ^ "/" ^ String.uncapitalize module_name ^ ".mml") !include_path
+  in 
+    try List.find Sys.file_exists files
+    with Not_found -> raise (Error ("Could not find module " ^ module_name ^ " in search path"))
 
 let value = function
   | (_, v, _) -> v
