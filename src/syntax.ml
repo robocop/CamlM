@@ -18,13 +18,36 @@ type expression =
   | ESome of expression
 
 and closure = 
-      { def : (pattern * expression) list; 
-	mutable env : env option }
-and env = (string * (expression option) ) list
-and env_op = (string * (prop list)) list
+    { def : (pattern * expression) list; 
+	    mutable env : (fun_env_content env) option }
+
+(* In order : 
+ *  - name (e.g. "+", "foo")
+ *  - value
+ *  - operator properties
+ *    - if the element is not an operator, then None
+ *    - otherwise, Some properties
+ *)
+and fun_env_content = string * (expression option) * ((prop list) option)
+
+(* this : name of this module
+ * anon_modules : modules that can be accessed without prefixing the expression
+ *    with the module name : 
+ *    a.ml : let bob () = ...;
+ *     - anon module : bob ()
+ *     - qualified module : A.bob ()
+ * modules : list of module names and content
+ *)
+and 'a env = {
+  this: string;
+  anon_modules: string list;
+  modules: (string * 'a list) list
+}
+
 and prop = 
   | Com
   | Assoc
+
 and pattern = 
   | PAll
   | PVariable of string
