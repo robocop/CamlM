@@ -19,7 +19,7 @@ type expression =
 
 and closure = 
     { def : (pattern * expression) list; 
-	    mutable env : env option }
+	    mutable env : fun_env option }
 
 (* In order : 
  *  - name (e.g. "+", "foo")
@@ -28,7 +28,7 @@ and closure =
  *    - if the element is not an operator, then None
  *    - otherwise, Some properties
  *)
-and env_content = string * (expression option) * ((prop list) option)
+and fun_env_content = string * (expression option) * ((prop list) option)
 
 (* this : name of this module
  * anon_modules : modules that can be accessed without prefixing the expression
@@ -39,10 +39,10 @@ and env_content = string * (expression option) * ((prop list) option)
  * modules : list of module names and content
  *)
 
-and env = {
+and fun_env = {
   this: string;
   anon_modules: string list;
-  modules: (string * env_content list) list
+  modules: (string * fun_env_content list) list
 }
 
 and prop = 

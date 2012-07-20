@@ -51,7 +51,7 @@ let rec substitution expr arg x = match expr with
 
 (* Remplace toutes les variables libres de type is_simple_value d'une expression par leur expression dans l'environnement env *)
 (* Utilise substitution pour faire un remplacement valide                                                                     *)
-let replace (env : env) f = 
+let replace env f = 
   let rec to_replace fv env = function
     | EVariable x when StringSet.mem x fv ->
         (match value (lookup_env x env) with

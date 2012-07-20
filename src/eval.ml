@@ -13,7 +13,7 @@ let is_assoc = op_property Assoc
 
 (* Fait correspondre une expression à un pattern, et calcule les nouvelles variables   *)
 (* Renvoit un bout d'environnement que l'on colle à l'environnement précédant         *)
-let rec matching (com_test, assoc_test) (env:env) value pattern = match value, pattern with
+let rec matching (com_test, assoc_test) env value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PAxiom id) ->
       begin
