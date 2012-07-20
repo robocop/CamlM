@@ -1,9 +1,14 @@
 open Error
 open Syntax
+open Helper
 
 (* TODO : Fix cycling dependency issue *)
 
 let include_path = ref ["."]
+let module_ast = ref []
+
+let module_present m e = 
+  List.exists (function (m', _) -> m = m') e
 
 let file_from_module module_name = 
   let files = 
@@ -11,6 +16,22 @@ let file_from_module module_name =
   in 
     try List.find Sys.file_exists files
     with Not_found -> raise (Error ("Could not find module " ^ module_name ^ " in search path"))
+
+let load_module m = 
+  if module_present m !module_ast then List.assoc m !module_ast
+  else 
+    let ast = bracket
+                 (function _ -> open_in (file_from_module m))
+                 (function h -> parse Parser.file (Lexing.from_channel h))
+                 close_in
+    in module_ast := (m, ast) :: !module_ast; ast
+
+let open_module f m env = 
+  if module_present m env.modules then env
+  else 
+    let ast = load_module m in
+    let env' = f { env with this = m } ast
+    in { env' with this = env.this } 
 
 let value = function
   | (_, (v, _)) -> v
@@ -60,7 +81,4 @@ let multi_add_env content env =
   { env with modules = add_mod env.this content env.modules }
 
 let add_env content = multi_add_env [content]
-
-let module_present m env = 
-  List.exists (function (m', _) -> m = m') env.modules
 

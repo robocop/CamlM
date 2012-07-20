@@ -122,7 +122,7 @@ and eval env = function
       let env' = add_env (var, None, None) env
       in (env', EUnit)
   | EOpen (m, None) -> 
-      let env' = open_module m env
+      let env' = open_fun_module m env
       in (env', EUnit)
   | expr -> (env, eval' env expr)
 
@@ -171,9 +171,9 @@ and eval' env expr = match expr with
   | EPair(e1, e2) -> EPair(eval' env e1, eval' env e2)
   | ECons(e1, e2) -> ECons(eval' env e1, eval' env e2)
   | ESome e -> ESome (eval' env e)
- (* | EOpen (m, Some expr) ->
-      let env' = open_module env m
-      in eval' env' expr *)
+  | EOpen (m, Some expr) ->
+      let env' = open_fun_module m env
+      in eval' env' expr 
   | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | EDeclare(var, Some corps) ->
@@ -212,14 +212,5 @@ and do_eval env = function
       let (env', _) = eval env x
       in do_eval env' xs
 
-and open_module m env = 
-  if module_present m env then env
-  else 
-    let ast = bracket 
-                (function _ -> open_in (file_from_module m))
-                (function h -> parse Parser.file (Lexing.from_channel h))
-                (function h -> close_in h) in
-    let env' = do_eval { env with this = m } ast
-    in { env' with this = env.this } 
-
+and open_fun_module m env= open_module do_eval m env
 

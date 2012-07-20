@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./camlm.native -I lib/
+rlwrap ./camlm.native -I lib/
