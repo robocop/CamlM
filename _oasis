@@ -1,0 +1,17 @@
+OASISFormat: 0.3
+Name:        CamlM
+Version:     dev
+Synopsis:    Math oriented, OCaml inspired language
+Authors:     Quentin C, Charlie P
+License:     GPL-3
+Homepage:    https://github.com/robocop/CamlM
+Plugins:     DevFiles (0.3)
+XDevFilesEnableMakefile: true
+XDevFilesEnableConfigure: true
+
+Executable camlm
+  Path:       src/
+  BuildTools: ocamlbuild, menhir
+  MainIs:     camlm.ml
+  CompiledObject: native
+  

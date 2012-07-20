@@ -55,12 +55,12 @@
 
 %right DOLLAR
 %nonassoc IN
-(* %nonassoc LET OPEN *)
-%nonassoc FUNCTION (*FUN*) WITH
+/* %nonassoc LET OPEN */
+%nonassoc FUNCTION /*FUN*/ WITH
 %left PIPE
-(*%left COMMA*)
-%nonassoc RARROW (*LARROW*)
-(* %nonassoc WHEN *)
+/*%left COMMA*/
+%nonassoc RARROW /*LARROW*/
+/* %nonassoc WHEN */
 %left BAND BOR
 %left BLEQ BGEQ BLT BGT
 %left BEQ BNEQ
@@ -71,7 +71,7 @@
 %left TIMES DIV
 %right POW
 %left MOD
-%nonassoc SOME BNOT CONST (*ID AT*) PNUM
+%nonassoc SOME BNOT CONST /*ID AT*/ PNUM
 %left funapp
 
 %start eval
@@ -168,11 +168,11 @@ list_sugar:
 list_rest:
       expr                { [$1] }
     | expr SEMI list_rest { $1 :: $3 }
-(*
+/*
 list_comp:
     | VAR LARROW expr                   { [$1, $3] }
     | VAR LARROW expr SEMI list_comp    { ($1, $3) :: $5 }
-*)
+*/
 let_bindings:
     VAR cases_or_empty EQ expr             { ($1, $2, $4) }
 
