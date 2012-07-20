@@ -1,6 +1,8 @@
 open Error
 open Syntax
 
+(* TODO : Fix cycling dependency issue *)
+
 let include_path = ref ["."]
 
 let file_from_module module_name = 

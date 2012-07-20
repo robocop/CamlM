@@ -26,7 +26,6 @@ let scan () =
 
 let minimal = ref false
 
-(* TODO : Make sure included paths are actual directories *)
 let usage = "usage: " ^ Sys.argv.(0) ^ " [--minimal]"
 let speclist = [
   ("--minimal", Arg.Unit (fun () -> minimal := true), "run with minimal onscreen content");
