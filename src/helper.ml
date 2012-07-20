@@ -35,3 +35,9 @@ let parse f lexbuf =
 let get = function
   | Some e -> e
   | None -> failwith "Tried to extract from a none value"
+
+let bracket acquire use release = 
+  let res = acquire () in
+  let ans = use res
+  in release res; ans
+

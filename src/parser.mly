@@ -111,8 +111,8 @@ expr:
     | LET rec_flag let_bindings IN expr
         { mkLet $2 $3 (Some $5) }
     | DECLARE VAR IN expr { EDeclare ($2, Some $4) }
-    | OPEN MODULE IN expr
-        { mkOpen $2 (Some $4) }
+      (*    | OPEN MODULE IN expr
+        { mkOpen $2 (Some $4) } *)
     | a=expr; f=op; b=expr
         { f a b }
     | FUNCTION patterns

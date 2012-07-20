@@ -82,3 +82,13 @@ and show = function
 and get_list = function
   | ECons(x, xs) -> (show x)::get_list xs
   | _ -> []
+
+let show_env env = 
+  let rec show_mod = function
+    | [] -> ()
+    | (f, _, _) :: xs -> print_endline (" --- " ^ f); show_mod xs
+  in
+  print_endline ("Name : " ^ env.this);
+  print_endline ("Loaded stuff : ");
+  List.map (function (m, c) -> print_endline (" - Module : " ^ m); show_mod c) env.modules
+

@@ -1,6 +1,7 @@
 open Syntax
 open Error
 open Helper
+open Modules
 
 (* Définit récursivement les expressions qui seront réduites par des opérations de lambda calcul. *)
 (* f est dite de type 'fonction formelle' si is_simple_value f                                    *)
@@ -50,31 +51,27 @@ let rec substitution expr arg x = match expr with
 
 (* Remplace toutes les variables libres de type is_simple_value d'une expression par leur expression dans l'environnement env *)
 (* Utilise substitution pour faire un remplacement valide                                                                     *)
-let replace env f = 
+let replace (env : env) f = 
   let rec to_replace fv env = function
     | EVariable x when StringSet.mem x fv ->
-      begin 
-        try 
-          (match List.assoc x env with
-	    | Some v  -> if is_simple_value v then StringSet.singleton x else StringSet.empty
-	    | None -> StringSet.empty
-	  )
-        with _ -> raise (Error ("Unknown " ^ x)) 
-      end
+        (match value (lookup_env x env) with
+           | Some v  -> if is_simple_value v then StringSet.singleton x else StringSet.empty
+           | None -> StringSet.empty
+        )
     | EVariable x -> StringSet.empty
     | EPair(m, n)
     | ECons(m, n) 
     | EApplication(m, n) ->
-      StringSet.union (to_replace fv env m) (to_replace fv env n)
+        StringSet.union (to_replace fv env m) (to_replace fv env n)
     | EFunction {def = [PVariable v, expr]; env = _} ->
-      to_replace fv env expr
+        to_replace fv env expr
     | ESome n -> to_replace fv env n
     | rest -> StringSet.empty
   in
-  StringSet.fold 
-    (fun var expr -> substitution expr (get (List.assoc var env)) var)
-    (to_replace (free_vars f) env f)
-    f
+    StringSet.fold 
+      (fun var expr -> substitution expr (get (value (lookup_env var env))) var)
+      (to_replace (free_vars f) env f)
+      f
 
 
 (* Effectue une beta reduction *)
