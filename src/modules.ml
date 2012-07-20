@@ -39,3 +39,6 @@ let multi_add_env content env =
 
 let add_env content = multi_add_env [content]
 
+let module_present m env = 
+  List.exists (function (m', _) -> m = m') env.modules
+

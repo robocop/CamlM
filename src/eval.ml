@@ -4,10 +4,6 @@ open Lambda_repl
 open Error
 open Helper
 
-(*
- let value (_, v) = v
- let env (e, _) = e
- *)
 let op_property prop op env = match op_prop (lookup_env op env) with
   | None -> raise (Error "tried to get op properties from a non-op object")
   | Some p -> List.mem prop p
@@ -217,11 +213,13 @@ and do_eval env = function
       in do_eval env' xs
 
 and open_module m env = 
-  let ast = bracket 
-              (function _ -> open_in (file_from_module m))
-              (function h -> parse Parser.file (Lexing.from_channel h))
-              (function h -> close_in h) in
-  let env' = do_eval env ast
-  in { env' with this = env.this }
-  
+  if module_present m env then env
+  else 
+    let ast = bracket 
+                (function _ -> open_in (file_from_module m))
+                (function h -> parse Parser.file (Lexing.from_channel h))
+                (function h -> close_in h) in
+    let env' = do_eval { env with this = m } ast
+    in { env' with this = env.this } 
+
 
