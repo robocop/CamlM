@@ -9,7 +9,9 @@ let next str =
       | 'z' -> nstr.[String.length str - 1] <- 'a'; nstr ^ "a"
       | c -> nstr.[String.length str - 1] <- Char.chr (Char.code c + 1);
              nstr
-
+(* Sert à générer un nom pour une nouvelle variable différent de ceux présents dans set *)
+(* Il est parfois necessaire de générer des nouvelles variables, notamment quand on
+  substitue une expression dans une autre, cf lamda_repl.ml                             *)
 let rec new_variable set v = 
   if not (StringSet.mem v set) then v
   else new_variable set (next v)

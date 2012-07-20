@@ -3,6 +3,10 @@ open Error
 open Typing
 open Eval
 
+(* Ce fichier contient les définitions (defs et types) des opérateurs et fonctions par défaut. *)
+(* La façon dont sont simplifiés les calculs utilisant ces définitions                         *)
+(*  (par exemple l'addition de deux nombres) est définie dans eval.ml                          *)
+(* Les opérateurs '+' et '*' sont définis comme commutatifs et associatifs                     *)
 let type_prim1 a b = (trivial_schema (type_arrow a b), false)
 let type_prim2 a b c = 
   (trivial_schema (type_arrow a (type_arrow b c)), false)
