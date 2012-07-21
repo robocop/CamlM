@@ -1,15 +1,16 @@
 open List;;
+
 open Formel;;	       
 
 let rec simplify_minus = function
    - (- f) -> simplify_minus f
   | f -> f
 ;;
-let rec sum = function
+let rec sum_f = function
   [] -> (\x -> 0)
   | [e] -> e
   | f::rest -> 
-    let f' = sum rest in
+    let f' = sum_f rest in
     \x -> f x + f' x
 ;;
 let simplify_sum f = 
@@ -72,13 +73,13 @@ let simplify_sum f =
       | f -> [f]
   in
   let f' = map_fun regroup_mult f in
-  sum (flatten (map simplify_group (regroupe (map simplify_minus (decompose_sum f')))))
+  sum_f (flatten (map simplify_group (regroupe (map simplify_minus (decompose_sum f')))))
 ;;
-let rec prod = function
+let rec prod_f = function
     [] -> (\x -> 1)
   | [e] -> e
   | f::rest -> 
-    let f' = prod rest in
+    let f' = prod_f rest in
     \x -> f x * f' x
 ;;
 let simplify_prod f = 
@@ -137,7 +138,7 @@ let simplify_prod f =
       | f -> [f]
   in
   let f' = map_fun regroup_pow f in
-  prod (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f')))))
+  prod_f (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f')))))
 ;;
 
 let normalise = function
@@ -169,9 +170,9 @@ let rec simpl f = match f with
   | f . g -> 
     let f' = simpl f in let g' = simpl g in (\x -> f' (g' x))
   | _ + _ -> 
-    simplify_sum (sum (map simpl (decompose_sum f)))
+    simplify_sum (sum_f (map simpl (decompose_sum f)))
   | _ * _ -> 
-     simplify_prod (prod (map simpl (decompose_prod f)))
+     simplify_prod (prod_f (map simpl (decompose_prod f)))
   | -f -> let f' = simpl f in \x -> - f x
   | f ^ g -> 
     let f' = simpl f in let g' = simpl g in

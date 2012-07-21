@@ -43,6 +43,11 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
         try matching (com_test, true) env expr pattern 
         with MatchingFailure -> matching (com_test, true) env expr  (POp(op1, a, POp(op2, b, c)))
       end
+  | (expr, POp(op1, a, POp(op2, b, c))) when op1 = op2 && is_assoc op1 env && not assoc_test->
+      begin
+        try matching (com_test, true) env expr pattern 
+        with MatchingFailure -> matching (com_test, true) env expr  (POp(op1, POp(op2, a, b), c))
+      end
   | (expr, POp(op, a, b)) when is_com op env && not com_test ->
       (try matching (true, assoc_test) env expr pattern 
        with MatchingFailure -> matching (true, assoc_test) env expr (POp(op, b, a))
@@ -68,6 +73,16 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
               let f' = EFunction({def = [PVariable v, e]; env = envi }) in
                 matching (false, false) env f' m
           | _ -> raise MatchingFailure
+      end
+  | (expr, PCompose(a, PCompose(b, c))) when not assoc_test ->
+      begin
+        try matching (com_test, true) env expr pattern 
+        with MatchingFailure -> matching (com_test, true) env expr  (PCompose(PCompose(a, b), c))
+      end
+ | (expr, PCompose(PCompose(a, b), c)) when not assoc_test ->
+      begin
+        try matching (com_test, true) env expr pattern 
+        with MatchingFailure -> matching (com_test, true) env expr (PCompose(a, PCompose(b, c)))
       end
   | (expr, PCompose (pf, pg)) ->
       begin
