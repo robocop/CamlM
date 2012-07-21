@@ -7,7 +7,7 @@ License:     GPL-3
 Homepage:    https://github.com/robocop/CamlM
 Plugins:     DevFiles (0.3)
 XDevFilesEnableMakefile: true
-XDevFilesEnableConfigure: true
+XDevFilesEnableConfigure: false
 
 Executable camlm
   Path:       src/
@@ -15,3 +15,16 @@ Executable camlm
   MainIs:     camlm.ml
   CompiledObject: native
   
+Executable test
+  Path:       test/
+  MainIs:     test.ml
+  Install:    false
+  CompiledObject: native
+  BuildDepends: oUnit
+  BuildTools: ocamlbuild
+
+Test main
+  Type: custom (0.3)
+  Command: $test -exec $camlm
+  TestTools: test, camlm
+

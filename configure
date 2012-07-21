@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# OASIS_START
-# DO NOT EDIT (digest: 425187ed8bfdbdd207fd76392dd243a7)
 set -e
 
 FST=true
@@ -23,5 +21,4 @@ for i in "$@"; do
   esac
 done
 
-ocaml setup.ml -configure "$@"
-# OASIS_STOP
+ocaml setup.ml -configure "$@" --enable-tests

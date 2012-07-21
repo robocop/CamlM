@@ -1,4 +1,6 @@
 camlm.native
+test.native
+test.byte
 camlm.byte
 _build/
 setup.data

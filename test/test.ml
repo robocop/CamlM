@@ -1,7 +1,13 @@
 open OUnit
 
-let suite = "Mini caml test suite" >:::
-            [Test_parser.suite]
+let usage = "usage: " ^ Sys.argv.(0) ^ " -exec [camlm]"
+let camlm = ref ""
+let speclist = [
+  ("-exec", Arg.Set_string (camlm), "location of camlm executable")
+]
 
 let _ = 
-  run_test_tt_main suite
+  Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
+      usage; 
+
+  print_endline (!camlm)
