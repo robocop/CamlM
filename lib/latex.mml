@@ -1,4 +1,4 @@
-open Maths;;
+open Formel;;
 open List;;
 
 let render x = match x with
@@ -6,24 +6,55 @@ let render x = match x with
   | (s, false) -> s
 ;;
 
-let rec to_latex' var f = match f with
-   Const (Num x) -> (string_of_int x, false)
-  | Id -> (var, false)
-  | @sqrt . f -> ("\sqrt{"++fst (to_latex' var f)++"}", false)
-  | @exp . f ->  ("\exp{"++render (to_latex' var f)++"}", false)
-  | @ln . f ->  ("\ln{"++render (to_latex' var f)++"}", false)
-  | @cos . f ->  ("\cos{"++render (to_latex' var f)++"}", false)
-  | @sin . f ->  ("\sin{"++render (to_latex' var f)++"}", false)
+(* to_latex : string * ((b_add, b_mult), b_minus) *)
 
-  | _ + _ -> (concat_strings "+" (map (\x -> fst (to_latex' var x)) (decompose_sum f)), true)
-  | f * g -> 
-    let f' = to_latex' var f in
-    let g' = to_latex' var g in
-    ((render f') ++ "*" ++ (render g'), false)
-  | f / g ->  ("\frac{" ++  (fst (to_latex' var f)) ++ "}{" ++  (fst (to_latex' var g)) ++ "}", false)
-  | f ^ g -> 
-    let f' = to_latex' var f in
-    ( (render f') ++ "^{" ++ (fst (to_latex' var g)) ++ "}", false)
+
+let rec to_latex' var f = match f with
+    Const (Num x) -> (string_of_int x, ((false, false), false))
+  | Id -> (var, ((false, false), false))
+  | f+(-g) -> 
+    let rf = to_latex' var f in
+    let rg = to_latex' var g in
+    let f' = fst rf in let b_addf = fst (fst (snd rf)) in 
+    let g' = fst rg in let b_minusg = snd (snd rg) in 
+    (render (f', b_addf) ++ "-" ++ render (g', b_minusg), ((false, true), true))
+  | f+g -> 
+    let rf = to_latex' var f in
+    let rg = to_latex' var g in
+    let f' = fst rf in let b_addf = fst (fst (snd rf)) in 
+    let g' = fst rg in let b_addg = fst (fst (snd rg)) in 
+    (render (f', b_addf) ++ "+" ++ render (g', b_addg), ((false, true), true))
+  | f*g -> 
+    let rf = to_latex' var f in
+    let rg = to_latex' var g in
+    let f' = fst rf in let b_multf = snd (fst (snd rf)) in 
+    let g' = fst rg in let b_multg = snd (fst (snd rg)) in 
+    (render (f', b_multf) ++ "*" ++ render (g', b_multg), ((false, false), true))
+  | -f -> 
+    let rf = to_latex' var f in
+    let f' = fst rf in let b_minus = snd (snd rf) in 
+    ("-" ++ (render (f', b_minus)), ((true, true), true))
+  | f / g ->  ("\frac{" ++  (fst (to_latex' var f)) ++ "}{" ++  (fst (to_latex' var g)) ++ "}", ((false, false), false))
+  | (Const (Num x))^g -> 
+        ( (string_of_int x) ++ "^{" ++ (fst (to_latex' var g)) ++ "}", ((false, false), false))
+  | Id^g -> 
+        ( var ++ "^{" ++ (fst (to_latex' var g)) ++ "}", ((false, false), false))
+  | f ^ g ->
+     (  "("++(fst (to_latex' var g))++")"  ++ "^{" ++ (fst (to_latex' var g)) ++ "}", ((false, false), false))
+  | @sqrt . f -> ("\sqrt{"++fst (to_latex' var f)++"}", ((false, false), false))
+  | @exp . f -> ("e^{"++ fst (to_latex' var f) ++"}", ((false, false), false))
+
+  | @ln . (Const (Num x)) ->  ("\ln{" ++ string_of_int x ++ "}", ((false, false), false))
+  | @ln . Id ->  ("\ln{" ++ var ++ "}", ((false, false), false))
+  | @ln . f -> ("\ln{(" ++ fst (to_latex' var f) ++ ")}", ((false, false), false))
+
+  | @cos . (Const (Num x)) ->  ("\cos{" ++ string_of_int x ++ "}", ((false, false), false))
+  | @cos . Id ->  ("\cos{" ++ var ++ "}", ((false, false), false))
+  | @cos . f -> ("\cos{(" ++ fst (to_latex' var f) ++ ")}", ((false, false), false))  
+
+  | @sin . (Const (Num x)) ->  ("\sin{" ++ string_of_int x ++ "}", ((false, false), false))
+  | @sin . Id ->  ("\sin{" ++ var ++ "}", ((false, false), false))
+  | @sin . f -> ("\sin{(" ++ fst (to_latex' var f) ++ ")}", ((false, false), false))
 ;;
 
 let to_latex f = fst (to_latex' "x" f);;

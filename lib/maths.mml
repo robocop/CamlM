@@ -217,8 +217,20 @@ let rec deriv = function
     \x -> df (g x) * (dg x)
 ;;
 
+let rec expand = function
+    Id -> (\x -> x)
+  | Const(Num x) -> (\y -> x)
+  | a*(b+c) ->
+    let f = expand (\x -> (a x)*(b x)) in
+    let g = expand (\x -> (a x)*(c x)) in
+    \x -> f x + g x
+  | f+g ->  let f' = expand f in let g' = expand g in
+     \x -> f' x + g' x
+  | f.g ->  let f' = expand f in let g' = expand g in
+     \x -> f' (g' x)
+  | f -> f
+;;                     
+
 
 let d f = simplify (deriv (simplify f));;
 
-
-d (\x -> 3*x);;
