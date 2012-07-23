@@ -28,7 +28,13 @@ let tests =
    ("Opérateur -", "let x = 3 in -x", "-3");
    ("Lambda calcul, renommage", 
     "declare x in let g y = x+y in \\x -> g (x+1)", "\\y -> (x + (y + 1))");
-   ("Commentaires", "(* test *) 1", "1")
+   ("Commentaires", "(* test *) 1", "1");
+   ("Test de l'arobase dans un filtrage", 
+    "declare exp in 
+     let test1 = function @exp -> true | _ -> false in
+     let test2 = function exp -> true | _ -> false in
+     ((test1 (\\x -> x+1), test1 exp), (test2 (\\x -> x+1), test2 exp))",
+    "((false, true), (true, true))")
   ]
 
 

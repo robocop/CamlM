@@ -40,7 +40,7 @@ let rec to_latex' var f = match f with
   | Id^g -> 
         ( var ++ "^{" ++ (fst (to_latex' var g)) ++ "}", ((false, false), false))
   | f ^ g ->
-     (  "("++(fst (to_latex' var g))++")"  ++ "^{" ++ (fst (to_latex' var g)) ++ "}", ((false, false), false))
+     (  "("++(fst (to_latex' var f))++")"  ++ "^{" ++ (fst (to_latex' var g)) ++ "}", ((false, false), false))
   | @sqrt . f -> ("\sqrt{"++fst (to_latex' var f)++"}", ((false, false), false))
   | @exp . f -> ("e^{"++ fst (to_latex' var f) ++"}", ((false, false), false))
 
