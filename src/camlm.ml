@@ -34,10 +34,10 @@ let speclist = [
 
 let _ =
   let input () = if not !minimal then "# " else "" in
-  let prelude = ("Prelude", builtin_fns) in
-  let default_env = {this = "_toplevel"; anon_modules = []; modules = [prelude] } in
-  let prelude_type = ("Prelude", builtin_types) in
-  let default_type_env = {this = "_toplevel"; anon_modules = []; modules = [prelude_type] } in
+  let default_env = 
+    {this = "_toplevel"; modules = [prelude; "_toplevel"]; namespace = builtin_fns } in
+  let default_type_env = 
+    {this = "_toplevel"; modules = [prelude; "_toplevel"]; namespace = builtin_types } in
   let rec loop fn_env type_env =
     try 
       begin

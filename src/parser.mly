@@ -45,7 +45,7 @@
 %}
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
-%token FUNCTION MATCH WITH FUN OPEN LARROW
+%token FUNCTION MATCH WITH FUN OPEN (*LARROW*)
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV POW CONS CONCAT POINT MOD
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
@@ -55,12 +55,12 @@
 
 %right DOLLAR
 %nonassoc IN
-/* %nonassoc LET OPEN */
-%nonassoc FUNCTION /*FUN*/ WITH
+(* %nonassoc LET OPEN *)
+%nonassoc FUNCTION (*FUN*) WITH
 %left PIPE
-/*%left COMMA*/
-%nonassoc RARROW /*LARROW*/
-/* %nonassoc WHEN */
+(*%left COMMA*)
+%nonassoc RARROW (*LARROW*)
+(* %nonassoc WHEN *)
 %left BAND BOR
 %left BLEQ BGEQ BLT BGT
 %left BEQ BNEQ
@@ -71,7 +71,7 @@
 %left TIMES DIV
 %right POW
 %left MOD
-%nonassoc SOME BNOT CONST /*ID AT*/ PNUM
+%nonassoc SOME BNOT CONST (*ID AT*) PNUM
 %left funapp
 
 %start eval
@@ -143,7 +143,7 @@ expr:
 
 
 simple_expr_list:
-      /* empty */ { [] }
+      (* empty *) { [] }
     |  simple_expr_list simple_expr { $2 :: $1 } 
 
 simple_expr:
@@ -161,18 +161,18 @@ simple_expr:
     | LSB list_sugar RSB          { stdList $2 } 
 
 list_sugar:
-      /* empty */          {  [] }
+      (* empty *)          {  [] }
     | expr                 { [$1] }
     | expr SEMI list_rest  { ($1 :: $3) }
 
 list_rest:
       expr                { [$1] }
     | expr SEMI list_rest { $1 :: $3 }
-/*
+(*
 list_comp:
     | VAR LARROW expr                   { [$1, $3] }
     | VAR LARROW expr SEMI list_comp    { ($1, $3) :: $5 }
-*/
+*)
 let_bindings:
     VAR cases_or_empty EQ expr             { ($1, $2, $4) }
 
@@ -188,7 +188,7 @@ pattern:
     | case RARROW expr           { ($1, $3) }
 
 cases_or_empty:
-      /* empty */  { [] }
+      (* empty *)  { [] }
     | cases        { $1 }
 cases:
       case       { [$1] }
@@ -220,10 +220,10 @@ case:
 
 
 list_pattern_sugar:
-      /* empty */                  { [] }
+      (* empty *)                  { [] }
     | case                         { [$1] }
     | case SEMI list_pattern_sugar { $1 :: $3 }
 
 rec_flag:
-      /* empty */  { false }
+      (* empty *)  { false }
     | REC          { true }

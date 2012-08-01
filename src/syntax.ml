@@ -22,13 +22,12 @@ and closure =
 	    mutable env : (fun_env_content env) option }
 
 (* In order : 
- *  - name (e.g. "+", "foo")
  *  - value
  *  - operator properties
  *    - if the element is not an operator, then None
  *    - otherwise, Some properties
  *)
-and fun_env_content = string * (expression option) * ((prop list) option)
+and fun_env_content = (expression option) * ((prop list) option)
 
 (* this : name of this module
  * anon_modules : modules that can be accessed without prefixing the expression
@@ -36,12 +35,12 @@ and fun_env_content = string * (expression option) * ((prop list) option)
  *    a.ml : let bob () = ...;
  *     - anon module : bob ()
  *     - qualified module : A.bob ()
- * modules : list of module names and content
+ * namespace : list of names and their associated modules & values
  *)
 and 'a env = {
   this: string;
-  anon_modules: string list;
-  modules: (string * 'a list) list
+  modules: string list;
+  namespace: (string * ((string * 'a) list)) list
 }
 
 and prop = 
@@ -85,4 +84,8 @@ type 'a interpreter =
   | INothing                 (* Rien n'a ete entre *)
   | ICommand of string       (* Une commande de l'interpreteur *)
   | IValue of 'a             (* Une expression a evaluer *)
+
+(* fun_env_content helpers *)
+let value (value, _) = value
+let op_prop (_, prop) = prop
 
