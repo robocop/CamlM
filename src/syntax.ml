@@ -39,7 +39,7 @@ and fun_env_content = (expression option) * ((prop list) option)
  *)
 and 'a env = {
   this: string;
-  anon_modules: string list;
+  modules: string list;
   namespace: (string * ((string * 'a) list)) list
 }
 

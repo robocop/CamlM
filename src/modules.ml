@@ -26,11 +26,11 @@ let load_module m =
                  close_in
     in module_ast := (m, ast) :: !module_ast; ast
 
-(* Need to stop module multiload here *)
 let open_module f m env = 
+  if List.mem m env.modules then env else
     let ast = load_module m in
     let env' = f { env with this = m } ast
-    in { env' with this = env.this } 
+    in { env' with this = env.this; modules = m :: env.modules } 
 
 let rec lookup_env' name namespace = 
   try Some (List.assoc name namespace)
