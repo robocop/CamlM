@@ -84,11 +84,11 @@ and get_list = function
   | _ -> []
 
 let show_env env = 
-  let rec show_mod = function
+  let rec show_mods = function
     | [] -> ()
-    | (f, _, _) :: xs -> print_endline (" --- " ^ f); show_mod xs
+    | (m, (_, _)) :: xs -> print_endline (" --- " ^ m); show_mods xs
   in
   print_endline ("Name : " ^ env.this);
   print_endline ("Loaded stuff : ");
-  List.map (function (m, c) -> print_endline (" - Module : " ^ m); show_mod c) env.modules
+  List.map (function (n, c) -> print_endline (" - Name : " ^ n); show_mods c) env.namespace
 

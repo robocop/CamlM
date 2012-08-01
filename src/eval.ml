@@ -4,7 +4,7 @@ open Lambda_repl
 open Error
 open Helper
 
-let op_property prop op env = match op_prop (lookup_fun_env op env) with
+let op_property prop op env = match op_prop (lookup_env op env) with
   | None -> raise (Error "tried to get op properties from a non-op object")
   | Some p -> List.mem prop p
 
@@ -19,12 +19,12 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
   | (_, PAll) -> []
   | (value, PAxiom id) ->
       begin
-        match value, lookup_fun_env id env with
-          | EVariable v, (_, (None, _)) when v = id -> []
+        match value, lookup_env id env with
+          | EVariable v, (None, _) when v = id -> []
           | _ -> raise MatchingFailure
       end
 
-  | (value, PVariable id) -> [(id, Some value, None)] 
+  | (value, PVariable id) -> [(id, (Some value, None))] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -59,8 +59,8 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
               {def = [PVariable v, EApplication(EApplication (EVariable op', e1), e2)];
                env = envi}) when op = op' ->
               let f = EFunction({def = [PVariable v, e1]; env = envi }) in
-              let g = EFunction({def = [PVariable v, e2]; env = envi }) in
-                (matching (false, false) env f pf) @ (matching (false, false) env g pg)
+              let g = EFunction({def = [PVariable v, e2]; env = envi })
+              in (matching (false, false) env f pf) @ (matching (false, false) env g pg)
           | _ -> raise MatchingFailure
       end 
 
@@ -136,7 +136,7 @@ and eval env = function
       let (env', _) = eval_definition env def
       in (env', EUnit)
   | EDeclare(var, None) ->
-      let env' = add_env (var, None, None) env
+      let env' = add_env (var, (None, None)) env
       in (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_fun_module m env
@@ -149,9 +149,9 @@ and eval env = function
 and eval' env expr = match expr with
   | EVariable s -> 
       begin  
-        match lookup_fun_env s env with
-          | (_, (Some e, _)) -> e
-          | (_, (None, _)) -> EVariable s (* Si la variable a été définie par la syntaxe 'declare' sans expression *)
+        match lookup_env s env with
+          | (Some e, _) -> e
+          | (None, _) -> EVariable s (* Si la variable a été définie par la syntaxe 'declare' sans expression *)
       end
   | EFunction {def = [PVariable v, expr]; env = None}-> (* Seules les fonctions formelles sont réduites par lambda calcul *)
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in
@@ -195,7 +195,7 @@ and eval' env expr = match expr with
   | ELet(def, Some corps) ->
       eval' (fst (eval_definition env def)) corps
   | EDeclare(var, Some corps) ->
-      let env' = add_env (var, None, None) env
+      let env' = add_env (var, (None, None)) env
       in eval' env' corps
   | r -> r
 
@@ -212,13 +212,13 @@ and eval_definition curr_env def =
   match def.recursive with
     | false ->
         let value = eval' curr_env def.expr in
-        let curr_env' = add_env (def.name, Some value, None) curr_env
+        let curr_env' = add_env (def.name, (Some value, None)) curr_env
         in (curr_env', value)
     | true -> (* Evaluation d'une définition récusive *)
         match def.expr with
           | EFunction f ->
               let closure = {def = f.def; env = None } in
-              let new_entry = (def.name, Some (EFunction closure), None) in
+              let new_entry = (def.name, (Some (EFunction closure), None)) in
               let extended_env = add_env new_entry curr_env in
                 closure.env <- Some extended_env;
                 (extended_env, EFunction closure)
@@ -230,5 +230,5 @@ and do_eval env = function
       let (env', _) = eval env x
       in do_eval env' xs
 
-and open_fun_module m env= open_module do_eval m env
+and open_fun_module m env = open_module do_eval m env
 
