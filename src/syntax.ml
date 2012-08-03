@@ -1,3 +1,5 @@
+open Graph 
+
 (* Définition de la représentation interne d'une code CamlM *)
 
 type expression = 
@@ -39,7 +41,7 @@ and fun_env_content = (expression option) * ((prop list) option)
  *)
 and 'a env = {
   this: string;
-  modules: string list;
+  modules: string graph;
   namespace: (string * ((string * 'a) list)) list
 }
 

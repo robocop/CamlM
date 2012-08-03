@@ -1,6 +1,10 @@
 open Error
 open Syntax
 open Helper
+open Graph
+open Show
+
+let prelude = "Prelude"
 
 (* TODO : Fix cycling dependency issue *)
 
@@ -26,28 +30,37 @@ let load_module m =
                  close_in
     in module_ast := (m, ast) :: !module_ast; ast
 
+(* TODO : check whether m is loaded and parsed in memory AND whether it is in
+ * the arcs of the current module. It could be loaded but the current module
+ * could not have access to it. *)
 let open_module f m env = 
-  if List.mem m env.modules then env else
+  if is_adjacent env.modules env.this m then env 
+  else if node_present m env.modules then { env with modules = add_arc env.this m env.modules}
+  else
     let ast = load_module m in
-    let env' = f { env with this = m } ast
-    in { env' with this = env.this; modules = m :: env.modules } 
+    (* Also expose Prelude to the new module *)
+    let modules = add_arc m prelude (add_node m env.modules) in
+    let env' = f { env with this = m; modules = modules } ast
+    in { env' with this = env.this; modules = add_arc env.this m env'.modules} 
 
 let rec lookup_env' name namespace = 
   try Some (List.assoc name namespace)
   with Not_found -> None
 
-let disambiguate this name = function 
+let disambiguate env name = function 
   | [] -> failwith "Should never happen"
-  | [_, content] -> content
+  (* When the module is within scope, return the content, otherwise Undef *)
+  | [m, content] when distance env.modules env.this m < 2 -> content
+  | [_, _] -> raise (Undef name)
   | modules -> 
       (* In case of ambiguity, take the "closest" variable, i.e. the one in the
        * current module's scope. This allows for shadowing. *)
-      try List.assoc this modules
+      try List.assoc env.this modules
       with Not_found -> raise (MultiDef (name, List.map (function (m, _) -> m) modules))
 
 let rec lookup_env name env = match lookup_env' name env.namespace with
   | None -> raise (Undef name)
-  | Some x -> disambiguate env.this name x
+  | Some x -> disambiguate env name x
             
 let rec add_name m (name, content) = function
   | [] -> 
@@ -65,4 +78,3 @@ let multi_add_env content env =
 
 let add_env content = multi_add_env [content]
 
-let prelude = "Prelude"
