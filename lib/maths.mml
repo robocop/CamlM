@@ -16,7 +16,6 @@ let rec sum_f = function
 let simplify_sum f = 
   let regroup_mult = function
       (Const (Num a) * Const (Num b)) * f -> let r = a*b in (\x -> r * f x, true)
-    | Const (Num a) * (Const (Num b) * f) -> let r = a*b in (\x -> r * f x, true)
     | f -> (f, false)
   in
   let rec similitude f g = match (f, g) with
@@ -32,7 +31,7 @@ let simplify_sum f =
   let regroupe = group similitude in
 
   let rec simplify_pair = function
-      (- Const Num a, - Const Num b) -> let r = a+b in \x -> r
+      (- Const Num a, - Const Num b) -> let r = -(a+b) in \x -> r
     | (- Const Num a, Const Num b) -> let r = b-a in \x -> r
     | (Const Num a, -Const Num b) -> let r = a-b in \x -> r
     | (Const Num a, Const Num b) -> let r = a+b in \x -> r
@@ -148,7 +147,8 @@ let normalise = function
 ;;
 let unnormalise = function
     f ^ (Const 1 / Const 2) -> (\x -> sqrt (f x), true)
-  | f ^ (Const (-1)) -> (\x -> 1/(f x), true)
+  | g * f ^ (Const (-1)) -> (\x -> (g x) /(f x), true)
+  | f ^ (Const (-1)) -> (\x -> 1 /(f x), true)
   | f -> (f, false)		    
 ;;
 
@@ -164,16 +164,14 @@ let rec simpl f = match f with
   | @ln . (@exp . f)-> simpl f
   | ((@cos . e)^(Const 2)) + ((@sin . e')^(Const 2)) when compare e e' -> (\x -> 1)
   | Const 1 * f -> simpl f
-  | f * Const 1 -> simpl f
-  | Const 0 * f -> (\x -> 0)
   | Const 0 * f -> (\x -> 0)
   | f . g -> 
     let f' = simpl f in let g' = simpl g in (\x -> f' (g' x))
   | _ + _ -> 
-    simplify_sum (sum_f (map simpl (decompose_sum f)))
+    simplify_sum (sum_f (map simpl (decompose_sum f))) 
   | _ * _ -> 
-     simplify_prod (prod_f (map simpl (decompose_prod f)))
-  | -f -> let f' = simpl f in \x -> - f x
+     simplify_prod (prod_f (map simpl (decompose_prod f))) 
+  | -f -> let f' = simpl f in \x -> - f' x
   | f ^ g -> 
     let f' = simpl f in let g' = simpl g in
     \x -> (f' x) ^ (g' x)

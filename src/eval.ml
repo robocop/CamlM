@@ -170,7 +170,7 @@ and eval' env expr = match expr with
               if Int32.rem x y = Int32.zero then ENum (Int32.div x y)
               else EApplication(f', x')
           | EVariable "-", ENum x -> ENum (Int32.neg x)
-          | EApplication(EVariable "^", ENum x), ENum y -> ENum (puis x y)
+          | EApplication(EVariable "^", ENum x), ENum y when (Int32.compare y Int32.zero) >= 0 -> ENum (puis x y)
           | EApplication(EVariable "mod", ENum x), ENum y -> ENum (Int32.rem x y)
           | EApplication(EVariable "==", a), b -> EBoolean (a = b)
           | EApplication(EVariable "&&", EBoolean x), EBoolean y -> EBoolean (x&&y)
