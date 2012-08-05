@@ -1,4 +1,5 @@
 open Syntax
+open Graph
 
 (* Affichage des expressions réduites par eval    *)
 (* N'affiche pas les environnements des fonctions *)
@@ -92,3 +93,7 @@ let show_env env =
   print_endline ("Loaded stuff : ");
   List.map (function (n, c) -> print_endline (" - Name : " ^ n); show_mods c) env.namespace
 
+let show_graph = 
+  let show_arcs = List.iter (fun arc -> print_string arc; print_string " - ")
+  in List.iter (fun (node, arcs) -> 
+                  print_string node; print_string "::"; show_arcs arcs; print_newline ())
