@@ -1,6 +1,10 @@
 open Error
 open Syntax
 open Helper
+open Graph
+open Show
+
+let prelude = "Prelude"
 
 (* TODO : Fix cycling dependency issue *)
 
@@ -26,59 +30,51 @@ let load_module m =
                  close_in
     in module_ast := (m, ast) :: !module_ast; ast
 
+(* TODO : check whether m is loaded and parsed in memory AND whether it is in
+ * the arcs of the current module. It could be loaded but the current module
+ * could not have access to it. *)
 let open_module f m env = 
-  if module_present m env.modules then env
-  else 
+  if is_adjacent env.modules env.this m then env 
+  else if node_present m env.modules then { env with modules = add_arc env.this m env.modules}
+  else
     let ast = load_module m in
-    let env' = f { env with this = m } ast
-    in { env' with this = env.this } 
+    (* Also expose Prelude to the new module *)
+    let modules = add_arc m prelude (add_node m env.modules) in
+    let env' = f { env with this = m; modules = modules } ast
+    in { env' with this = env.this; modules = add_arc env.this m env'.modules} 
 
-let value = function
-  | (_, (v, _)) -> v
+let rec lookup_env' name namespace = 
+  try Some (List.assoc name namespace)
+  with Not_found -> None
 
-let op_prop = function
-  | (_, (_, op)) -> op
+let disambiguate env name = function 
+  | [] -> failwith "Should never happen"
+  (* When the module is within scope, return the content, otherwise Undef *)
+  | [m, content] when distance env.modules env.this m < 2 -> content
+  | [_, _] -> raise (Undef name)
+  | modules -> 
+      (* In case of ambiguity, take the "closest" variable, i.e. the one in the
+       * current module's scope. This allows for shadowing. *)
+      try List.assoc env.this modules
+      with Not_found -> raise (MultiDef (name, List.map (function (m, _) -> m) modules))
 
-let type_ = function
-  | (_, (t, _)) -> t
+let rec lookup_env name env = match lookup_env' name env.namespace with
+  | None -> raise (Undef name)
+  | Some x -> disambiguate env name x
+            
+let rec add_name m (name, content) = function
+  | [] -> 
+      [(name, [m, content])]
+  | (name', presence) :: xs when name' = name -> 
+      (name, ((m, content) :: presence)) :: xs
+  | x :: xs -> 
+      x :: add_name m (name, content) xs
 
-let rec lookup_env' f name = function
-  | [] -> []
-  | (m, m_env) :: xs ->
-    (match f name m_env with
-       | None -> lookup_env' f name xs
-       | Some x -> (m, x) :: lookup_env' f name xs)
-
-let rec lookup_env f name env = match lookup_env' f name env.modules with
-  | [] -> raise (Undef name)
-  | [x] -> x
-  | xs -> raise (MultiDef (name, List.map (function (m, _) -> m) xs))
-
-let lookup_fun_env name env =
-  let rec aux name = function
-    | [] -> None
-    | (y, value, op) :: _ when y = name -> 
-        Some (value, op)
-    | _ :: ys -> aux name ys
-  in lookup_env aux name env
-
-let lookup_type_env name env =
-  let rec aux name = function
-    | [] -> None
-    | (y, t, r) :: _ when y = name -> 
-        Some (t, r)
-    | _ :: ys -> aux name ys
-  in lookup_env aux name env
-
-let rec add_mod m content = function
-  | [] -> [(m, content)]
-  | (m', contents) :: xs when m' = m ->
-      (m', content @ contents) :: xs
-  | x :: xs ->
-      x :: add_mod m content xs
+let add_mod m namespace content = 
+  List.fold_right (add_name m) content namespace
 
 let multi_add_env content env = 
-  { env with modules = add_mod env.this content env.modules }
+  { env with namespace = add_mod env.this env.namespace content}
 
 let add_env content = multi_add_env [content]
 

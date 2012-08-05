@@ -16,11 +16,12 @@ type type_schema =
  { parameter : variable_of_type list; corps : simple_type }
 
 (* In order :
- *   - name
  *   - type
  *   - recursive
  *)
-type type_env_content = string * type_schema * bool
+type type_env_content = type_schema * bool
+
+let type_ (t, _) = t
 
 let type_unit = Term("unit", [||])
 let type_int = Term("int", [||])
@@ -150,14 +151,14 @@ let rec type_pattern env = function
   | PAxiom id ->
       begin 
         try 
-          let (_, (t, r)) = lookup_type_env id env in
+          let (t, r) = lookup_env id env in
             if r = true then (specialisation t, env)
             else raise (Error (id ^ " is not an axiom"))
         with Not_found -> raise (Error (id ^ " is not found"))
       end
   | PVariable id -> 
       let ty = new_unknow () in
-        (ty, add_env (id, trivial_schema ty, false) env)
+        (ty, add_env (id, (trivial_schema ty, false)) env)
 
   | PBoolean b ->
       (type_bool, env)
@@ -237,7 +238,7 @@ and type_expr env = function
       (env', t)
   | EDeclare (var, None) -> 
     let ty = new_unknow () in
-    ((add_env (var, trivial_schema ty, true) env), ty)
+    ((add_env (var, (trivial_schema ty, true)) env), ty)
   | EOpen (m, None) -> 
       let env' = open_type_module m env
       in (env', type_unit)
@@ -246,7 +247,7 @@ and type_expr env = function
 and type_exp env = function
   | EVariable id ->
       begin 
-        try specialisation (type_ (lookup_type_env id env))
+        try specialisation (type_ (lookup_env id env))
         with Not_found -> raise (Error (id ^ " not found"))
       end
   | EFunction { def = list_of_cases } ->
@@ -270,7 +271,7 @@ and type_exp env = function
         type_exp env' corps
   | EDeclare(var, Some corps) ->
       let ty = new_unknow () in
-      let env' = add_env (var, trivial_schema ty, true) env in
+      let env' = add_env (var, (trivial_schema ty, true)) env in
         type_exp env' corps
   | EOpen (m, Some body) ->
       let env' = open_type_module m env
@@ -297,12 +298,12 @@ and type_def env def =
            | true ->
                let type_temporary = new_unknow () in
                let type_expr = 
-                 type_exp (add_env (def.name, trivial_schema type_temporary, false) env) def.expr in
+                 type_exp (add_env (def.name, (trivial_schema type_temporary, false)) env) def.expr in
                  unify type_expr type_temporary;
                  type_expr 
          in
            end_definition ();
-           (type_expr, add_env (def.name, generalisation type_expr, false) env)
+           (type_expr, add_env (def.name, (generalisation type_expr, false)) env)
 
 and do_type env = function
   | [] -> env

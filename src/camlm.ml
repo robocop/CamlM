@@ -6,6 +6,7 @@ open Typing
 open Builtin
 open Show
 open Modules
+open Graph
 
 (* Lit une entrée à la manière d'ocaml : celle-ci doit se terminer par ';;' *)
 let scan () = 
@@ -34,10 +35,13 @@ let speclist = [
 
 let _ =
   let input () = if not !minimal then "# " else "" in
-  let prelude = ("Prelude", builtin_fns) in
-  let default_env = {this = "_toplevel"; anon_modules = []; modules = [prelude] } in
-  let prelude_type = ("Prelude", builtin_types) in
-  let default_type_env = {this = "_toplevel"; anon_modules = []; modules = [prelude_type] } in
+  let default_modules = add_arc "_toplevel" prelude (
+    add_node "_toplevel" (add_node prelude (Graph.empty))
+  ) in
+  let default_env = 
+    {this = "_toplevel"; modules = default_modules; namespace = builtin_fns } in
+  let default_type_env = 
+    {this = "_toplevel"; modules = default_modules; namespace = builtin_types } in
   let rec loop fn_env type_env =
     try 
       begin

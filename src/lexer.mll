@@ -50,7 +50,7 @@ rule token = parse
   | "Id"        { ID  }
   | "Const"     { CONST }
   | "->"        { RARROW }
-  | "<-"        { LARROW }
+(*  | "<-"        { LARROW } *)
   | "None"      { NONE }
   | "Some"      { SOME }
   | "match"     { MATCH }
