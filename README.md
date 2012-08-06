@@ -9,7 +9,7 @@ Nécessite Linux ou Mac, ainsi qu'une installation de OCaml (=> 3.10) et de Menh
 1. Faire une copie du dépot : `git clone git://github.com/robocop/CamlM.git`
 2. Executer la commande : `./configure`
 3. Executer la commande : `make`
-4. Lancer l'interpreteur avec `rlwrap ./camlm.native` (on peut aussi utiliser emacs avec le tuareg-mode)
+4. Lancer l'interpreteur avec `./camlm` (nécessite rlwrap. On peut aussi utiliser emacs avec le tuareg-mode)
 
 ## Documentation
 
@@ -33,6 +33,8 @@ CamlM supporte toutes les fonctionnalités de base de CamlM (fonctions récusive
 
 ```Ocaml
 # open Maths;;
+:- unit = ()
+# open Formel;;
 :- unit = ()
 # d (\x -> x*ln x);; (* la notation des fonctions anonymes est analogue à celle utilisée dans Haskell : \x -> f x *)
 :- (int -> int) = \x -> (ln x + 1) (* la fonction est dérivée puis simplifiée automatiquement grâce à la fonction d présente dans maths.mml *)
