@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 265cfcf8245922dccf8a677b78ce6134)
+# DO NOT EDIT (digest: 40794c39b8acf38f71bc600acd3df8de)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -13,9 +13,15 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Library camlm
+"src/camlm.cmxs": use_camlm
 # Executable camlm
+"src/camlm.native": use_camlm
+<src/*.ml{,i}>: use_camlm
 # Executable test
+"test/test.native": use_camlm
 "test/test.native": pkg_oUnit
+<test/*.ml{,i}>: use_camlm
 <test/*.ml{,i}>: pkg_oUnit
 # OASIS_STOP
 true: use_menhir
