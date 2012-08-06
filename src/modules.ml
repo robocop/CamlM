@@ -1,6 +1,10 @@
 (** Functions related to the module subsystem (loading and environment
     manipulation).
   
+    Note that module opening in CamlM is analogous to importing modules in
+    Haskell. Names cannot be resolved until the module is opened (this will be
+    true for fully qualified names, if/when they are implemented).
+
     TODO : 
      - Fix cyclic module dependency issues.
      - Fix Windows compatibility.
