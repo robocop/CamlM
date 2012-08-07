@@ -69,14 +69,14 @@ and fun_env_content = (expression option) * ((prop list) option)
     {{!prop}[Assoc]} if operator is associative.
   
     This is useful to shorten redundant patterns (e.g. no need to test for 
-    patterns "(-a) + b" and "b + (-a)" as (+) is commutative).
+    patterns [(-a) + b] and [b + (-a)] as [(+)] is commutative).
   *)
 and prop = 
   | Com
   | Assoc
 
 (** Pattern matching structure. Represents a pattern in any pattern matching
-    construct (function ..., match ... with, etc).
+    construct ([function ...], [match ... with], etc).
    
     It is possible to match against specific axioms using the "@" symbol (parsed
     into a {{!pattern}[PAxiom]}), or to disassemble functions around an
