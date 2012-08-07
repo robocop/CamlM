@@ -10,7 +10,7 @@ BuildTools: ocamlbuild
 XDevFilesEnableMakefile: true
 XDevFilesEnableConfigure: false
 
-Library camlm
+Library compiler
   Path:       src/compiler/
   Modules:    Builtin, Error, Graph, Lambda_repl, Modules, Show, Typing,
               Eval, Helper, Lexer, Parser, Syntax
@@ -21,24 +21,24 @@ Executable camlm
   BuildTools+: menhir
   MainIs:     camlm.ml
   CompiledObject: native
-  BuildDepends: camlm
+  BuildDepends: compiler
   
 Executable test
   Path:       test/
   MainIs:     test.ml
   Install:    false
   CompiledObject: native
-  BuildDepends: oUnit, camlm
+  BuildDepends: oUnit, compiler
 
 Test main
   Type: custom (0.3)
   Command: $test -exec $camlm
   TestTools: test, camlm
 
-Document "api-camlm"
+Document "api-compiler"
   Title:                API reference for CamlM
   Type:                 ocamlbuild (0.3)
   InstallDir:           $htmldir/camlm
   BuildTools+:          ocamldoc
   XOCamlbuildPath:      src/compiler/
-  XOCamlbuildLibraries: camlm
+  XOCamlbuildLibraries: compiler

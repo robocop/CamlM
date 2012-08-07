@@ -5,4 +5,4 @@ camlm.byte
 _build/
 setup.data
 setup.log
-api-camlm.docdir
+api-compiler.docdir
