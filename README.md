@@ -18,6 +18,8 @@ Executer la commander `make doc` pour générer la documentation.
 ## Développement
 
 Si le fichier \_oasis est modifié, le regénérer avec la commande `oasis setup`
+Le "back-end" du compilateur se trouve dans `src/compiler`. 
+Le seul "front-end" actuellement disponible est le REPL, et se trouve dans `src/repl`.
 
 ## Exemples de programmes
 
