@@ -1,3 +1,8 @@
+(** Type system. 
+   
+    TODO : Finish commenting.
+*)
+
 open Syntax
 open Modules
 open Error 
@@ -15,12 +20,15 @@ and value_of_variable =
 type type_schema = 
  { parameter : variable_of_type list; corps : simple_type }
 
-(* In order :
- *   - type
- *   - recursive
- *)
+(** Payload of {!Syntax.env}.
+   
+    The pair is composed of, in order : 
+     - type
+     - recursive
+*)
 type type_env_content = type_schema * bool
 
+(** {!type_env_content} helper function. *)
 let type_ (t, _) = t
 
 let type_unit = Term("unit", [||])

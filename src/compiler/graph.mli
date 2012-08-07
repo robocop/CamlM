@@ -24,7 +24,7 @@ val adjacent_nodes : 'a graph -> 'a -> 'a list
 (** Checks that a has an edge to b. *)
 val is_adjacent : 'a graph -> 'a -> 'a -> bool
 
-(** Cheap distance in between two node. Used for module scope.
+(** Cheap distance in between two node. Used for module scoping.
   
    - 0 <= distance <= 1, then the dst module is in scope.
    - distance > 1, then the dst module is not exposed to src.

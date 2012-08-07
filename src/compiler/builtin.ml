@@ -1,6 +1,6 @@
 (** Default (prelude) function types and definitions.
    
-    {!Eval} dictates the reduction rules from Prelude functions.
+    {!Eval} dictates the reduction rules for Prelude functions.
   *)
 open Syntax
 open Error

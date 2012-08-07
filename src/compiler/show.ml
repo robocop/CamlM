@@ -39,7 +39,7 @@ and show_function def =
         (fun (m, e) -> 
            Printf.sprintf "%s -> %s\n" (show_pattern m) (show e)) def))
 
-(** Show expressions reduced by {!Eval.eval}, but does not show the environment.
+(** Shows expressions reduced by {!Eval.eval}, but does not show the environment.
   *)
 and show = function
   | EVariable v -> v
