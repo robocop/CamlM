@@ -11,13 +11,13 @@ XDevFilesEnableMakefile: true
 XDevFilesEnableConfigure: false
 
 Library camlm
-  Path:       src/
+  Path:       src/compiler/
   Modules:    Builtin, Error, Graph, Lambda_repl, Modules, Show, Typing,
-              Camlm, Eval, Helper, Lexer, Parser, Syntax
+              Eval, Helper, Lexer, Parser, Syntax
   BuildTools+: menhir, ocamllex
 
 Executable camlm
-  Path:       src/
+  Path:       src/repl/
   BuildTools+: menhir
   MainIs:     camlm.ml
   CompiledObject: native
@@ -40,5 +40,5 @@ Document "api-camlm"
   Type:                 ocamlbuild (0.3)
   InstallDir:           $htmldir/camlm
   BuildTools+:          ocamldoc
-  XOCamlbuildPath:      src/
+  XOCamlbuildPath:      src/compiler/
   XOCamlbuildLibraries: camlm
