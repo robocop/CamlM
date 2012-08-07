@@ -20,7 +20,7 @@ let prelude = "Prelude"
 
 (** Global list containing the module search path.
     This reference is only ever modified during REPL initialization. *)
-let include_path = ref ["."]
+let include_path = ref []
 
 (** Global association list of all modules in memory. Associates module name to
     the module's parsed (but not evaluated) source code
@@ -139,3 +139,5 @@ let multi_add_env content env =
 (** {!multi_add_env} over a single element. *)  
 let add_env content = multi_add_env [content]
 
+(** Wrapper to initialize the {!include_path} reference. *)
+let init path = include_path := path

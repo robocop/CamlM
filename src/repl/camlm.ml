@@ -26,6 +26,7 @@ let scan () =
   in scan' 0 ""
 
 let minimal = ref false
+let include_path = ref ["."]
 
 let usage = "usage: " ^ Sys.argv.(0) ^ " [--minimal]"
 let speclist = [
@@ -63,6 +64,6 @@ let _ =
   in
     Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
       usage; 
-
+    Modules.init !include_path;
     try loop default_env default_type_env
     with exn -> handle_error exn; loop default_env default_type_env
