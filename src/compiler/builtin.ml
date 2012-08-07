@@ -1,6 +1,8 @@
 (** Default (prelude) function types and definitions.
    
     {!Eval} dictates the reduction rules for Prelude functions.
+    The builtin functions below are mixed in with the functions from the
+    "prelude.mml" file in the lib/ directory by the REPL.
   *)
 open Syntax
 open Error
