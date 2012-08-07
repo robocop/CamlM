@@ -491,7 +491,7 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 Ocamlbuild_plugin.dispatch (function 
   | After_rules as e -> 
      flag ["doc"; "ocaml"] & 
-     (S[]); 
+     (S[A"-charset"; A"utf-8"]); 
 
      dispatch_default e 
   | e -> 
