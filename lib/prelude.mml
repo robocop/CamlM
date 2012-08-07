@@ -1,0 +1,15 @@
+open List;;
+
+let if c t e = match c with
+    true -> t
+  | false -> e
+;;
+
+let max a b = if (a > b) a b;;
+let min a b = if (a < b) a b;;
+
+(* Exported from List *)
+let map = map;;
+let hd = hd;;
+let tl = tl;;
+

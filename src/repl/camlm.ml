@@ -34,15 +34,27 @@ let speclist = [
   ("-I", Arg.String (fun s -> include_path := !include_path @ [s]), "include directory in search path")
 ]
 
-let _ =
+let make_default_env () =
+  let top = "_toplevel" in
+  (* Expose the toplevel to itself, otherwise it cannot resolve its own names.
+   *)
+  let env = {this = top; modules = add_arc top top (add_node top Graph.empty); namespace = []} in
+  let f_env = {env with namespace = builtin_fns} in
+  let t_env = {env with namespace = builtin_types}
+  in
+    try open_fun_module prelude f_env, open_type_module prelude t_env
+    with exn -> 
+      begin 
+        print_endline "Could not load Prelude, only builtins will be available. Reason : " ;
+        handle_error exn;
+        let empty_prelude e = {e with modules = add_arc "_toplevel" prelude (
+          add_arc prelude prelude (add_node prelude e.modules))}
+        in (empty_prelude f_env, empty_prelude t_env)
+      end
+
+let camlm () = 
   let input () = if not !minimal then "# " else "" in
-  let default_modules = add_arc "_toplevel" prelude (
-    add_node "_toplevel" (add_node prelude (Graph.empty))
-  ) in
-  let default_env = 
-    {this = "_toplevel"; modules = default_modules; namespace = builtin_fns } in
-  let default_type_env = 
-    {this = "_toplevel"; modules = default_modules; namespace = builtin_types } in
+  let default_env, default_type_env = make_default_env () in
   let rec loop fn_env type_env =
     try 
       begin
@@ -62,8 +74,12 @@ let _ =
       end
     with exn -> handle_error exn; loop fn_env type_env
   in
-    Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
-      usage; 
-    Modules.init !include_path;
     try loop default_env default_type_env
     with exn -> handle_error exn; loop default_env default_type_env
+
+let _ =
+  Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
+    usage; 
+  Modules.init !include_path;
+  camlm ()
+

@@ -78,8 +78,9 @@ let open_module f m env =
   else if node_present m env.modules then { env with modules = add_arc env.this m env.modules}
   else
     let ast = load_module m in
-    (* Also expose Prelude to the new module. *)
-    let modules = add_arc m prelude (add_node m env.modules) in
+    (* Also expose Prelude and itself to the new module.
+    * If it is not exposed to itself, it cannot resolve its own names. *)
+    let modules = add_arc m m (add_arc m prelude (add_node m env.modules)) in
     (* Operate on the ast from the "point of view" of m. *)
     let env' = f { env with this = m; modules = modules } ast
     in { env' with this = env.this; modules = add_arc env.this m env'.modules} 
@@ -92,6 +93,7 @@ let rec lookup_env' name namespace =
 (** When the environment lookup returns multiple names (or none at all),
     pick the required one or throw an exception. *)
 let disambiguate env name = function 
+  | [] -> raise (Undef name)
   (* When the module is within scope, return the content, otherwise Undef *)
   | [m, content] when distance env.modules env.this m < 2 -> content
   | [_, _] -> raise (Undef name)
@@ -110,7 +112,13 @@ let disambiguate env name = function
   *)
 let rec lookup_env name env = match lookup_env' name env.namespace with
   | None -> raise (Undef name)
-  | Some x -> disambiguate env name x
+  | Some names ->
+      (* Limit the search to modules in current module's scope. *)
+      let names' = List.filter 
+                     (fun (x, _) -> 
+                        List.mem x (adjacent_nodes env.modules env.this)
+                     ) names
+      in disambiguate env name names'
             
 (** Add a name & content to an environment's namespace. The namespace is
     structured such that names are the key of the association list. Each value

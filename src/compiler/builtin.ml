@@ -29,6 +29,8 @@ let builtin_types =
    ("!=", [prelude, type_poly_logic]);
    (">=", [prelude, type_poly_logic]);
    ("<=", [prelude, type_poly_logic]);
+   (">", [prelude, type_poly_logic]);
+   ("<", [prelude, type_poly_logic]);
    ("||", [prelude, type_logic]);
    ("&&", [prelude, type_logic]);
    ("not", [prelude, type_prim1 type_bool type_bool]);
@@ -56,7 +58,6 @@ let builtin_fns =
    (">",  [prelude, (Some (EVariable ">"), None)]);
    ("&&", [prelude, (Some (EVariable "&&"), None)]);
    ("||", [prelude, (Some (EVariable "||"), None)]);
-   ("++", [prelude, (Some (EVariable "++"), None)]);
    ("not", [prelude, (Some (EVariable "not"), None)]);
    ("-", [prelude, (Some (EVariable "-"), None)]);
    ("++", [prelude, (Some (EVariable "++"), None)]);
