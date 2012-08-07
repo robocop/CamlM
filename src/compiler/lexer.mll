@@ -69,6 +69,7 @@ rule token = parse
   | _           { token lexbuf }
   | eof         { EOF }
 
+(* Supports nested comments. *)
 and comment depth = parse
   | "(*" { comment (depth + 1) lexbuf }
   | "*)" {
