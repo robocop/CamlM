@@ -1,12 +1,10 @@
+(** Pretty print routines for pretty much everything. *)
+
 open Syntax
 open Graph
 
-(* Affichage des expressions réduites par eval    *)
-(* N'affiche pas les environnements des fonctions *)
-
 let show_list l = 
   "["^(String.concat "; " l)^"]"
-
 
 let rec show_def def = 
   Printf.sprintf "let %s%s = %s" 
@@ -41,6 +39,8 @@ and show_function def =
         (fun (m, e) -> 
            Printf.sprintf "%s -> %s\n" (show_pattern m) (show e)) def))
 
+(** Show expressions reduced by {!Eval.eval}, but does not show the environment.
+  *)
 and show = function
   | EVariable v -> v
   | ENum n -> Int32.to_string n
@@ -84,6 +84,7 @@ and get_list = function
   | ECons(x, xs) -> (show x)::get_list xs
   | _ -> []
 
+(** Debug show function. *)
 let show_env env = 
   let rec show_mods = function
     | [] -> ()
@@ -93,6 +94,7 @@ let show_env env =
   print_endline ("Loaded stuff : ");
   List.map (function (n, c) -> print_endline (" - Name : " ^ n); show_mods c) env.namespace
 
+(** Debug show function. *)    
 let show_graph = 
   let show_arcs = List.iter (fun arc -> print_string arc; print_string " - ")
   in List.iter (fun (node, arcs) -> 
