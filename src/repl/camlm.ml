@@ -28,7 +28,7 @@ let scan () =
 let minimal = ref false
 let include_path = ref ["."]
 
-let usage = "usage: " ^ Sys.argv.(0) ^ " [--minimal]"
+let usage = "usage: " ^ Sys.argv.(0) ^ " [--minimal] [-I directory]"
 let speclist = [
   ("--minimal", Arg.Unit (fun () -> minimal := true), "run with minimal onscreen content");
   ("-I", Arg.String (fun s -> include_path := !include_path @ [s]), "include directory in search path")
