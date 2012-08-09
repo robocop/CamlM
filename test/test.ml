@@ -42,7 +42,7 @@ let _ =
   Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
       usage; 
 
-  let stdin, stdout = Unix.open_process (!camlm^" --minimal") in
+  let stdin, stdout = Unix.open_process (!camlm^" --minimal -I lib/") in
 
   let read_stdin stdin = input_line stdin in
   let send stdout cmd = output_string stdout (cmd^";;\n"); flush stdout in

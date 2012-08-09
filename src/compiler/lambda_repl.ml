@@ -1,11 +1,21 @@
+(** Lambda calculus reduction rules applied to formal functions.
+   
+   @see
+   <https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM>
+   (in french) for details on formal functions.
+*)
+
 open Syntax
 open Error
 open Helper
 open Modules
 
-(* Définit récursivement les expressions qui seront réduites par des opérations de lambda calcul. *)
-(* f est dite de type 'fonction formelle' si is_simple_value f                                    *)
-(* Seules les fonctions formelles sont réduites par replace et normal_order_reduct                *)
+(** Recursively defines the expressions to be reduced by the lambda calculus
+    rules.
+   
+    A function [f] is said to be a "formal function" if [is_simple_value f]. 
+    Only formal functions are reduced by {!replace} and {!normal_order_reduct}.
+*)
 let rec is_simple_value = function
   | EFunction {def = [PVariable _, expr]; env = _} -> is_simple_value expr
   | ENum _ | EBoolean _ | ENil | ENone | EString _ | EVariable _ -> true
@@ -14,8 +24,7 @@ let rec is_simple_value = function
   | ESome e -> is_simple_value e
   | f -> false
 
-
-(* Calcule les variables libres (ie celles qui sont présentes dans l'environnement global) d'une fonction formelle *)
+(** Creates a set of all free variables of a formal function. *)
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
   | EFunction {def = [PVariable v, e]; env = _} ->
@@ -27,9 +36,9 @@ let rec free_vars = function
   | ESome n -> free_vars n
   | _ -> StringSet.empty
 
-
-(* Réalise la substitution d'une variable (x) par une autre expression (arg) dans expr *)
-(* La substitution est définie récursivement par les règles de lambda calcul           *)
+(** Substitutes a variable [x] for an expression [arg] in [expr] using lambda
+    calculus rules.
+  *)
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
   | EVariable y when y <> x -> EVariable y
@@ -49,8 +58,10 @@ let rec substitution expr arg x = match expr with
   | rest -> rest
 
 
-(* Remplace toutes les variables libres de type is_simple_value d'une expression par leur expression dans l'environnement env *)
-(* Utilise substitution pour faire un remplacement valide                                                                     *)
+(** Replaces all the free variables satisfying {!is_simple_value} from an
+    expression by their corresponding expression in [env]. Uses the
+    {!substitution} function to make valid replacements.
+*)
 let replace env f = 
   let rec to_replace fv env = function
     | EVariable x when StringSet.mem x fv ->
@@ -73,8 +84,7 @@ let replace env f =
       (to_replace (free_vars f) env f)
       f
 
-
-(* Effectue une beta reduction *)
+(** Beta-reduces an expression. *)
 let rec normal_order_reduct = function
   | EApplication
       (EFunction {def = [PVariable x, m]}, n) ->

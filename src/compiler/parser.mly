@@ -81,7 +81,7 @@
 %type <Syntax.expression list> file
 
 %%
-
+(* "REPL" style evaluation. Differentiates commands and expressions. *)
 eval:
       EOF
         { INothing }
@@ -90,6 +90,7 @@ eval:
     | toplevel
         { IValue $1 }
 
+(* Parse a file. Commands are not supported. *)
 file:
       EOF
         { [] }

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: feae790315d5d1f8178b6d13b37afc97) *)
+(* DO NOT EDIT (digest: f0a48776801583bb23d2b91e621e5549) *)
 module OASISGettext = struct
 (* # 21 "/opt/godi/build/apps/apps-oasis/work/oasis-0.3.0/src/oasis/OASISGettext.ml" *)
 
@@ -476,11 +476,24 @@ end
 # 476 "myocamlbuild.ml"
 open Ocamlbuild_plugin;;
 let package_default =
-  {MyOCamlbuildBase.lib_ocaml = []; lib_c = []; flags = []; includes = []; }
+  {
+     MyOCamlbuildBase.lib_ocaml = [("compiler", ["src/compiler"])];
+     lib_c = [];
+     flags = [];
+     includes = [("test", ["src/compiler"]); ("src/repl", ["src/compiler"])];
+     }
   ;;
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 485 "myocamlbuild.ml"
+# 490 "myocamlbuild.ml"
 (* OASIS_STOP *)
-Ocamlbuild_plugin.dispatch dispatch_default;;
+Ocamlbuild_plugin.dispatch (function 
+  | After_rules as e -> 
+     flag ["doc"; "ocaml"] & 
+     (S[A"-charset"; A"utf-8"]); 
+
+     dispatch_default e 
+  | e -> 
+     dispatch_default e) 
+;; 

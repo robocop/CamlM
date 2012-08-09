@@ -6,25 +6,39 @@ Authors:     Quentin C, Charlie P
 License:     GPL-3
 Homepage:    https://github.com/robocop/CamlM
 Plugins:     DevFiles (0.3)
+BuildTools: ocamlbuild
 XDevFilesEnableMakefile: true
 XDevFilesEnableConfigure: false
 
+Library compiler
+  Path:       src/compiler/
+  Modules:    Builtin, Error, Graph, Lambda_repl, Modules, Show, Typing,
+              Eval, Helper, Lexer, Parser, Syntax
+  BuildTools+: menhir, ocamllex
+
 Executable camlm
-  Path:       src/
-  BuildTools: ocamlbuild, menhir
+  Path:       src/repl/
+  BuildTools+: menhir
   MainIs:     camlm.ml
   CompiledObject: native
+  BuildDepends: compiler
   
 Executable test
   Path:       test/
   MainIs:     test.ml
   Install:    false
   CompiledObject: native
-  BuildDepends: oUnit
-  BuildTools: ocamlbuild
+  BuildDepends: oUnit, compiler
 
 Test main
   Type: custom (0.3)
   Command: $test -exec $camlm
   TestTools: test, camlm
 
+Document "api-compiler"
+  Title:                API reference for CamlM
+  Type:                 ocamlbuild (0.3)
+  InstallDir:           $htmldir/camlm
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      src/compiler/
+  XOCamlbuildLibraries: compiler

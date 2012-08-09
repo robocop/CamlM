@@ -1,3 +1,10 @@
+(** Expression evaluation routines.
+   
+    Handles pattern matching & expression reduction and evaluation. Some
+    reduction (formal function reduction) is done by {!Lambda_repl}.
+
+    TODO : Fix name clashes when redefining Prelude names.
+  *)
 open Syntax
 open Modules
 open Lambda_repl
@@ -11,10 +18,13 @@ let op_property prop op env = match op_prop (lookup_env op env) with
 let is_com = op_property Com
 let is_assoc = op_property Assoc
 
-(* Fait correspondre une expression à un pattern, et calcule les nouvelles variables définies par le pattern  *)
-(* Renvoit un bout d'environnement que l'on colle à l'environnement précédent                                 *)
-(* On gère l'associativité et la commutativité des opérateurs grâce aux variables 
-  booléeennes  (com_test, assoc_test) et a env                                                            *)
+(** Matches an expression against a pattern, and computes the new variables
+    defined by the pattern. Returns a list of names and their values to be added
+    to the environment.
+   
+    Operator properties (commutativity and associativity) are also handled here
+    using the booleans [com_test] and [assoc_test] and the environment.
+  *)
 let rec matching (com_test, assoc_test) env value pattern = match value, pattern with
   | (_, PAll) -> []
   | (value, PAxiom id) ->
@@ -130,7 +140,12 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
   | _ -> raise MatchingFailure
 
 
-(* Top level definitions that change the env globally *)
+(** Evaluate top level definitions that change the environment globally.
+   
+     - [let ... = ...;;]
+     - [declare ...;]
+     - [open ...;]
+*)
 and eval env = function
   | ELet (def, None) ->
       let (env', _) = eval_definition env def
@@ -143,17 +158,27 @@ and eval env = function
       in (env', EUnit)
   | expr -> (env, eval' env expr)
 
-(* Other expressions that only change the env locally *)
-(* eval' réduit récursivement une expression 'le plus possible'  *)
-(* Les fonctions formelles sont réduites à l'aide des règles de lambda calcul définies dans lambda_repl.ml *)
+(** Evaluate expressions that only change the environment locally.
+   
+    Recursively reduces an expression "as much as possible". Formal functions
+    (see wiki) are reduced using the lambda calculus rules defined in
+    {!Lambda_repl}.
+
+    The builtin Prelude calls are also evaluated here.
+    
+    @see
+    <https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM>
+    (in french) for details on formal functions.
+*)
 and eval' env expr = match expr with
   | EVariable s -> 
       begin  
         match lookup_env s env with
           | (Some e, _) -> e
-          | (None, _) -> EVariable s (* Si la variable a été définie par la syntaxe 'declare' sans expression *)
+          | (None, _) -> EVariable s (* If the variable was defined using declare, with no expression. *)
       end
-  | EFunction {def = [PVariable v, expr]; env = None}-> (* Seules les fonctions formelles sont réduites par lambda calcul *)
+  (* Only formal functions are reduced by lambda calculus rules. *)
+  | EFunction {def = [PVariable v, expr]; env = None} -> 
       let f = EFunction {def = [PVariable v, expr]; env = Some env} in
         if is_simple_value f then normal_order_reduct (replace env f)
         else f
@@ -203,6 +228,10 @@ and eval' env expr = match expr with
       in eval' env' corps
   | r -> r
 
+(** Evaluate a function application by matching the argument with the function
+    pattern. The environment is extended with the results from [matching] and the
+    function call is evaluated within this environment.
+  *)
 and eval_application env case_list argument = match case_list with
   | [] -> raise (Error "Pattern matching failure")
   | (pattern, expr) :: rest ->
@@ -212,13 +241,16 @@ and eval_application env case_list argument = match case_list with
       with
           MatchingFailure -> eval_application env rest argument
 
+(** Evaluate a function definition. Builds a closure in the case of a
+    recursive function, and uses the standard {!eval'} function otherwise.
+  *)
 and eval_definition curr_env def =
   match def.recursive with
     | false ->
         let value = eval' curr_env def.expr in
         let curr_env' = add_env (def.name, (Some value, None)) curr_env
         in (curr_env', value)
-    | true -> (* Evaluation d'une définition récusive *)
+    | true -> (* Recursive function *)
         match def.expr with
           | EFunction f ->
               let closure = {def = f.def; env = None } in
@@ -228,11 +260,15 @@ and eval_definition curr_env def =
                 (extended_env, EFunction closure)
           | _ -> raise (Error "Non-functionnal recursive let definition")
 
+(** Evaluate a list of expressions, keeping the environment in between the
+    calls.
+  *)
 and do_eval env = function
   | [] -> env
   | x :: xs -> 
       let (env', _) = eval env x
       in do_eval env' xs
 
+(** See {!Modules.open_module} *)
 and open_fun_module m env = open_module do_eval m env
 

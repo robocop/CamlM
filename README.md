@@ -11,9 +11,15 @@ Nécessite Linux ou Mac, ainsi qu'une installation de OCaml (=> 3.10) et de Menh
 3. Executer la commande : `make`
 4. Lancer l'interpreteur avec `./camlm` (nécessite rlwrap. On peut aussi utiliser emacs avec le tuareg-mode)
 
+## Documentation
+
+Executer la commander `make doc` pour générer la documentation.
+
 ## Développement
 
 Si le fichier \_oasis est modifié, le regénérer avec la commande `oasis setup`
+Le "back-end" du compilateur se trouve dans `src/compiler`. 
+Le seul "front-end" actuellement disponible est le REPL, et se trouve dans `src/repl`.
 
 ## Exemples de programmes
 
