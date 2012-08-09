@@ -182,7 +182,11 @@ and eval' env expr = match expr with
           | EApplication(EVariable "++", EString x), EString y -> EString (x^y)
           | EVariable "string_of_int", ENum x -> EString (Int32.to_string x)
           | EFunction {def = def; env = Some env_f}, arg -> 
+            (try
               eval_application env_f def arg
+            with
+                _  -> EApplication(f, e)
+            )
           | _ -> EApplication(f', x')
         end
 

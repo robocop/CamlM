@@ -21,7 +21,7 @@ let rec compare f g = match (f, g) with
   | (@sin, @sin) -> true
   | (@sqrt, @sqrt) -> true
   | (Const a, Const b) -> a == b
-  | _ -> false
+  | (f, g) -> false
 ;;
 
 (* Applique récusivement une fonction de réduction (f) d'une fonction   *)
