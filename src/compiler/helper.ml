@@ -21,6 +21,8 @@ let rec new_variable set v =
 (** The number 2 as a 32-bit integer. *)         
 let two = Int32.of_int 2
 
+let minus_one = Int32.of_int (-1)
+
 (** 32-bit fast exponentiation function : [a^n]. *)
 let rec puis a n = match n with
   | n when n=Int32.zero -> Int32.one

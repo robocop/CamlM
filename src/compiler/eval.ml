@@ -48,7 +48,21 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
       matching (false, false) env v1 m1 @ matching (false, false) env v2 m2
   | (ENone, PNone) -> []
   | (ESome v, PSome m) -> matching (false, false) env v m
-  | (expr, POp(op1, POp(op2, a, b), c)) when op1 = op2 && is_assoc op1 env && not assoc_test->
+  
+(*
+| (_, POp("+", a, PMinus b)) when not assoc_test ->
+    (try
+       matching (com_test, true) env value pattern 
+    with MatchingFailure -> (print_endline "ok"; matching (com_test, true) env value (POp("+", a, POp("*", PConst(PNum minus_one), b))))
+    )
+  | (_, POp("+", a, POp("*", PConst(PNum minus_one), b))) when not assoc_test ->
+    (try
+       print_endline "ok1"; 
+       matching (com_test, true) env value pattern 
+    with MatchingFailure -> (print_endline "ok"; matching (com_test, true) env value ( POp("+", a, PMinus b)))
+    )
+*)  
+| (expr, POp(op1, POp(op2, a, b), c)) when op1 = op2 && is_assoc op1 env && not assoc_test->
       begin
         try matching (com_test, true) env expr pattern 
         with MatchingFailure -> matching (com_test, true) env expr  (POp(op1, a, POp(op2, b, c)))
@@ -73,7 +87,7 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
               in (matching (false, false) env f pf) @ (matching (false, false) env g pg)
           | _ -> raise MatchingFailure
       end 
-
+  
   | (expr, PMinus m) ->
       begin
         match expr with
@@ -206,6 +220,10 @@ and eval' env expr = match expr with
           | EApplication(EVariable ">", ENum x), ENum y -> EBoolean (x>y)
           | EApplication(EVariable "++", EString x), EString y -> EString (x^y)
           | EVariable "string_of_int", ENum x -> EString (Int32.to_string x)
+          | EVariable "constant", x ->
+            let vars = free_vars x in
+            let var = new_variable vars "x" in 
+            EFunction {def = [PVariable var, x]; env = Some env}
           | EFunction {def = def; env = Some env_f}, arg -> 
             (try
               eval_application env_f def arg

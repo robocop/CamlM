@@ -1,0 +1,34 @@
+open Formel;;
+open List;;
+open Maths;;
+declare i;;
+
+declare all_reals;;
+let rec zeros = function
+    Const (Num 0) -> [all_reals]
+  | Const (Num _) -> []
+  | Id -> [0]
+
+  | Const (Num a) * Id + Const (Num b) ->
+    [-b/a]
+  | Id + Const (Num b) -> [-b]
+
+  | Const a* Id^(Const Num 2) + Const b * Id + Const c->
+    let delta = b*b-4*a*c in
+    [(-b-sqrt delta)/(2*a); (-b+sqrt delta)/(2*a)]
+  | Id^(Const Num 2) + Const (Num b) * Id + Const (Num c)->
+    zeros (\x -> 1*x^2 + b*x + c)
+
+  | f^(Const (Num n)) -> zeros f
+  | f * g -> concat (zeros f) (zeros g)
+;;
+
+
+
+let test = function
+    a + (Const (Num (-1)) * b) -> true
+  
+;;
+test (\x -> x - x);;
+zeros (\x -> x^2 - 2*x +1);;
+simplify (\x -> (-2) / 1);;

@@ -18,6 +18,10 @@ let type_arithmetic = type_prim2 type_int type_int type_int
 let type_lexical = type_prim2 type_string type_string type_string
 let type_logic = type_prim2 type_bool type_bool type_bool
 let type_poly_logic = let v = new_unknow () in type_prim2 v v type_bool
+let type_constant = 
+  let v, v' = new_unknow (), new_unknow () in 
+  let t = type_arrow v (type_arrow v' v) in
+  (trivial_schema t, true)
 
 (** Builtin types. Note that {!builtin_types} is structured to be a namespace
     for {!Syntax.env}.
@@ -39,7 +43,8 @@ let builtin_types =
    ("-", [prelude, type_prim1 type_int type_int]);
    ("++", [prelude, type_lexical]);
    ("mod", [prelude, type_arithmetic]);
-   ("string_of_int", [prelude, type_prim1 type_int type_string])
+   ("string_of_int", [prelude, type_prim1 type_int type_string]);
+   ("constant", [prelude, type_constant]);
    ]
 
 (** Builtin functions and their representation and properties in the AST.
@@ -64,6 +69,7 @@ let builtin_fns =
    ("-", [prelude, (Some (EVariable "-"), None)]);
    ("++", [prelude, (Some (EVariable "++"), None)]);
    ("mod", [prelude, (Some (EVariable "mod"), None)]);
-   ("string_of_int", [prelude, (Some (EVariable "string_of_int"), None)])
+   ("string_of_int", [prelude, (Some (EVariable "string_of_int"), None)]);
+   ("constant", [prelude, (Some (EVariable "constant"), None)]);
   ]
 

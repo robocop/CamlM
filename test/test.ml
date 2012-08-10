@@ -34,7 +34,16 @@ let tests =
      let test1 = function @exp -> true | _ -> false in
      let test2 = function exp -> true | _ -> false in
      ((test1 (\\x -> x+1), test1 exp), (test2 (\\x -> x+1), test2 exp))",
-    "((false, true), (true, true))")
+    "((false, true), (true, true))"); 
+   ("+ est commutatif dans un filtrage", 
+    "let f = function Const (Num 1) + b -> true | _ -> false in (f (\\x -> x+1), f (\\x -> 2+4))", 
+    "(true, false)");
+   ("* est commutatif dans un filtrage", 
+    "let f = function Const (Num 1) * b -> true | _ -> false in (f (\\x -> x*1), f (\\x -> 2*4))", 
+    "(true, false)");
+   ("+ est associatif dans un filtrage", 
+    "let f = function Const (Num 1) + Const (Num 2) + b-> true | _ -> false in (f (\\x -> (1+2)+x), f (\\x -> 1+(2+x)))", 
+    "(true, true)");
   ]
 
 
