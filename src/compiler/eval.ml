@@ -30,7 +30,7 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
   | (value, PAxiom id) ->
       begin
         match value, lookup_env id env with
-          | EVariable v, (None, _) when v = id -> []
+          | EVariable v, (_, _) when v = id -> []
           | _ -> raise MatchingFailure
       end
 

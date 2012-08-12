@@ -4,6 +4,7 @@ open Maths;;
 declare i;;
 
 declare all_reals;;
+
 let rec zeros = function
     Const (Num 0) -> [all_reals]
   | Const (Num _) -> []
@@ -16,6 +17,10 @@ let rec zeros = function
   | Const a* Id^(Const Num 2) + Const b * Id + Const c->
     let delta = b*b-4*a*c in
     [(-b-sqrt delta)/(2*a); (-b+sqrt delta)/(2*a)]
+  | Const a * Id^(Const Num 2) + Const c ->
+    let z = -c/a in
+    if (z>0) [sqrt z; -sqrt z] (if (z == 0) [0] [])
+
   | Id^(Const Num 2) + Const (Num b) * Id + Const (Num c)->
     zeros (\x -> 1*x^2 + b*x + c)
 
@@ -23,9 +28,15 @@ let rec zeros = function
   | f * g -> concat (zeros f) (zeros g)
 ;;
 
+zeros (\x -> (-1) + 1*x^2);;
+let test f = match constant (zeros f) with
+   @zeros . f -> "bim"
+  | _ -> "boum"
+;;
+test (\x -> x^2 + 1);;
 
 
-let test = function
+let test2 = function
     a + (Const (Num (-1)) * b) -> true
   
 ;;

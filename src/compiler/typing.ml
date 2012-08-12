@@ -160,8 +160,8 @@ let rec type_pattern env = function
       begin 
         try 
           let (t, r) = lookup_env id env in
-            if r = true then (specialisation t, env)
-            else raise (Error (id ^ " is not an axiom"))
+            (* if r = true then *)(specialisation t, env)
+            (*else raise (Error (id ^ " is not an axiom")) *)
         with Not_found -> raise (Error (id ^ " is not found"))
       end
   | PVariable id -> 
