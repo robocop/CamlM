@@ -1,4 +1,5 @@
-{ open Parser }
+{ open Parser 
+}
 
 let char = ['\000'-'\033' '\035'-'\038' '\040'-'\127']
 let num = ['0'-'9']+ ('.' ['0'-'9']+)? (['e' 'E'] '-'? ['0'-'9']+)?
@@ -44,6 +45,9 @@ rule token = parse
   | "when"      { WHEN }
   | "let"       { LET }
   | "declare"   { DECLARE }
+  | "deriv"     { DERIV }
+  | "bool"      { TBOOL }
+  | "num"       { TNUM }
   | "rec"       { REC }
   | "function"  { FUNCTION }
   | "in"        { IN  }

@@ -26,6 +26,7 @@ type expression =
   | EApplication of expression * expression
   | ELet of definition * expression option
   | EDeclare of string * expression option
+  | EDeriv of simple_type * expression * expression option
   | EOpen of string * expression option
   | EBoolean of bool
   | ENum of int32
@@ -120,13 +121,39 @@ and definition =
       name:string;
       expr:expression
     }
+
+
+(** Types for the typing system *)
+
+and simple_type = 
+  | Variable of variable_of_type
+  | Term of string * simple_type array
+and variable_of_type = 
+  { mutable level: int; mutable value: value_of_variable }
+and value_of_variable = 
+    | Unknow
+    | Know of simple_type
+type type_schema = 
+ { parameter : variable_of_type list; corps : simple_type }
 ;;
+let type_unit = Term("unit", [||])
+let type_num = Term("num", [||])
+let type_bool = Term("bool", [||])
+let type_string = Term("string", [||])
+let type_product t1 t2 = Term("*", [|t1; t2|])
+let type_list t = Term("list", [|t|])
+let type_option t = Term("option", [|t|])
+let type_arrow t1 t2 = Term("->", [|t1; t2|])
+
+
 
 (** REPL parser types. *)
 type 'a interpreter = 
   | INothing                 (** Nothing was entererd. *)
   | ICommand of string       (** REPL command (e.g. "#quit;;"). *)
   | IValue of 'a             (** Expression to evaluate. *)
+
+
 
 (** {!fun_env_content} helper. *)
 let value (value, _) = value
