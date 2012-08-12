@@ -14,7 +14,7 @@ let type_prim1 a b = (trivial_schema (type_arrow a b), false)
 let type_prim2 a b c = 
   (trivial_schema (type_arrow a (type_arrow b c)), false)
   
-let type_arithmetic = type_prim2 type_int type_int type_int
+let type_arithmetic = type_prim2 type_num type_num type_num
 let type_lexical = type_prim2 type_string type_string type_string
 let type_logic = type_prim2 type_bool type_bool type_bool
 let type_poly_logic = let v = new_unknow () in type_prim2 v v type_bool
@@ -40,10 +40,10 @@ let builtin_types =
    ("||", [prelude, type_logic]);
    ("&&", [prelude, type_logic]);
    ("not", [prelude, type_prim1 type_bool type_bool]);
-   ("-", [prelude, type_prim1 type_int type_int]);
+   ("-", [prelude, type_prim1 type_num type_num]);
    ("++", [prelude, type_lexical]);
    ("mod", [prelude, type_arithmetic]);
-   ("string_of_int", [prelude, type_prim1 type_int type_string]);
+   ("string_of_int", [prelude, type_prim1 type_num type_string]);
    ("constant", [prelude, type_constant]);
    ]
 

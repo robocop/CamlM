@@ -32,7 +32,7 @@ type type_env_content = type_schema * bool
 let type_ (t, _) = t
 
 let type_unit = Term("unit", [||])
-let type_int = Term("int", [||])
+let type_num = Term("num", [||])
 let type_bool = Term("bool", [||])
 let type_string = Term("string", [||])
 let type_product t1 t2 = Term("*", [|t1; t2|])
@@ -170,7 +170,7 @@ let rec type_pattern env = function
 
   | PBoolean b ->
       (type_bool, env)
-  | PNum n -> (type_int, env) 
+  | PNum n -> (type_num, env) 
   | PString _ -> (type_string, env)
   | PPair(m1, m2) ->
       let (ty1, env1) = type_pattern env m1 in
@@ -194,7 +194,7 @@ let rec type_pattern env = function
       let (ty1, env1) = type_pattern env p1 in
 
         unify ty1 (type_arrow type_arg type_result);
-        unify type_int type_result;
+        unify type_num type_result;
 
         (type_arrow type_arg type_result, env1)
 
@@ -207,7 +207,7 @@ let rec type_pattern env = function
 
         unify ty1 (type_arrow type_arg type_result);
         unify ty2 (type_arrow type_arg type_result);
-        unify type_int type_result;
+        unify type_num type_result;
         (type_arrow type_arg type_result, env2)
 
   | PCompose (pf, pg) ->
@@ -233,8 +233,8 @@ let rec type_pattern env = function
         (type_arrow type_arg type_result, env1)
   | PIsnum p ->
       let (ty1, env1) =  type_pattern env p in
-        unify ty1 type_int;
-        (type_int, env1)
+        unify ty1 type_num;
+        (type_num, env1)
   | PWhen(expr, pattern) ->
       let (t, env1) = type_pattern env pattern in
         ignore (type_exp env1 expr); 
@@ -285,7 +285,7 @@ and type_exp env = function
       let env' = open_type_module m env
       in type_exp env' body 
   | EBoolean _ -> type_bool
-  | ENum _-> type_int
+  | ENum _-> type_num
   | EString _ -> type_string
   | EPair (e1, e2) -> type_product (type_exp env e1) (type_exp env e2)
   | ENone -> type_option (new_unknow ())
