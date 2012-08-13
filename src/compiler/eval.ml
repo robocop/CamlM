@@ -220,10 +220,6 @@ and eval' env expr = match expr with
           | EApplication(EVariable ">", ENum x), ENum y -> EBoolean (x>y)
           | EApplication(EVariable "++", EString x), EString y -> EString (x^y)
           | EVariable "string_of_int", ENum x -> EString (Int32.to_string x)
-          | EVariable "constant", x ->
-            let vars = free_vars x in
-            let var = new_variable vars "x" in 
-            EFunction {def = [PVariable var, x]; env = Some env}
           | EFunction {def = def; env = Some env_f}, arg -> 
             (try
               eval_application env_f def arg
