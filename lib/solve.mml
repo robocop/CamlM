@@ -29,7 +29,7 @@ let rec zeros = function
 ;;
 
 zeros (\x -> (-1) + 1*x^2);;
-let test f = match constant (zeros f) with
+let test f = match const (zeros f) with
    @zeros . f -> "bim"
   | _ -> "boum"
 ;;
