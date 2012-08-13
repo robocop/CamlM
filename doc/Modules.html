@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Lambda_repl.html">
+<link rel="next" href="Show.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Typing" rel="Chapter" href="Typing.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lexer" rel="Chapter" href="Lexer.html">
+<link title="Parser" rel="Chapter" href="Parser.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Modules</title>
+</head>
+<body>
+<div class="navbar"><a href="Lambda_repl.html">Previous</a>
+&nbsp;<a href="index.html">Up</a>
+&nbsp;<a href="Show.html">Next</a>
+</div>
+<center><h1>Module <a href="type_Modules.html">Modules</a></h1></center>
+<br>
+<pre><span class="keyword">module</span> Modules: <code class="code">sig</code> <a href="Modules.html">..</a> <code class="code">end</code></pre>Functions related to the module subsystem (loading and environment
+    manipulation).
+<p>
+
+    Note that module opening in CamlM is analogous to importing modules in
+    Haskell. Names cannot be resolved until the module is opened (this will be
+    true for fully qualified names, if/when they are implemented).
+<p>
+
+    TODO : <ul>
+<li>Fix cyclic module dependency issues.</li>
+<li>Fix Windows compatibility.</li>
+</ul>
+<br>
+<hr width="100%">
+<pre><span id="VALprelude"><span class="keyword">val</span> <a href="code_VALModules.prelude.html">prelude</a></span> : <code class="type">string</code></pre><div class="info">
+Constant name for the default, pre-opened module in all CamlM sources.<br>
+</div>
+<pre><span id="VALinclude_path"><span class="keyword">val</span> <a href="code_VALModules.include_path.html">include_path</a></span> : <code class="type">string list Pervasives.ref</code></pre><div class="info">
+Global list containing the module search path.
+    This reference is only ever modified during REPL initialization.<br>
+</div>
+<pre><span id="VALmodule_ast"><span class="keyword">val</span> <a href="code_VALModules.module_ast.html">module_ast</a></span> : <code class="type">(string * <a href="Syntax.html#TYPEexpression">Syntax.expression</a> list) list Pervasives.ref</code></pre><div class="info">
+Global association list of all modules in memory. Associates module name to
+    the module's parsed (but not evaluated) source code<br>
+</div>
+<pre><span id="VALmodule_present"><span class="keyword">val</span> <a href="code_VALModules.module_present.html">module_present</a></span> : <code class="type">'a -> ('a * 'b) list -> bool</code></pre><div class="info">
+"exists" function for <a href="Modules.html#VALmodule_ast"><code class="code">Modules.module_ast</code></a><br>
+</div>
+<pre><span id="VALfile_from_module"><span class="keyword">val</span> <a href="code_VALModules.file_from_module.html">file_from_module</a></span> : <code class="type">string -> string</code></pre><div class="info">
+Given a module name (e.g. Foo, Bar), retrieves the correspondant file name
+    (e.g. /include/path/1/foo.mml, /include/path/2/bar.mml) from the include 
+    path. If multiple files exist, takes the first match (in the order of the 
+    <a href="Modules.html#VALinclude_path"><code class="code">Modules.include_path</code></a>).<br>
+</div>
+<pre><span id="VALload_module"><span class="keyword">val</span> <a href="code_VALModules.load_module.html">load_module</a></span> : <code class="type">string -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a> list</code></pre><div class="info">
+Load module m from its corresponding file into the <a href="Modules.html#VALmodule_ast"><code class="code">Modules.module_ast</code></a>. The file
+    is read, parsed, and stored in the association list as (m, parsed source
+    file) iff it is not already in memory. 
+    If it is already in memory, it is just returned.<br>
+</div>
+<div class="param_info"><code class="code">m</code> : Module name (not path).</div>
+<pre><span id="VALopen_module"><span class="keyword">val</span> <a href="code_VALModules.open_module.html">open_module</a></span> : <code class="type">('a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a> list -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a>) -><br>       string -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
+Open the module given a function operating on an environment and a syntax
+    tree.
+<p>
+
+    Opening goes as follows : <ul>
+<li>If there is an edge in the graph in between the current module (A) and
+       the module to be loaded (B) , then B is already loaded and exposed to A.</li>
+<li>If the node B is present in the graph but there is no edge from A to B,
+       expose B by adding an edge.</li>
+<li>Otherwise, retrieve the module from the <a href="Modules.html#VALmodule_ast"><code class="code">Modules.module_ast</code></a> and populate the
+       environment using f.</li>
+</ul>
+<br>
+</div>
+<div class="param_info"><code class="code">f</code> : function used to populate the environment with data from the AST.</div>
+<div class="param_info"><code class="code">m</code> : module name.</div>
+<div class="param_info"><code class="code">env</code> : current environment.</div>
+<pre><span id="VALlookup_env'"><span class="keyword">val</span> <a href="code_VALModules.lookup_env'.html">lookup_env'</a></span> : <code class="type">'a -> ('a * 'b) list -> 'b option</code></pre><div class="info">
+<code class="code">List.assoc</code> lifted from exceptions into the option type.<br>
+</div>
+<pre><span id="VALdisambiguate"><span class="keyword">val</span> <a href="code_VALModules.disambiguate.html">disambiguate</a></span> : <code class="type">'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> string -> (string * 'b) list -> 'b</code></pre><div class="info">
+When the environment lookup returns multiple names (or none at all),
+    pick the required one or throw an exception.<br>
+</div>
+<pre><span id="VALlookup_env"><span class="keyword">val</span> <a href="code_VALModules.lookup_env.html">lookup_env</a></span> : <code class="type">string -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> 'a</code></pre><div class="info">
+Lookup a name in the environment.<br>
+<b>Raises</b><ul><li><code>Undef</code> if the name was not found in the environment or was not
+    exposed to the current module.</li>
+<li><code>MultiDef</code> if there are multiple equally suitable definitions of the name
+    in different modules.</li>
+</ul>
+</div>
+<pre><span id="VALadd_name"><span class="keyword">val</span> <a href="code_VALModules.add_name.html">add_name</a></span> : <code class="type">'a -> 'b * 'c -> ('b * ('a * 'c) list) list -> ('b * ('a * 'c) list) list</code></pre><div class="info">
+Add a name &amp; content to an environment's namespace. The namespace is
+    structured such that names are the key of the association list. Each value
+    associated to those keys is another association list containing pairs of
+    module * content.<br>
+</div>
+<pre><span id="VALadd_mod"><span class="keyword">val</span> <a href="code_VALModules.add_mod.html">add_mod</a></span> : <code class="type">'a -><br>       ('b * ('a * 'c) list) list -> ('b * 'c) list -> ('b * ('a * 'c) list) list</code></pre><div class="info">
+Add a whole module's worth of content.<br>
+</div>
+<div class="param_info"><code class="code">content</code> : list of pairs of names to add to the namespace</div>
+<pre><span id="VALmulti_add_env"><span class="keyword">val</span> <a href="code_VALModules.multi_add_env.html">multi_add_env</a></span> : <code class="type">(string * 'a) list -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
+<a href="Modules.html#VALadd_mod"><code class="code">Modules.add_mod</code></a> lifted to environments.<br>
+</div>
+<pre><span id="VALadd_env"><span class="keyword">val</span> <a href="code_VALModules.add_env.html">add_env</a></span> : <code class="type">string * 'a -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
+<a href="Modules.html#VALmulti_add_env"><code class="code">Modules.multi_add_env</code></a> over a single element.<br>
+</div>
+<pre><span id="VALinit"><span class="keyword">val</span> <a href="code_VALModules.init.html">init</a></span> : <code class="type">string list -> unit</code></pre><div class="info">
+Wrapper to initialize the <a href="Modules.html#VALinclude_path"><code class="code">Modules.include_path</code></a> reference.<br>
+</div>
+</body></html>

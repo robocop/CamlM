@@ -1,0 +1,32 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Typing" rel="Chapter" href="Typing.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lexer" rel="Chapter" href="Lexer.html">
+<link title="Parser" rel="Chapter" href="Parser.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Modules.disambiguate</title>
+</head>
+<body>
+<code class="code"><span class="keyword">let</span>&nbsp;disambiguate&nbsp;env&nbsp;name&nbsp;=&nbsp;<span class="keyword">function</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Undef</span>&nbsp;name)<br>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;When&nbsp;the&nbsp;module&nbsp;is&nbsp;within&nbsp;scope,&nbsp;return&nbsp;the&nbsp;content,&nbsp;otherwise&nbsp;Undef&nbsp;*)</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[m,&nbsp;content]&nbsp;<span class="keyword">when</span>&nbsp;distance&nbsp;env.modules&nbsp;env.this&nbsp;m&nbsp;&lt;&nbsp;2&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;content<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[_,&nbsp;_]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Undef</span>&nbsp;name)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;modules&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;In&nbsp;case&nbsp;of&nbsp;ambiguity,&nbsp;take&nbsp;the&nbsp;"closest"&nbsp;variable,&nbsp;i.e.&nbsp;the&nbsp;one&nbsp;in&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;current&nbsp;module's&nbsp;scope.&nbsp;This&nbsp;allows&nbsp;for&nbsp;shadowing.&nbsp;*)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;<span class="constructor">List</span>.assoc&nbsp;env.this&nbsp;modules<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">MultiDef</span>&nbsp;(name,&nbsp;<span class="constructor">List</span>.map&nbsp;(<span class="keyword">function</span>&nbsp;(m,&nbsp;_)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;m)&nbsp;modules))</code></body></html>

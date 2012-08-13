@@ -1,0 +1,28 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Typing" rel="Chapter" href="Typing.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lexer" rel="Chapter" href="Lexer.html">
+<link title="Parser" rel="Chapter" href="Parser.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Helper.puis</title>
+</head>
+<body>
+<code class="code"><span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;puis&nbsp;a&nbsp;n&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;n&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;n&nbsp;<span class="keyword">when</span>&nbsp;n=<span class="constructor">Int32</span>.zero&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Int32</span>.one<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;r&nbsp;=&nbsp;puis&nbsp;a&nbsp;(<span class="constructor">Int32</span>.div&nbsp;n&nbsp;two)&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;rr&nbsp;=&nbsp;<span class="constructor">Int32</span>.mul&nbsp;r&nbsp;r&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;<span class="constructor">Int32</span>.rem&nbsp;n&nbsp;two&nbsp;=&nbsp;<span class="constructor">Int32</span>.zero&nbsp;<span class="keyword">then</span>&nbsp;rr&nbsp;<span class="keyword">else</span>&nbsp;<span class="constructor">Int32</span>.mul&nbsp;rr&nbsp;a</code></body></html>
