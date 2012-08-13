@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>CamlM by robocop</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">CamlM</h1>
+        <p class="header">Système de calcul formel basé sur le langage OCaml</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/robocop/CamlM/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/robocop/CamlM/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/robocop/CamlM">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/robocop">robocop</a></p>
+
+
+      </header>
+      <section>
+        <h1>CamlM</h1>
+
+<p>CamlM est un langage de programmation basé sur le langage caml et étendu pour pouvoir faire facilement du calcul formel, de manière analogue à Maple ou Mathématica (du moins en théorie).</p>
+
+<h2>Installation</h2>
+
+<p>Nécessite Linux ou Mac, ainsi qu'une installation de OCaml (=&gt; 3.10) et de Menhir.</p>
+
+<ol>
+<li>Faire une copie du dépot : <code>git clone git://github.com/robocop/CamlM.git</code>
+</li>
+<li>Executer la commande : <code>./configure</code>
+</li>
+<li>Executer la commande : <code>make</code>
+</li>
+<li>Lancer l'interpreteur avec <code>./camlm</code> (nécessite rlwrap. On peut aussi utiliser emacs avec le tuareg-mode)</li>
+</ol><h2>Documentation</h2>
+
+<p>Executer la commander <code>make doc</code> pour générer la documentation.</p>
+
+<h2>Développement</h2>
+
+<p>Si le fichier _oasis est modifié, le regénérer avec la commande <code>oasis setup</code>
+Le "back-end" du compilateur se trouve dans <code>src/compiler</code>. 
+Le seul "front-end" actuellement disponible est le REPL, et se trouve dans <code>src/repl</code>.</p>
+
+<h2>Exemples de programmes</h2>
+
+<p>CamlM supporte toutes les fonctionnalités de base de CamlM (fonctions récusives, filtrage, typage).</p>
+
+<h3>Fonction factorielle</h3>
+
+<div class="highlight"><pre><span class="o">#</span> <span class="k">let</span> <span class="k">rec</span> <span class="n">fac</span> <span class="o">=</span> <span class="k">function</span> <span class="mi">0</span> <span class="o">-&gt;</span> <span class="mi">1</span> <span class="o">|</span> <span class="n">n</span> <span class="o">-&gt;</span> <span class="n">n</span><span class="o">*</span><span class="n">fac</span><span class="o">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="k">in</span> <span class="n">fac</span> <span class="mi">5</span><span class="o">;;</span>
+<span class="o">:-</span> <span class="kt">int</span> <span class="o">=</span> <span class="mi">120</span>
+</pre></div>
+
+<h3>Dérivation d'expression mathématique :</h3>
+
+<div class="highlight"><pre><span class="o">#</span> <span class="k">open</span> <span class="nc">Maths</span><span class="o">;;</span>
+<span class="o">:-</span> <span class="kt">unit</span> <span class="o">=</span> <span class="bp">()</span>
+<span class="o">#</span> <span class="k">open</span> <span class="nc">Formel</span><span class="o">;;</span>
+<span class="o">:-</span> <span class="kt">unit</span> <span class="o">=</span> <span class="bp">()</span>
+<span class="o">#</span> <span class="n">d</span> <span class="o">(</span><span class="err">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span><span class="o">*</span><span class="n">ln</span> <span class="n">x</span><span class="o">);;</span> <span class="c">(* la notation des fonctions anonymes est analogue à celle utilisée dans Haskell : \x -&gt; f x *)</span>
+<span class="o">:-</span> <span class="o">(</span><span class="kt">int</span> <span class="o">-&gt;</span> <span class="kt">int</span><span class="o">)</span> <span class="o">=</span> <span class="err">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="o">(</span><span class="n">ln</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="c">(* la fonction est dérivée puis simplifiée automatiquement grâce à la fonction d présente dans maths.mml *)</span>
+</pre></div>
+
+<h3>Autres exemples</h3>
+
+<p>Il suffit d'ouvrir les fichiers d'extension <code>.mml</code> qui contiennent du code écrit en CamlM.</p>
+
+<h2>Sémantique du langage CamlM</h2>
+
+<p>Pour avoir une vue plus complète des fonctionnalités du langage, on pourra visiter cette page : <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">Éléments de sémantique du langage CamlM</a>. </p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
