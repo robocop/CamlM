@@ -179,10 +179,10 @@ let rec simpl f = match f with
 ;;
 
 let simplify f =
-let rec test f = match simpl f with
-    g when compare f g -> f
-  | g -> test g
-in map_fun unnormalise (test (map_fun normalise f))
+  let rec test f = match simpl f with
+      g when compare f g -> f
+    | g -> test g
+  in map_fun unnormalise (test (map_fun normalise f))
 ;;
 
 let rec deriv = function

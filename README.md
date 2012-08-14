@@ -1,5 +1,6 @@
 # CamlM
 
+Page d'accueil : http://robocop.github.com/CamlM/ .
 CamlM est un langage de programmation basé sur le langage caml et étendu pour pouvoir faire facilement du calcul formel, de manière analogue à Maple ou Mathématica (du moins en théorie).
 
 ## Installation

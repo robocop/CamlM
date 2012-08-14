@@ -38,19 +38,3 @@ let rec zeros f= match uniform (simplify (uniform f)) with
   | f^(Const (Num n)) -> zeros f
   | f * g -> concat (zeros f) (zeros g)
 ;;
-
-zeros (\x -> x^2 - 4*x + 5);;
-let test f = match constant (zeros f) with
-   @zeros . f -> "bim"
-  | _ -> "boum"
-;;
-test (\x -> x^2 + 1);;
-
-
-let test2 = function
-    a + (Const (Num (-1)) * b) -> true
-  
-;;
-test (\x -> x - x);;
-zeros (\x -> x^2 - 2*x +1);;
-simplify (\x -> (-2) / 1);;
