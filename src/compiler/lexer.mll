@@ -45,7 +45,7 @@ rule token = parse
   | "when"      { WHEN }
   | "let"       { LET }
   | "declare"   { DECLARE }
-  | "deriv"     { DERIV }
+  | "deriving"     { DERIV }
   | "bool"      { TBOOL }
   | "num"       { TNUM }
   | "rec"       { REC }

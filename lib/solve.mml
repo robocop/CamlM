@@ -1,34 +1,45 @@
 open Formel;;
 open List;;
 open Maths;;
-declare i;;
 
 declare all_reals;;
+declare i;;
 
-let rec zeros = function
+let const a _ = a;;
+let simpl x = (simplify (const x)) 0;;
+
+let f = function
+    Const a -> const (simpl a) 
+  | Const a * Id -> let a' = simpl a in (\x -> a' * x)
+  | Const a * Id ^ (Const (Num n)) -> let a' = simpl a in  (\x -> a' * x^n)
+  | f -> f 
+;;
+
+map f (decompose_sum (\x -> x^2 - x^3 + 7*x+4));;
+let rec uniform_poly = function
+    - f -> \x -> (-1) * f x
+  | Id -> \x -> 1*x
+  | Id^(Const Num n) -> \x -> 1 * x^n
+  | f+g -> let f' = uniform f in let g' = uniform g in \x -> f' x + g' x
+  | f -> f
+;;
+
+let rec zeros f= match uniform (simplify (uniform f)) with
     Const (Num 0) -> [all_reals]
   | Const (Num _) -> []
   | Id -> [0]
 
-  | Const (Num a) * Id + Const (Num b) ->
-    [-b/a]
-  | Id + Const (Num b) -> [-b]
+  | Const (Num a) * Id + Const (Num b) -> [-b/a]
 
   | Const a* Id^(Const Num 2) + Const b * Id + Const c->
     let delta = b*b-4*a*c in
-    [(-b-sqrt delta)/(2*a); (-b+sqrt delta)/(2*a)]
-  | Const a * Id^(Const Num 2) + Const c ->
-    let z = -c/a in
-    if (z>0) [sqrt z; -sqrt z] (if (z == 0) [0] [])
-
-  | Id^(Const Num 2) + Const (Num b) * Id + Const (Num c)->
-    zeros (\x -> 1*x^2 + b*x + c)
+    if (delta > 0) [(-b-sqrt delta)/(2*a); (-b+sqrt delta)/(2*a)] (if (delta ==0) [-b/(2*a)] [])
 
   | f^(Const (Num n)) -> zeros f
   | f * g -> concat (zeros f) (zeros g)
 ;;
 
-zeros (\x -> (-1) + 1*x^2);;
+zeros (\x -> x^2 - 4*x + 5);;
 let test f = match constant (zeros f) with
    @zeros . f -> "bim"
   | _ -> "boum"

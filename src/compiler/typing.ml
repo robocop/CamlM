@@ -8,37 +8,14 @@ open Modules
 open Error 
 open Helper
 
-type simple_type = 
-  | Variable of variable_of_type
-  | Term of string * simple_type array
-and variable_of_type = 
-  { mutable level: int; mutable value: value_of_variable }
-and value_of_variable = 
-    | Unknow
-    | Know of simple_type
-
-type type_schema = 
- { parameter : variable_of_type list; corps : simple_type }
-
 (** Payload of {!Syntax.env}.
    
     The pair is composed of, in order : 
      - type
      - recursive
 *)
-type type_env_content = type_schema * bool
+type type_env_content = type_schema
 
-(** {!type_env_content} helper function. *)
-let type_ (t, _) = t
-
-let type_unit = Term("unit", [||])
-let type_num = Term("num", [||])
-let type_bool = Term("bool", [||])
-let type_string = Term("string", [||])
-let type_product t1 t2 = Term("*", [|t1; t2|])
-let type_list t = Term("list", [|t|])
-let type_option t = Term("option", [|t|])
-let type_arrow t1 t2 = Term("->", [|t1; t2|])
 
 let level_of_liaison = ref 0;;
 let new_unknow () = Variable {level = !level_of_liaison; value = Unknow }
@@ -97,6 +74,7 @@ let rec rectify_levels level_max ty = match value_of ty with
       Array.iter (rectify_levels level_max) arguments;;
 
 
+(** Unify two types *)
 let rec unify ty1 ty2 = 
   (*
    print_string "unify "; print_string (print_type ty1); 
@@ -159,14 +137,12 @@ let rec type_pattern env = function
   | PAxiom id ->
       begin 
         try 
-          let (t, r) = lookup_env id env in
-            (* if r = true then *)(specialisation t, env)
-            (*else raise (Error (id ^ " is not an axiom")) *)
+          let t = lookup_env id env in specialisation t, env
         with Not_found -> raise (Error (id ^ " is not found"))
       end
   | PVariable id -> 
       let ty = new_unknow () in
-        (ty, add_env (id, (trivial_schema ty, false)) env)
+        (ty, add_env (id, trivial_schema ty) env)
 
   | PBoolean b ->
       (type_bool, env)
@@ -246,7 +222,11 @@ and type_expr env = function
       (env', t)
   | EDeclare (var, None) -> 
     let ty = new_unknow () in
-    ((add_env (var, (trivial_schema ty, true)) env), ty)
+    ((add_env (var, trivial_schema ty) env), ty)
+  | EDeriv(ty, expr, None) ->
+    let t_expr = type_exp env expr in
+    unify t_expr (type_arrow ty type_string);
+    (env, type_unit)
   | EOpen (m, None) -> 
       let env' = open_type_module m env
       in (env', type_unit)
@@ -255,7 +235,7 @@ and type_expr env = function
 and type_exp env = function
   | EVariable id ->
       begin 
-        try specialisation (type_ (lookup_env id env))
+        try specialisation (lookup_env id env)
         with Not_found -> raise (Error (id ^ " not found"))
       end
   | EFunction { def = list_of_cases } ->
@@ -279,7 +259,7 @@ and type_exp env = function
         type_exp env' corps
   | EDeclare(var, Some corps) ->
       let ty = new_unknow () in
-      let env' = add_env (var, (trivial_schema ty, true)) env in
+      let env' = add_env (var, trivial_schema ty) env in
         type_exp env' corps
   | EOpen (m, Some body) ->
       let env' = open_type_module m env
@@ -300,18 +280,18 @@ and type_exp env = function
   | _ -> raise (Error "type_exp fail")
 
 and type_def env def = 
-  start_definition ();
+         start_definition ();
          let type_expr = match def.recursive with
            | false -> type_exp env def.expr
            | true ->
                let type_temporary = new_unknow () in
                let type_expr = 
-                 type_exp (add_env (def.name, (trivial_schema type_temporary, false)) env) def.expr in
+                 type_exp (add_env (def.name, trivial_schema type_temporary) env) def.expr in
                  unify type_expr type_temporary;
                  type_expr 
          in
-           end_definition ();
-           (type_expr, add_env (def.name, (generalisation type_expr, false)) env)
+         end_definition ();
+           (type_expr, add_env (def.name, generalisation type_expr) env)
 
 and do_type env = function
   | [] -> env

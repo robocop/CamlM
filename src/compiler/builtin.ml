@@ -10,9 +10,9 @@ open Typing
 open Eval
 open Modules
 
-let type_prim1 a b = (trivial_schema (type_arrow a b), false)
+let type_prim1 a b =  trivial_schema (type_arrow a b)
 let type_prim2 a b c = 
-  (trivial_schema (type_arrow a (type_arrow b c)), false)
+   trivial_schema (type_arrow a (type_arrow b c))
   
 let type_arithmetic = type_prim2 type_num type_num type_num
 let type_lexical = type_prim2 type_string type_string type_string
@@ -21,7 +21,7 @@ let type_poly_logic = let v = new_unknow () in type_prim2 v v type_bool
 let type_constant = 
   let v, v' = new_unknow (), new_unknow () in 
   let t = type_arrow v (type_arrow v' v) in
-  (trivial_schema t, true)
+  trivial_schema t
 
 (** Builtin types. Note that {!builtin_types} is structured to be a namespace
     for {!Syntax.env}.
