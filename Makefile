@@ -9,7 +9,7 @@ build: setup.data
 
 doc: setup.data build
 	mkdir -p $(DOCDIR)
-	ocamldoc -html -d $(DOCDIR) -keep-code -charset utf-8 -colorize-code $(DOCSRCDIR)/*.ml{,i} -I $(BUILDDIR)/src/compiler/
+	ocamldoc -html -d $(DOCDIR) -keep-code -charset utf-8 -colorize-code $(DOCSRCDIR)/*.ml $(DOCSRCDIR)/*.mli -I $(BUILDDIR)/src/compiler/
 
 test: setup.data build
 	$(SETUP) -test $(TESTFLAGS)
