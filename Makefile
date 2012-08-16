@@ -1,13 +1,15 @@
-# OASIS_START
-# DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
-
 SETUP = ocaml setup.ml
+ROOTDIR = $(realpath .)
+DOCDIR = $(ROOTDIR)/doc
+BUILDDIR = $(ROOTDIR)/_build
+DOCSRCDIR = $(ROOTDIR)/src/compiler
 
 build: setup.data
 	$(SETUP) -build $(BUILDFLAGS)
 
 doc: setup.data build
-	$(SETUP) -doc $(DOCFLAGS)
+	mkdir -p $(DOCDIR)
+	ocamldoc -html -d $(DOCDIR) -keep-code -charset utf-8 -colorize-code $(DOCSRCDIR)/*.ml{,i} -I $(BUILDDIR)/src/compiler/
 
 test: setup.data build
 	$(SETUP) -test $(TESTFLAGS)
@@ -29,10 +31,9 @@ clean:
 
 distclean: 
 	$(SETUP) -distclean $(DISTCLEANFLAGS)
+	rm -fR $(DOCDIR)
 
 setup.data:
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
-
-# OASIS_STOP
