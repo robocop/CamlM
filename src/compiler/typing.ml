@@ -173,7 +173,7 @@ let rec type_pattern env = function
         unify type_num type_result;
 
         (type_arrow type_arg type_result, env1)
-
+(*
   | POp (_, p1, p2) ->
       let type_arg = new_unknow() in
       let type_result = new_unknow() in
@@ -185,7 +185,13 @@ let rec type_pattern env = function
         unify ty2 (type_arrow type_arg type_result);
         unify type_num type_result;
         (type_arrow type_arg type_result, env2)
-
+*)
+  | POp(_, p1, p2) ->
+    let (ty1, env1) = type_pattern env p1 in
+    let (ty2, env2) = type_pattern env1 p2 in
+    unify ty1 type_num;
+    unify ty2 type_num;
+    (type_num, env2)
   | PCompose (pf, pg) ->
       let type_arg = new_unknow() in
       let type_result = new_unknow() in

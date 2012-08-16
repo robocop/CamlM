@@ -100,6 +100,7 @@ and pattern =
   | PSome of pattern 
   | PString of string
   | POp of string * pattern * pattern
+
   | PMinus of pattern
   | PCompose of pattern * pattern
   | PIdentity

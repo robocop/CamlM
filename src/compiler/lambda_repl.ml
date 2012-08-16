@@ -17,31 +17,85 @@ open Modules
     Only formal functions are reduced by {!replace} and {!normal_order_reduct}.
 *)
 let rec is_simple_value = function
+(*
   | EFunction {def = [PVariable _, expr]; env = _} -> is_simple_value expr
   | ENum _ | EBoolean _ | ENil | ENone | EString _ | EVariable _ -> true
   | EPair (a, b) | ECons (a, b) | EApplication(a, b)-> 
       is_simple_value a && is_simple_value b
   | ESome e -> is_simple_value e
   | f -> false
+*) _ -> true
 
-(** Creates a set of all free variables of a formal function. *)
+let rec get_vars_of_pattern = function
+  | PVariable s -> StringSet.singleton s
+  | PPair(a, b) | PCons(a, b) | POp(_, a, b) ->
+    StringSet.union (get_vars_of_pattern a) (get_vars_of_pattern b)
+  | PSome a -> get_vars_of_pattern a
+  | _ -> StringSet.empty
+
+(** Creates a set of all free variables of a function. *)
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
-  | EFunction {def = [PVariable v, e]; env = _} ->
-    StringSet.diff (free_vars e) (StringSet.singleton v)
-  | EApplication(m, n) 
-  | EPair(m, n)
-  | ECons(m, n) ->
+  | EFunction {def = l; env = _} ->
+    List.fold_left
+      (fun ens (pattern, expr) -> 
+        let e = StringSet.diff (free_vars expr) (get_vars_of_pattern pattern) in
+        StringSet.union ens e
+      )
+      StringSet.empty
+      l
+  | EApplication(m, n) | EPair(m, n) | ECons(m, n) ->
       StringSet.union (free_vars m) (free_vars n)
-  | ESome n -> free_vars n
+  | ESome n | ELet(_, Some n) | EDeclare(_, Some n) | EOpen(_, Some n) ->
+    free_vars n
   | _ -> StringSet.empty
 
 (** Substitutes a variable [x] for an expression [arg] in [expr] using lambda
     calculus rules.
+(remplace x par arg)
   *)
+
+let rec rename_a_pattern x z = function
+  | PVariable y when y = x -> PVariable x
+  | PVariable y -> PVariable z
+  | PPair(a, b) -> PPair(rename_a_pattern x z a, rename_a_pattern x z b)
+  | PCons(a, b) -> PCons(rename_a_pattern x z a, rename_a_pattern x z b)
+  | POp(op, a, b) -> POp(op, rename_a_pattern x z a, rename_a_pattern x z b)
+  | PSome a -> PSome(rename_a_pattern x z a)
+(* .. *)
+  | r -> r
+
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
   | EVariable y when y <> x -> EVariable y
+
+
+  | EFunction {def = l; env = env } ->
+    let vars_arg = free_vars arg in
+    let new_def =
+      List.map (fun (pattern, expr) -> 
+      let vars_p = get_vars_of_pattern pattern in
+      let (p, e) = StringSet.fold 
+        (fun y (pattern, expr) -> 
+          let ens =  StringSet.union 
+            (StringSet.union vars_arg (StringSet.diff (free_vars expr) vars_p)) 
+            (StringSet.singleton x) 
+          in
+          let z = new_variable ens y in
+          let pattern' = rename_a_pattern x z pattern in
+          let expr' = substitution expr (EVariable z) y in
+          (pattern', expr')
+        ) 
+        vars_p
+        (pattern, expr)
+      in
+      (p, substitution e arg x)
+    )
+      l
+    in
+    EFunction{def = new_def; env = env }
+
+(*
   | EFunction {def = [PVariable v, e]; env = env} when v = x->
     EFunction {def = [PVariable v, e]; env = env}
   | EFunction {def = [PVariable y, e]; env = env} as f when y <> x ->
@@ -50,6 +104,8 @@ let rec substitution expr arg x = match expr with
     let e1 = substitution e (EVariable z) y in
     let e2 = substitution e1 arg x in
     EFunction {def = [PVariable z, e2]; env = env}
+*)
+(* ... let ? *)
   | EApplication(n1, n2) -> 
     EApplication(substitution n1 arg x, substitution n2 arg x)
   | EPair(n1, n2) -> EPair(substitution n1 arg x, substitution n2 arg x)

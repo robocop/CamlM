@@ -10,6 +10,7 @@ open Modules
 open Lambda_repl
 open Error
 open Helper
+open Show
 
 let op_property prop op env = match op_prop (lookup_env op env) with
   | None -> raise (Error "tried to get op properties from a non-op object")
@@ -48,34 +49,22 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
       matching (false, false) env v1 m1 @ matching (false, false) env v2 m2
   | (ENone, PNone) -> []
   | (ESome v, PSome m) -> matching (false, false) env v m
-  
-(*
-| (_, POp("+", a, PMinus b)) when not assoc_test ->
-    (try
-       matching (com_test, true) env value pattern 
-    with MatchingFailure -> (print_endline "ok"; matching (com_test, true) env value (POp("+", a, POp("*", PConst(PNum minus_one), b))))
-    )
-  | (_, POp("+", a, POp("*", PConst(PNum minus_one), b))) when not assoc_test ->
-    (try
-       print_endline "ok1"; 
-       matching (com_test, true) env value pattern 
-    with MatchingFailure -> (print_endline "ok"; matching (com_test, true) env value ( POp("+", a, PMinus b)))
-    )
-*)  
-| (expr, POp(op1, POp(op2, a, b), c)) when op1 = op2 && is_assoc op1 env && not assoc_test->
+
+  | (expr, POp(op1, POp(op2, a, b), c)) when op1 = op2 && is_assoc op1 env && not assoc_test->
       begin
-        try matching (com_test, true) env expr pattern 
-        with MatchingFailure -> matching (com_test, true) env expr  (POp(op1, a, POp(op2, b, c)))
+        try matching (false, true) env expr pattern 
+        with MatchingFailure -> matching (false, true) env expr  (POp(op1, a, POp(op2, b, c)))
       end
   | (expr, POp(op1, a, POp(op2, b, c))) when op1 = op2 && is_assoc op1 env && not assoc_test->
       begin
-        try matching (com_test, true) env expr pattern 
-        with MatchingFailure -> matching (com_test, true) env expr  (POp(op1, POp(op2, a, b), c))
+        try matching (false, true) env expr pattern 
+        with MatchingFailure -> matching (false, true) env expr  (POp(op1, POp(op2, a, b), c))
       end
   | (expr, POp(op, a, b)) when is_com op env && not com_test ->
-      (try matching (true, assoc_test) env expr pattern 
-       with MatchingFailure -> matching (true, assoc_test) env expr (POp(op, b, a))
+      (try matching (true, false) env expr pattern 
+       with MatchingFailure -> matching (true, false) env expr (POp(op, b, a))
       )
+(*
   | (expr, POp(op, pf, pg)) ->
       begin
         match expr with
@@ -87,7 +76,15 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
               in (matching (false, false) env f pf) @ (matching (false, false) env g pg)
           | _ -> raise MatchingFailure
       end 
-  
+*)
+  | (expr, POp(op, pf, pg)) ->
+    begin
+      match expr with
+        | EApplication(EApplication (EVariable op', e1), e2) when op = op' ->
+          (matching (false, false) env e1 pf) @ (matching (false, false) env e2 pg)
+        | _ -> raise MatchingFailure
+    end
+(*
   | (expr, PMinus m) ->
       begin
         match expr with
@@ -151,9 +148,18 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
             | _, (EBoolean true) -> r
             | _ -> raise MatchingFailure
         end
+*)
   | _ -> raise MatchingFailure
 
 
+
+
+(*
+and beta_reduce = function
+  | EApplication (EFunction {def = d}, arg) ->
+    
+  |
+*)
 (** Evaluate top level definitions that change the environment globally.
    
      - [let ... = ...;;]
@@ -186,19 +192,26 @@ and eval env = function
 *)
 and eval' env expr = match expr with
   | EVariable s -> 
-      begin  
+     begin  
         match lookup_env s env with
           | (Some e, _) -> e
           | (None, _) -> EVariable s (* If the variable was defined using declare, with no expression. *)
       end
   (* Only formal functions are reduced by lambda calculus rules. *)
-  | EFunction {def = [PVariable v, expr]; env = None} -> 
-      let f = EFunction {def = [PVariable v, expr]; env = Some env} in
-        if is_simple_value f then normal_order_reduct (replace env f)
-        else f
-
+  | EFunction {def = [PVariable v, expr]; env = _} ->
+    let f = EFunction {def = [PVariable v, expr]; env = Some env} in
+    if is_simple_value f then 
+      (match (normal_order_reduct (replace env f)) with
+        | EFunction {def = [PVariable v, expr]; env = Some env} ->
+          let expr' = eval_application env  [PVariable v, expr] (EVariable v) in
+           EFunction {def = [PVariable v, expr']; env = Some env}
+        | f -> f
+      )
+    else
+      f
+     
   | EFunction {def = def; env = None} -> 
-      EFunction {def = def; env = Some env}
+     EFunction {def = def; env = Some env}
 
   | EApplication(f, e) -> (* On evalue quelques primitives *)
       let f', x' = (eval' env f, eval' env e) in
@@ -224,7 +237,7 @@ and eval' env expr = match expr with
             (try
               eval_application env_f def arg
             with
-                _  -> EApplication(f, e)
+                MatchingFailure  -> EApplication(f, e)
             )
           | _ -> EApplication(f', x')
         end
@@ -247,7 +260,7 @@ and eval' env expr = match expr with
     function call is evaluated within this environment.
   *)
 and eval_application env case_list argument = match case_list with
-  | [] -> raise (Error "Pattern matching failure")
+  | [] -> raise MatchingFailure
   | (pattern, expr) :: rest ->
       try
         let extended_env = multi_add_env (matching (false, false) env argument pattern) env
