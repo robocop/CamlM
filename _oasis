@@ -5,10 +5,7 @@ Synopsis:    Math oriented, OCaml inspired language
 Authors:     Quentin C, Charlie P
 License:     GPL-3
 Homepage:    https://github.com/robocop/CamlM
-Plugins:     DevFiles (0.3)
 BuildTools: ocamlbuild
-XDevFilesEnableMakefile: true
-XDevFilesEnableConfigure: false
 
 Library compiler
   Path:       src/compiler/
@@ -35,10 +32,3 @@ Test main
   Command: $test -exec $camlm
   TestTools: test, camlm
 
-Document "api-compiler"
-  Title:                API reference for CamlM
-  Type:                 ocamlbuild (0.3)
-  InstallDir:           $htmldir/camlm
-  BuildTools+:          ocamldoc
-  XOCamlbuildPath:      src/compiler/
-  XOCamlbuildLibraries: compiler
