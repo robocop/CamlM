@@ -105,12 +105,39 @@ and eval env = function
     <https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM>
     (in french) for details on formal functions.
 *)
+
+
 and eval' env expr = match expr with
   | ELet(def, Some corps) ->
-    let name_var, value  = eval_definition env def in
-    Printf.printf "%s vaut %s\n" name_var (show value);
-    let corps' = substitution corps value name_var in
-    eval' env corps'
+    let name_var, value, is_rec  = eval_definition env def in
+    if not is_rec then 
+      let corps' = substitution corps value name_var in
+      eval' env corps'
+    else 
+      let rec fixpoint f x = match f x with
+        | x' when (x' = x) -> x
+        | x' -> fixpoint f x'
+      in
+      let f expr = eval' env (substitution expr value name_var) in
+      fixpoint f corps
+(*
+      f env (value, name_var) corps
+*)
+     (* eval' env corps *) (* si la fonction est récusive on ne subsitute pas (pour l'instant) *)
+                      (* Pour plus tard : on évalue jusqu'à l'eventuel point fixe f = susbtitue . eval'  sur corps*)
+  | EApplication (EFunction {def = case_list} as f, argument) ->
+    let arg = eval' env argument in
+    begin
+    try
+      let new_vars, f_x = eval_application env case_list arg in
+      let r = List.fold_left 
+        (fun f_x (var, e_var) -> substitution f_x (get (fst e_var)) var)
+        f_x 
+        new_vars
+      in
+      eval' env r
+    with MatchingFailure -> EApplication(f, arg)
+    end
   | EApplication (EFunction {def = [PVariable x, f_x]}, arg) ->
     eval' env (substitution f_x arg x)
   | EApplication(m, n)  -> 
@@ -154,8 +181,7 @@ and eval_application env case_list argument = match case_list with
   | [] -> raise MatchingFailure
   | (pattern, expr) :: rest ->
       try
-        let extended_env = multi_add_env (matching (false, false) env argument pattern) env
-        in eval' extended_env expr
+        (matching (false, false) env argument pattern, expr)
       with
           MatchingFailure -> eval_application env rest argument
 
@@ -166,7 +192,7 @@ and eval_definition curr_env def =
   match def.recursive with
     | false ->
         let value = eval' curr_env def.expr in
-        (def.name, value)
+        (def.name, value, false)
           (*
         let curr_env' = add_env (def.name, (Some value, None)) curr_env
         in (curr_env', value)
@@ -179,7 +205,7 @@ and eval_definition curr_env def =
               let extended_env = add_env new_entry curr_env in
                 closure.env <- Some extended_env;
               (*  (extended_env, EFunction closure) *) 
-                (def.name, EFunction closure)
+                (def.name, EFunction closure, true)
           | _ -> raise (Error "Non-functionnal recursive let definition")
 
 (** Evaluate a list of expressions, keeping the environment in between the

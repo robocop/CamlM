@@ -11,20 +11,8 @@ open Helper
 open Modules
 
 (** Recursively defines the expressions to be reduced by the lambda calculus
-    rules.
-   
-    A function [f] is said to be a "formal function" if [is_simple_value f]. 
-    Only formal functions are reduced by {!replace} and {!normal_order_reduct}.
+    rules. 
 *)
-let rec is_simple_value = function
-(*
-  | EFunction {def = [PVariable _, expr]; env = _} -> is_simple_value expr
-  | ENum _ | EBoolean _ | ENil | ENone | EString _ | EVariable _ -> true
-  | EPair (a, b) | ECons (a, b) | EApplication(a, b)-> 
-      is_simple_value a && is_simple_value b
-  | ESome e -> is_simple_value e
-  | f -> false
-*) _ -> true
 
 let rec get_vars_of_pattern = function
   | PVariable s -> StringSet.singleton s
@@ -44,18 +32,16 @@ let rec free_vars = function
       )
       StringSet.empty
       l
-  | EApplication(m, n) | EPair(m, n) | ECons(m, n) ->
+  | EApplication(m, n) | EPair(m, n) | ECons(m, n) 
+  | ELet({expr = m}, Some n)
+    ->
       StringSet.union (free_vars m) (free_vars n)
-  | ESome n | ELet(_, Some n) | EDeclare(_, Some n) | EOpen(_, Some n) ->
+  | ESome n | EDeclare(_, Some n) | EOpen(_, Some n) ->
     free_vars n
   | _ -> StringSet.empty
 
-(** Substitutes a variable [x] for an expression [arg] in [expr] using lambda
-    calculus rules.
-(remplace x par arg)
-  *)
 
-(** Rename in the pattern the variable x by z*)
+(** Rename the variable x by z in the pattern*)
 let rec rename_a_pattern x z = function
   | PVariable y when y = x -> PVariable z
   | PVariable y -> PVariable y
@@ -65,6 +51,10 @@ let rec rename_a_pattern x z = function
   | PSome a -> PSome(rename_a_pattern x z a)
 (* .. *)
   | r -> r
+
+(** Substitutes a variable [x] for an expression [arg] in [expr] using lambda
+    calculus rules.
+  *)
 
 let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
@@ -83,7 +73,6 @@ let rec substitution expr arg x = match expr with
             (StringSet.singleton x) 
           in
           let z = new_variable ens y in
-          Printf.printf "ancienne : %s, nouvelle : %s \n" y z;
           let pattern' = rename_a_pattern y z pattern in
           let expr' = substitution expr (EVariable z) y in
           (pattern', expr')
@@ -108,6 +97,11 @@ let rec substitution expr arg x = match expr with
     EFunction {def = [PVariable z, e2]; env = env}
 *)
 (* ... let ? *)
+  | ELet({expr = a} as def, Some b) ->
+    ELet({def with expr = substitution a arg x}, Some (substitution b arg x))
+  | EDeclare(s, Some expr) -> EDeclare(s, Some (substitution expr arg x))
+  | EOpen(m, Some expr) -> EOpen(m, Some (substitution expr arg x))
+
   | EApplication(n1, n2) -> 
     EApplication(substitution n1 arg x, substitution n2 arg x)
   | EPair(n1, n2) -> EPair(substitution n1 arg x, substitution n2 arg x)
@@ -120,6 +114,7 @@ let rec substitution expr arg x = match expr with
     expression by their corresponding expression in [env]. Uses the
     {!substitution} function to make valid replacements.
 *)
+(*
 let replace env f = 
   let rec to_replace fv env = function
     | EVariable x when StringSet.mem x fv ->
@@ -156,3 +151,4 @@ let rec normal_order_reduct = function
   | ESome n -> normal_order_reduct n
   | rest -> rest
 
+*)
