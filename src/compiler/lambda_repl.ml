@@ -55,9 +55,10 @@ let rec free_vars = function
 (remplace x par arg)
   *)
 
+(** Rename in the pattern the variable x by z*)
 let rec rename_a_pattern x z = function
-  | PVariable y when y = x -> PVariable x
-  | PVariable y -> PVariable z
+  | PVariable y when y = x -> PVariable z
+  | PVariable y -> PVariable y
   | PPair(a, b) -> PPair(rename_a_pattern x z a, rename_a_pattern x z b)
   | PCons(a, b) -> PCons(rename_a_pattern x z a, rename_a_pattern x z b)
   | POp(op, a, b) -> POp(op, rename_a_pattern x z a, rename_a_pattern x z b)
@@ -82,7 +83,8 @@ let rec substitution expr arg x = match expr with
             (StringSet.singleton x) 
           in
           let z = new_variable ens y in
-          let pattern' = rename_a_pattern x z pattern in
+          Printf.printf "ancienne : %s, nouvelle : %s \n" y z;
+          let pattern' = rename_a_pattern y z pattern in
           let expr' = substitution expr (EVariable z) y in
           (pattern', expr')
         ) 
