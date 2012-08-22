@@ -1,4 +1,5 @@
-# CamlM
+## Cette version est une maquette, pas un produit finit.
+# CamlM v0.1 - MAQUETTE (TECH DEMO)
 
 Page d'accueil : http://robocop.github.com/CamlM/ .
 CamlM est un langage de programmation basé sur le langage caml et étendu pour pouvoir faire facilement du calcul formel, de manière analogue à Maple ou Mathématica (du moins en théorie).
@@ -15,6 +16,7 @@ Nécessite Linux ou Mac, ainsi qu'une installation de OCaml (=> 3.10) et de Menh
 ## Documentation
 
 Executer la commander `make doc` pour générer la documentation.
+On peut aussi trouver la documentation sur la page d'acceuil de CamlM : http://robocop.github.com/CamlM/.
 
 ## Développement
 

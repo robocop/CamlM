@@ -1,184 +1,184 @@
 open List;;
 
-open Formel;;	       
+open Formel;;
 
-let rec simplify_minus = function
-   - (- f) -> simplify_minus f
-  | f -> f
-;;
-let rec sum_f = function
+let simplify f =
+  let rec simplify_minus = function
+  - (- f) -> simplify_minus f
+    | f -> f
+  in
+  let rec sum_f = function
   [] -> (\x -> 0)
-  | [e] -> e
-  | f::rest -> 
-    let f' = sum_f rest in
-    \x -> f x + f' x
-;;
-let simplify_sum f = 
-  let regroup_mult = function
-      (Const (Num a) * Const (Num b)) * f -> let r = a*b in (\x -> r * f x, true)
-    | f -> (f, false)
+    | [e] -> e
+    | f::rest ->
+      let f' = sum_f rest in
+      \x -> f x + f' x
   in
-  let rec similitude f g = match (f, g) with
-      (Const (Num a), Const (Num b)) -> true
-    | (Const (Num a) * f, g) -> similitude f g  
-    | (f, Const (Num a) * g) -> similitude f g  
-    | (Const (Num a) * f, Const (Num b) * g) -> similitude f g  
-    | (-f, -g) -> similitude f g
-    | (f, -g) -> similitude f g
-    | (-f, g) -> similitude f g
-    | _ -> compare f g
-  in
-  let regroupe = group similitude in
+  let simplify_sum f =
+    let regroup_mult = function
+    (Const (Num a) * Const (Num b)) * f -> let r = a*b in (\x -> r * f x, true)
+      | f -> (f, false)
+    in
+    let rec similitude f g = match (f, g) with
+        (Const (Num a), Const (Num b)) -> true
+      | (Const (Num a) * f, g) -> similitude f g
+      | (f, Const (Num a) * g) -> similitude f g
+      | (Const (Num a) * f, Const (Num b) * g) -> similitude f g
+      | (-f, -g) -> similitude f g
+      | (f, -g) -> similitude f g
+      | (-f, g) -> similitude f g
+      | _ -> compare f g
+    in
+    let regroupe = group similitude in
 
-  let rec simplify_pair = function
-      (- Const Num a, - Const Num b) -> let r = -(a+b) in \x -> r
-    | (- Const Num a, Const Num b) -> let r = b-a in \x -> r
-    | (Const Num a, -Const Num b) -> let r = a-b in \x -> r
-    | (Const Num a, Const Num b) -> let r = a+b in \x -> r
+    let rec simplify_pair = function
+    (- Const Num a, - Const Num b) -> let r = -(a+b) in \x -> r
+      | (- Const Num a, Const Num b) -> let r = b-a in \x -> r
+      | (Const Num a, -Const Num b) -> let r = a-b in \x -> r
+      | (Const Num a, Const Num b) -> let r = a+b in \x -> r
 
-    | (Const 0, f) -> f
-    | (Const 0 * f, g) -> g
+      | (Const 0, f) -> f
+      | (Const 0 * f, g) -> g
 
-    | (-(Const Num a)*f, -(Const Num b)*g) -> let r = -(a+b) in \x -> r * (f x)
-    | ((Const Num a)*f, -(Const Num b)*g) -> let r = a-b in \x -> r * (f x)
-    | (-(Const Num a)*f, (Const Num b)*g) -> let r = b-a in \x -> r * (f x)
-    | ((Const Num a)*f, (Const Num b)*g) -> let r = a+b in \x -> r * (f x)
+      | (-(Const Num a)*f, -(Const Num b)*g) -> let r = -(a+b) in \x -> r * (f x)
+      | ((Const Num a)*f, -(Const Num b)*g) -> let r = a-b in \x -> r * (f x)
+      | (-(Const Num a)*f, (Const Num b)*g) -> let r = b-a in \x -> r * (f x)
+      | ((Const Num a)*f, (Const Num b)*g) -> let r = a+b in \x -> r * (f x)
 
-    | (-(Const Num a)*f, -g) -> let r = -a-1 in \x -> r * (f x)
-    | ((Const Num a)*f, -g) -> let r = a-1 in \x -> r * (f x)
-    | (-(Const Num a)*f, g) -> let r = 1-a in \x -> r * (f x)
-    | ((Const Num a)*f, g) -> let r = a+1 in \x -> r * (f x)
+      | (-(Const Num a)*f, -g) -> let r = -a-1 in \x -> r * (f x)
+      | ((Const Num a)*f, -g) -> let r = a-1 in \x -> r * (f x)
+      | (-(Const Num a)*f, g) -> let r = 1-a in \x -> r * (f x)
+      | ((Const Num a)*f, g) -> let r = a+1 in \x -> r * (f x)
 
 
-    | (-f, -(Const Num b)*g) -> let r = -b-1 in \x -> r * (f x)
-    | (f, -(Const Num b)*g) -> let r = 1-b in \x -> r * (f x)
-    | (-f, (Const Num b)*g) -> let r = b-1 in \x -> r * (f x)
-    | (f, (Const Num b)*g) -> let r = b+1 in \x -> r * (f x)
-      
-    | (-f, -g) -> \x -> -2 * f x
-    | (f, -g) -> \x -> 0
-    | (-f, g) -> \x -> 0
-    | (f, g) -> \x -> 2*f x
-  in
-  let simplify_group g = 
-    let e1 = hd g in
-    let r = tl g in
-    match (fold_left (\x y ->simplify_pair (x, y)) e1 r) with
-	Const 0 -> []
+      | (-f, -(Const Num b)*g) -> let r = -b-1 in \x -> r * (f x)
+      | (f, -(Const Num b)*g) -> let r = 1-b in \x -> r * (f x)
+      | (-f, (Const Num b)*g) -> let r = b-1 in \x -> r * (f x)
+      | (f, (Const Num b)*g) -> let r = b+1 in \x -> r * (f x)
+
+      | (-f, -g) -> \x -> -2 * f x
+      | (f, -g) -> \x -> 0
+      | (-f, g) -> \x -> 0
+      | (f, g) -> \x -> 2*f x
+    in
+    let simplify_group g =
+      let e1 = hd g in
+      let r = tl g in
+      match (fold_left (\x y ->simplify_pair (x, y)) e1 r) with
+        Const 0 -> []
       | Const 1 * f -> [f]
       | Const 0 * f -> []
       | - Const 1 * f -> [(\x -> - f x)]
       | - Const 0 * f -> []
       | f -> [f]
+    in
+    let f' = map_fun regroup_mult f in
+    sum_f (flatten (map simplify_group (regroupe (map simplify_minus (decompose_sum f')))))
   in
-  let f' = map_fun regroup_mult f in
-  sum_f (flatten (map simplify_group (regroupe (map simplify_minus (decompose_sum f')))))
-;;
-let rec prod_f = function
-    [] -> (\x -> 1)
-  | [e] -> e
-  | f::rest -> 
-    let f' = prod_f rest in
-    \x -> f x * f' x
-;;
-let simplify_prod f = 
-   let regroup_pow = function
-      (f ^ (Const (Num a))) ^ (Const (Num b)) -> let r = a*b in (\x -> (f x) ^ r, true)
-    | f -> (f, false)
+  let rec prod_f = function
+  [] -> (\x -> 1)
+    | [e] -> e
+    | f::rest ->
+      let f' = prod_f rest in
+      \x -> f x * f' x
   in
-  let rec similitude f g = match (f, g) with
-      (Const (Num a), Const (Num b)) -> true
-    | (f^Const (Num a), g) -> similitude f g  
-    | (f, g^(Const (Num a))) -> similitude f g  
-    | (f^(Const (Num a)), g^(Const (Num b))) -> similitude f g  
-    | (-f, -g) -> similitude f g
-    | (f, -g) -> similitude f g
-    | (-f, g) -> similitude f g
-    | _ -> compare f g
-  in
-  let regroupe = group similitude in
+  let simplify_prod f =
+    let regroup_pow = function
+    (f ^ (Const (Num a))) ^ (Const (Num b)) -> let r = a*b in (\x -> (f x) ^ r, true)
+      | f -> (f, false)
+    in
+    let rec similitude f g = match (f, g) with
+        (Const (Num a), Const (Num b)) -> true
+      | (f^Const (Num a), g) -> similitude f g
+      | (f, g^(Const (Num a))) -> similitude f g
+      | (f^(Const (Num a)), g^(Const (Num b))) -> similitude f g
+      | (-f, -g) -> similitude f g
+      | (f, -g) -> similitude f g
+      | (-f, g) -> similitude f g
+      | _ -> compare f g
+    in
+    let regroupe = group similitude in
 
-  let rec simplify_pair = function
-      (- Const Num a, - Const Num b) -> let r = a*b in \x -> r
-    | (- Const Num a, Const Num b) -> let r = -a*b in \x -> r
-    | (Const Num a, -Const Num b) -> let r = -a*b in \x -> r
-    | (Const Num a, Const Num b) -> let r = a*b in \x -> r
+    let rec simplify_pair = function
+    (- Const Num a, - Const Num b) -> let r = a*b in \x -> r
+      | (- Const Num a, Const Num b) -> let r = -a*b in \x -> r
+      | (Const Num a, -Const Num b) -> let r = -a*b in \x -> r
+      | (Const Num a, Const Num b) -> let r = a*b in \x -> r
 
-    | (Const 1, f) -> f
+      | (Const 1, f) -> f
 
-    | (- (f^(Const Num a)), -(g^(Const Num b))) -> let r = (a+b) in \x -> (f x) ^ r
-    | (f^(Const Num a), -(g^(Const Num b))) -> let r = (a+b) in \x -> - ((f x) ^ r)
-    | (- (f^(Const Num a)), g^(Const Num b)) -> let r = (a+b) in \x -> - ((f x) ^ r)
-    | (f^(Const Num a), g^(Const Num b)) -> let r = (a+b) in \x -> (f x) ^ r
+      | (- (f^(Const Num a)), -(g^(Const Num b))) -> let r = (a+b) in \x -> (f x) ^ r
+      | (f^(Const Num a), -(g^(Const Num b))) -> let r = (a+b) in \x -> - ((f x) ^ r)
+      | (- (f^(Const Num a)), g^(Const Num b)) -> let r = (a+b) in \x -> - ((f x) ^ r)
+      | (f^(Const Num a), g^(Const Num b)) -> let r = (a+b) in \x -> (f x) ^ r
 
-    | (-(f^(Const Num a)), -g) -> let r = a+1 in \x -> (f x) ^ r
-    | (f^(Const Num a), -g) -> let r = a+1 in \x -> - ((f x) ^ r)
-    | (-(f^(Const Num a)), g) -> let r = a+1 in \x -> - ((f x) ^ r)
-    | (f^(Const Num a), g) -> let r = a+1 in \x -> (f x) ^ r
+      | (-(f^(Const Num a)), -g) -> let r = a+1 in \x -> (f x) ^ r
+      | (f^(Const Num a), -g) -> let r = a+1 in \x -> - ((f x) ^ r)
+      | (-(f^(Const Num a)), g) -> let r = a+1 in \x -> - ((f x) ^ r)
+      | (f^(Const Num a), g) -> let r = a+1 in \x -> (f x) ^ r
 
-    | (-f, -(g ^ (Const Num b))) -> let r = b+1 in \x -> (f x) ^ r
-    | (-f, g ^ (Const Num b)) -> let r = b+1 in \x -> - ((f x) ^ r)
-    | (f, -(g ^ (Const Num b))) -> let r = b+1 in \x -> - ((f x) ^ r)
-    | (f, g ^ (Const Num b)) -> let r = b+1 in \x -> (f x) ^ r
+      | (-f, -(g ^ (Const Num b))) -> let r = b+1 in \x -> (f x) ^ r
+      | (-f, g ^ (Const Num b)) -> let r = b+1 in \x -> - ((f x) ^ r)
+      | (f, -(g ^ (Const Num b))) -> let r = b+1 in \x -> - ((f x) ^ r)
+      | (f, g ^ (Const Num b)) -> let r = b+1 in \x -> (f x) ^ r
 
-    | (-f, -g) -> \x -> (f x)^2
-    | (f, -g) -> \x -> - ((f x)^2)
-    | (-f, g) -> \x -> - ((f x)^2)
-    | (f, g) -> \x -> (f x)^2
-  in
-  let simplify_group g = 
-    let e1 = hd g in
-    let r = tl g in
-    match (fold_left (\x y ->simplify_pair (x, y)) e1 r) with
-	Const 1 -> []
+      | (-f, -g) -> \x -> (f x)^2
+      | (f, -g) -> \x -> - ((f x)^2)
+      | (-f, g) -> \x -> - ((f x)^2)
+      | (f, g) -> \x -> (f x)^2
+    in
+    let simplify_group g =
+      let e1 = hd g in
+      let r = tl g in
+      match (fold_left (\x y ->simplify_pair (x, y)) e1 r) with
+        Const 1 -> []
       | f^(Const 0) -> [\x -> 1]
       | f^ (Const 1) -> [f]
       | - (f^(Const 1)) -> [(\x -> - f x)]
       | f -> [f]
+    in
+    let f' = map_fun regroup_pow f in
+    prod_f (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f')))))
   in
-  let f' = map_fun regroup_pow f in
-  prod_f (flatten (map simplify_group (regroupe (map simplify_minus (decompose_prod f')))))
-;;
 
-let normalise = function
-    @sqrt .  f -> (\x -> (f x)^(1/2), true)
-  | f / g -> (\x -> (f x) * (g x)^(-1), true)
-  | f -> (f, false)		    
-;;
-let unnormalise = function
-    f ^ (Const 1 / Const 2) -> (\x -> sqrt (f x), true)
-  | g * f ^ (Const (-1)) -> (\x -> (g x) /(f x), true)
-  | f ^ (Const (-1)) -> (\x -> 1 /(f x), true)
-  | f -> (f, false)		    
-;;
+  let normalise = function
+  @sqrt .  f -> (\x -> (f x)^(1/2), true)
+    | f / g -> (\x -> (f x) * (g x)^(-1), true)
+    | f -> (f, false)
+  in
+  let unnormalise = function
+  f ^ (Const 1 / Const 2) -> (\x -> sqrt (f x), true)
+    | g * f ^ (Const (-1)) -> (\x -> (g x) /(f x), true)
+    | f ^ (Const (-1)) -> (\x -> 1 /(f x), true)
+    | f -> (f, false)
+  in
 
-let rec simpl f = match f with
-   f ^(Const a) * g ^(Const b) when compare f g -> 
-    let r = a+b in \x -> (f x)^r
-  | (f * g) ^ h -> \x -> (f x)^(h x) * (g x) ^ (h x) 
-  | f * g when compare f g -> \x -> (f x) ^2
-  | f ^ (Const 1) -> f
-  | f ^ (Const 0) -> (\x -> 1)
-  | (Const 0)^ _ -> (\x -> 0) 
-  | @exp . (@ln . f)  -> simpl f
-  | @ln . (@exp . f)-> simpl f
-  | ((@cos . e)^(Const 2)) + ((@sin . e')^(Const 2)) when compare e e' -> (\x -> 1)
-  | Const 1 * f -> simpl f
-  | Const 0 * f -> (\x -> 0)
-  | f . g -> 
-    let f' = simpl f in let g' = simpl g in (\x -> f' (g' x))
-  | _ + _ -> 
-    simplify_sum (sum_f (map simpl (decompose_sum f))) 
-  | _ * _ -> 
-     simplify_prod (prod_f (map simpl (decompose_prod f))) 
-  | -f -> let f' = simpl f in \x -> - f' x
-  | f ^ g -> 
-    let f' = simpl f in let g' = simpl g in
-    \x -> (f' x) ^ (g' x)
-  | f -> f
-;;
+  let rec simpl f = match f with
+      f ^(Const a) * g ^(Const b) when compare f g ->
+        let r = a+b in \x -> (f x)^r
+    | (f * g) ^ h -> \x -> (f x)^(h x) * (g x) ^ (h x)
+    | f * g when compare f g -> \x -> (f x) ^2
+    | f ^ (Const 1) -> f
+    | f ^ (Const 0) -> (\x -> 1)
+    | (Const 0)^ _ -> (\x -> 0)
+    | @exp . (@ln . f)  -> simpl f
+    | @ln . (@exp . f)-> simpl f
+    | ((@cos . e)^(Const 2)) + ((@sin . e')^(Const 2)) when compare e e' -> (\x -> 1)
+    | Const 1 * f -> simpl f
+    | Const 0 * f -> (\x -> 0)
+    | f . g ->
+      let f' = simpl f in let g' = simpl g in (\x -> f' (g' x))
+    | _ + _ ->
+      simplify_sum (sum_f (map simpl (decompose_sum f)))
+    | _ * _ ->
+      simplify_prod (prod_f (map simpl (decompose_prod f)))
+    | -f -> let f' = simpl f in \x -> - f' x
+    | f ^ g ->
+      let f' = simpl f in let g' = simpl g in
+                          \x -> (f' x) ^ (g' x)
+    | f -> f
+  in
 
-let simplify f =
   let rec test f = match simpl f with
       g when compare f g -> f
     | g -> test g
@@ -186,49 +186,48 @@ let simplify f =
 ;;
 
 let rec deriv = function
-    @exp -> exp
+@exp -> exp
   | @sin -> cos
   | @cos -> \x -> - sin x
   | @ln -> (\x -> 1/x)
   | @sqrt -> (\x -> 1/(2*sqrt x))
   | Id -> \x -> 1
   | Const _ -> \x -> 0
-  | f+g -> 
+  | f+g ->
     let df = deriv f in let dg = deriv g in
-    \x -> df x + dg x
-  | -f -> 
+                        \x -> df x + dg x
+  | -f ->
     let df = deriv f in
     \x -> - df x
-  | f*g -> 
+  | f*g ->
     let df = deriv f in let dg = deriv g in
-    \x -> df x * g x + dg x * f x
+                        \x -> df x * g x + dg x * f x
 
-  | f ^ g -> 
+  | f ^ g ->
     let df = deriv f in let dg = deriv g in
-    \x -> (dg x * ln (f x) + (g x * df x)/ (f x)) * ((f x)^(g x)) 
-  | f / g -> 
+                        \x -> (dg x * ln (f x) + (g x * df x)/ (f x)) * ((f x)^(g x))
+  | f / g ->
     let df = deriv f in let dg = deriv g in
-    \x -> (df x * g x - dg x * f x)/(g x * g x)
-  | f . g -> 
+                        \x -> (df x * g x - dg x * f x)/(g x * g x)
+  | f . g ->
     let df = deriv f in
     let dg = deriv g in
     \x -> df (g x) * (dg x)
 ;;
 
 let rec expand = function
-    Id -> (\x -> x)
+Id -> (\x -> x)
   | Const(Num x) -> (\y -> x)
   | a*(b+c) ->
     let f = expand (\x -> (a x)*(b x)) in
     let g = expand (\x -> (a x)*(c x)) in
     \x -> f x + g x
   | f+g ->  let f' = expand f in let g' = expand g in
-     \x -> f' x + g' x
+                                 \x -> f' x + g' x
   | f.g ->  let f' = expand f in let g' = expand g in
-     \x -> f' (g' x)
+                                 \x -> f' (g' x)
   | f -> f
-;;                     
+;;
 
 
 let d f = simplify (deriv (simplify f));;
-
