@@ -1,0 +1,34 @@
+OASISFormat: 0.3
+Name:        CamlM
+Version:     dev
+Synopsis:    Math oriented, OCaml inspired language
+Authors:     Quentin C, Charlie P
+License:     GPL-3
+Homepage:    https://github.com/robocop/CamlM
+BuildTools: ocamlbuild
+
+Library compiler
+  Path:       src/compiler/
+  Modules:    Builtin, Error, Graph, Lambda_repl, Modules, Show, Typing,
+              Eval, Helper, Lexer, Parser, Syntax
+  BuildTools+: menhir, ocamllex
+
+Executable camlm
+  Path:       src/repl/
+  BuildTools+: menhir
+  MainIs:     camlm.ml
+  CompiledObject: native
+  BuildDepends: compiler
+  
+Executable test
+  Path:       test/
+  MainIs:     test.ml
+  Install:    false
+  CompiledObject: native
+  BuildDepends: oUnit, compiler
+
+Test main
+  Type: custom (0.3)
+  Command: $test -exec $camlm
+  TestTools: test, camlm
+
