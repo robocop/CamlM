@@ -8,16 +8,14 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Eval.eval</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Eval.eval</title>
 </head>
 <body>
 <code class="code"><span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;matching&nbsp;(com_test,&nbsp;assoc_test)&nbsp;env&nbsp;value&nbsp;pattern&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value,&nbsp;pattern&nbsp;<span class="keyword">with</span><br>
@@ -152,9 +150,9 @@
 </code><table><tr><td></td><td><span class="comment">(** Evaluate top level definitions that change the environment globally.
 <p>
 <ul>
-<li><code class="code">let ... = ...;;</code></li>
+<li><code class="code"><span class="keyword">let</span> ... = ...;;</code></li>
 <li><code class="code">declare ...;</code></li>
-<li><code class="code">open ...;</code>
+<li><code class="code"><span class="keyword">open</span> ...;</code>
 </li>
 </ul>
 *)</span></td></tr></table><code class="code"><br>
@@ -175,7 +173,7 @@
 
     Recursively reduces an expression "as much as possible". Formal functions
     (see wiki) are reduced using the lambda calculus rules defined in
-    <code class="code">Lambda_repl</code>.
+    <code class="code"><span class="constructor">Lambda_repl</span></code>.
 <p>
 
     The builtin Prelude calls are also evaluated here.
@@ -284,5 +282,5 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(env',&nbsp;_)&nbsp;=&nbsp;eval&nbsp;env&nbsp;x<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;do_eval&nbsp;env'&nbsp;xs<br>
 <br>
-</code><table><tr><td></td><td><span class="comment">(** See <code class="code">Modules.open_module</code> *)</span></td></tr></table><code class="code"><br>
+</code><table><tr><td></td><td><span class="comment">(** See <code class="code"><span class="constructor">Modules</span>.open_module</code> *)</span></td></tr></table><code class="code"><br>
 <span class="keyword">and</span>&nbsp;open_fun_module&nbsp;m&nbsp;env&nbsp;=&nbsp;open_module&nbsp;do_eval&nbsp;m&nbsp;env</code></body></html>

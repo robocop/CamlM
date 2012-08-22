@@ -8,30 +8,26 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Typing.type_exp</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Typing.type_exp</title>
 </head>
 <body>
 <code class="code"><span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;type_pattern&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PAxiom</span>&nbsp;id&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">begin</span>&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(t,&nbsp;r)&nbsp;=&nbsp;lookup_env&nbsp;id&nbsp;env&nbsp;<span class="keyword">in</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;if&nbsp;r&nbsp;=&nbsp;true&nbsp;then&nbsp;*)</span>(specialisation&nbsp;t,&nbsp;env)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*else&nbsp;raise&nbsp;(Error&nbsp;(id&nbsp;^&nbsp;"&nbsp;is&nbsp;not&nbsp;an&nbsp;axiom"))&nbsp;*)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t&nbsp;=&nbsp;lookup_env&nbsp;id&nbsp;env&nbsp;<span class="keyword">in</span>&nbsp;specialisation&nbsp;t,&nbsp;env<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Error</span>&nbsp;(id&nbsp;^&nbsp;<span class="string">"&nbsp;is&nbsp;not&nbsp;found"</span>))<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PVariable</span>&nbsp;id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ty,&nbsp;add_env&nbsp;(id,&nbsp;(trivial_schema&nbsp;ty,&nbsp;<span class="keyword">false</span>))&nbsp;env)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ty,&nbsp;add_env&nbsp;(id,&nbsp;trivial_schema&nbsp;ty)&nbsp;env)<br>
 <br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PBoolean</span>&nbsp;b&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_bool,&nbsp;env)<br>
@@ -111,7 +107,11 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(env',&nbsp;t)<br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeclare</span>&nbsp;(var,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;((add_env&nbsp;(var,&nbsp;(trivial_schema&nbsp;ty,&nbsp;<span class="keyword">true</span>))&nbsp;env),&nbsp;ty)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;((add_env&nbsp;(var,&nbsp;trivial_schema&nbsp;ty)&nbsp;env),&nbsp;ty)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeriv</span>(ty,&nbsp;expr,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t_expr&nbsp;=&nbsp;type_exp&nbsp;env&nbsp;expr&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;t_expr&nbsp;(type_arrow&nbsp;ty&nbsp;type_string);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(env,&nbsp;type_unit)<br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EOpen</span>&nbsp;(m,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;open_type_module&nbsp;m&nbsp;env<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;(env',&nbsp;type_unit)<br>
@@ -120,7 +120,7 @@
 <span class="keyword">and</span>&nbsp;type_exp&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;id&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">begin</span>&nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;specialisation&nbsp;(type_&nbsp;(lookup_env&nbsp;id&nbsp;env))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;specialisation&nbsp;(lookup_env&nbsp;id&nbsp;env)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Error</span>&nbsp;(id&nbsp;^&nbsp;<span class="string">"&nbsp;not&nbsp;found"</span>))<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{&nbsp;def&nbsp;=&nbsp;list_of_cases&nbsp;}&nbsp;<span class="keywordsign">-&gt;</span><br>
@@ -144,7 +144,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;env'&nbsp;corps<br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeclare</span>(var,&nbsp;<span class="constructor">Some</span>&nbsp;corps)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;add_env&nbsp;(var,&nbsp;(trivial_schema&nbsp;ty,&nbsp;<span class="keyword">true</span>))&nbsp;env&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;add_env&nbsp;(var,&nbsp;trivial_schema&nbsp;ty)&nbsp;env&nbsp;<span class="keyword">in</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;env'&nbsp;corps<br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EOpen</span>&nbsp;(m,&nbsp;<span class="constructor">Some</span>&nbsp;body)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;open_type_module&nbsp;m&nbsp;env<br>
@@ -165,18 +165,18 @@
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Error</span>&nbsp;<span class="string">"type_exp&nbsp;fail"</span>)<br>
 <br>
 <span class="keyword">and</span>&nbsp;type_def&nbsp;env&nbsp;def&nbsp;=&nbsp;<br>
-&nbsp;&nbsp;start_definition&nbsp;();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start_definition&nbsp;();<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_expr&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;def.recursive&nbsp;<span class="keyword">with</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keyword">false</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_exp&nbsp;env&nbsp;def.expr<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keyword">true</span>&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_temporary&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_expr&nbsp;=&nbsp;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;(add_env&nbsp;(def.name,&nbsp;(trivial_schema&nbsp;type_temporary,&nbsp;<span class="keyword">false</span>))&nbsp;env)&nbsp;def.expr&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;(add_env&nbsp;(def.name,&nbsp;trivial_schema&nbsp;type_temporary)&nbsp;env)&nbsp;def.expr&nbsp;<span class="keyword">in</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;type_expr&nbsp;type_temporary;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_expr&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end_definition&nbsp;();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_expr,&nbsp;add_env&nbsp;(def.name,&nbsp;(generalisation&nbsp;type_expr,&nbsp;<span class="keyword">false</span>))&nbsp;env)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end_definition&nbsp;();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_expr,&nbsp;add_env&nbsp;(def.name,&nbsp;generalisation&nbsp;type_expr)&nbsp;env)<br>
 <br>
 <span class="keyword">and</span>&nbsp;do_type&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;env<br>

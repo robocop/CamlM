@@ -13,25 +13,22 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Modules</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Modules</title>
 </head>
 <body>
-<div class="navbar"><a href="Lambda_repl.html">Previous</a>
-&nbsp;<a href="index.html">Up</a>
-&nbsp;<a href="Show.html">Next</a>
+<div class="navbar"><a class="pre" href="Lambda_repl.html" title="Lambda_repl">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Show.html" title="Show">Next</a>
 </div>
-<center><h1>Module <a href="type_Modules.html">Modules</a></h1></center>
-<br>
-<pre><span class="keyword">module</span> Modules: <code class="code">sig</code> <a href="Modules.html">..</a> <code class="code">end</code></pre>Functions related to the module subsystem (loading and environment
+<h1>Module <a href="type_Modules.html">Modules</a> (<a href="code_Modules.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Modules: <code class="code"><span class="keyword">sig</span></code> <a href="Modules.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Functions related to the module subsystem (loading and environment
     manipulation).
 <p>
 
@@ -58,16 +55,16 @@ Global association list of all modules in memory. Associates module name to
     the module's parsed (but not evaluated) source code<br>
 </div>
 <pre><span id="VALmodule_present"><span class="keyword">val</span> <a href="code_VALModules.module_present.html">module_present</a></span> : <code class="type">'a -> ('a * 'b) list -> bool</code></pre><div class="info">
-"exists" function for <a href="Modules.html#VALmodule_ast"><code class="code">Modules.module_ast</code></a><br>
+"exists" function for <a href="Modules.html#VALmodule_ast"><code class="code"><span class="constructor">Modules</span>.module_ast</code></a><br>
 </div>
 <pre><span id="VALfile_from_module"><span class="keyword">val</span> <a href="code_VALModules.file_from_module.html">file_from_module</a></span> : <code class="type">string -> string</code></pre><div class="info">
 Given a module name (e.g. Foo, Bar), retrieves the correspondant file name
     (e.g. /include/path/1/foo.mml, /include/path/2/bar.mml) from the include 
     path. If multiple files exist, takes the first match (in the order of the 
-    <a href="Modules.html#VALinclude_path"><code class="code">Modules.include_path</code></a>).<br>
+    <a href="Modules.html#VALinclude_path"><code class="code"><span class="constructor">Modules</span>.include_path</code></a>).<br>
 </div>
 <pre><span id="VALload_module"><span class="keyword">val</span> <a href="code_VALModules.load_module.html">load_module</a></span> : <code class="type">string -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a> list</code></pre><div class="info">
-Load module m from its corresponding file into the <a href="Modules.html#VALmodule_ast"><code class="code">Modules.module_ast</code></a>. The file
+Load module m from its corresponding file into the <a href="Modules.html#VALmodule_ast"><code class="code"><span class="constructor">Modules</span>.module_ast</code></a>. The file
     is read, parsed, and stored in the association list as (m, parsed source
     file) iff it is not already in memory. 
     If it is already in memory, it is just returned.<br>
@@ -83,7 +80,7 @@ Open the module given a function operating on an environment and a syntax
        the module to be loaded (B) , then B is already loaded and exposed to A.</li>
 <li>If the node B is present in the graph but there is no edge from A to B,
        expose B by adding an edge.</li>
-<li>Otherwise, retrieve the module from the <a href="Modules.html#VALmodule_ast"><code class="code">Modules.module_ast</code></a> and populate the
+<li>Otherwise, retrieve the module from the <a href="Modules.html#VALmodule_ast"><code class="code"><span class="constructor">Modules</span>.module_ast</code></a> and populate the
        environment using f.</li>
 </ul>
 <br>
@@ -92,7 +89,7 @@ Open the module given a function operating on an environment and a syntax
 <div class="param_info"><code class="code">m</code> : module name.</div>
 <div class="param_info"><code class="code">env</code> : current environment.</div>
 <pre><span id="VALlookup_env'"><span class="keyword">val</span> <a href="code_VALModules.lookup_env'.html">lookup_env'</a></span> : <code class="type">'a -> ('a * 'b) list -> 'b option</code></pre><div class="info">
-<code class="code">List.assoc</code> lifted from exceptions into the option type.<br>
+<code class="code"><span class="constructor">List</span>.assoc</code> lifted from exceptions into the option type.<br>
 </div>
 <pre><span id="VALdisambiguate"><span class="keyword">val</span> <a href="code_VALModules.disambiguate.html">disambiguate</a></span> : <code class="type">'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> string -> (string * 'b) list -> 'b</code></pre><div class="info">
 When the environment lookup returns multiple names (or none at all),
@@ -117,12 +114,12 @@ Add a whole module's worth of content.<br>
 </div>
 <div class="param_info"><code class="code">content</code> : list of pairs of names to add to the namespace</div>
 <pre><span id="VALmulti_add_env"><span class="keyword">val</span> <a href="code_VALModules.multi_add_env.html">multi_add_env</a></span> : <code class="type">(string * 'a) list -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
-<a href="Modules.html#VALadd_mod"><code class="code">Modules.add_mod</code></a> lifted to environments.<br>
+<a href="Modules.html#VALadd_mod"><code class="code"><span class="constructor">Modules</span>.add_mod</code></a> lifted to environments.<br>
 </div>
 <pre><span id="VALadd_env"><span class="keyword">val</span> <a href="code_VALModules.add_env.html">add_env</a></span> : <code class="type">string * 'a -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a> -> 'a <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
-<a href="Modules.html#VALmulti_add_env"><code class="code">Modules.multi_add_env</code></a> over a single element.<br>
+<a href="Modules.html#VALmulti_add_env"><code class="code"><span class="constructor">Modules</span>.multi_add_env</code></a> over a single element.<br>
 </div>
 <pre><span id="VALinit"><span class="keyword">val</span> <a href="code_VALModules.init.html">init</a></span> : <code class="type">string list -> unit</code></pre><div class="info">
-Wrapper to initialize the <a href="Modules.html#VALinclude_path"><code class="code">Modules.include_path</code></a> reference.<br>
+Wrapper to initialize the <a href="Modules.html#VALinclude_path"><code class="code"><span class="constructor">Modules</span>.include_path</code></a> reference.<br>
 </div>
 </body></html>

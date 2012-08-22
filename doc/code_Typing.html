@@ -1,0 +1,328 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Typing</title>
+</head>
+<body>
+<code class="code"></code><table><tr><td></td><td><span class="comment">(** Type system. 
+<p>
+
+    TODO : Finish commenting.
+*)</span></td></tr></table><code class="code"><br>
+<br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Syntax</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Modules</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Error</span>&nbsp;<br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Helper</span><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Payload of <code class="code"><span class="constructor">Syntax</span>.env</code>.
+<p>
+
+    The pair is composed of, in order : <ul>
+<li>type</li>
+<li>recursive
+</li>
+</ul>
+*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">type</span>&nbsp;type_env_content&nbsp;=&nbsp;type_schema<br>
+<br>
+<br>
+<span class="keyword">let</span>&nbsp;level_of_liaison&nbsp;=&nbsp;ref&nbsp;0;;<br>
+<span class="keyword">let</span>&nbsp;new_unknow&nbsp;()&nbsp;=&nbsp;<span class="constructor">Variable</span>&nbsp;{level&nbsp;=&nbsp;!level_of_liaison;&nbsp;value&nbsp;=&nbsp;<span class="constructor">Unknow</span>&nbsp;}<br>
+<br>
+<span class="keyword">let</span>&nbsp;trivial_schema&nbsp;ty&nbsp;=&nbsp;{parameter&nbsp;=&nbsp;[];&nbsp;corps&nbsp;=&nbsp;ty}<br>
+<br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;value_of&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;({value&nbsp;=&nbsp;<span class="constructor">Know</span>&nbsp;ty1}&nbsp;<span class="keyword">as</span>&nbsp;var)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;value_of_ty1=&nbsp;value_of&nbsp;ty1&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var.value&nbsp;&lt;-&nbsp;<span class="constructor">Know</span>&nbsp;value_of_ty1;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value_of_ty1<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;ty&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ty<br>
+<br>
+<span class="keyword">let</span>&nbsp;name_of_variables&nbsp;=&nbsp;ref&nbsp;([]&nbsp;:&nbsp;(variable_of_type&nbsp;*&nbsp;string)&nbsp;list)<br>
+<br>
+<span class="keyword">let</span>&nbsp;print_var&nbsp;var&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="string">"`"</span>&nbsp;^<br>
+&nbsp;&nbsp;(<span class="keyword">try</span>&nbsp;<span class="constructor">List</span>.assq&nbsp;var&nbsp;!name_of_variables<br>
+&nbsp;&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;variables&nbsp;=&nbsp;<span class="constructor">List</span>.fold_left&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">fun</span>&nbsp;set&nbsp;(_,&nbsp;x)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">StringSet</span>.add&nbsp;x&nbsp;set)&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">StringSet</span>.empty&nbsp;!name_of_variables&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;name&nbsp;=&nbsp;new_variable&nbsp;variables&nbsp;<span class="string">"a"</span>&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name_of_variables&nbsp;:=&nbsp;(var,&nbsp;name)&nbsp;::&nbsp;!name_of_variables;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name)<br>
+;;<br>
+<br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;print&nbsp;ty&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value_of&nbsp;ty&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;print_var&nbsp;var<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(constructor,&nbsp;arguments)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Array</span>.length&nbsp;arguments&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;0&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;constructor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;1&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Printf</span>.sprintf&nbsp;<span class="string">"%s&nbsp;%s"</span>&nbsp;(print&nbsp;arguments.(0))&nbsp;constructor<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="comment">(*&nbsp;2&nbsp;*)</span>&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Printf</span>.sprintf&nbsp;<span class="string">"(%s&nbsp;%s&nbsp;%s)"</span>&nbsp;(print&nbsp;arguments.(0))&nbsp;constructor&nbsp;(print&nbsp;arguments.(1))<br>
+;;<br>
+<br>
+<span class="keyword">let</span>&nbsp;print_type&nbsp;ty&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;name_of_variables&nbsp;:=&nbsp;[];&nbsp;print&nbsp;ty<br>
+;;<br>
+<br>
+<span class="keyword">let</span>&nbsp;loop_test&nbsp;var&nbsp;ty&nbsp;=<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;test&nbsp;t&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value_of&nbsp;t&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var'&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;var&nbsp;==&nbsp;var'&nbsp;<span class="keyword">then</span>&nbsp;raise(<span class="constructor">Loop</span>&nbsp;(print_type&nbsp;(<span class="constructor">Variable</span>&nbsp;var),&nbsp;print_type&nbsp;ty))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(_,&nbsp;arguments)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Array</span>.iter&nbsp;test&nbsp;arguments<br>
+&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;test&nbsp;ty;;<br>
+<br>
+<br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;rectify_levels&nbsp;level_max&nbsp;ty&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value_of&nbsp;ty&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;var.level&nbsp;&gt;&nbsp;level_max&nbsp;<span class="keyword">then</span>&nbsp;var.level&nbsp;&lt;-&nbsp;level_max<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(_,&nbsp;arguments)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Array</span>.iter&nbsp;(rectify_levels&nbsp;level_max)&nbsp;arguments;;<br>
+<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Unify two types *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;unify&nbsp;ty1&nbsp;ty2&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="comment">(*<br>
+&nbsp;&nbsp;&nbsp;print_string&nbsp;"unify&nbsp;";&nbsp;print_string&nbsp;(print_type&nbsp;ty1);&nbsp;<br>
+&nbsp;&nbsp;&nbsp;print_string&nbsp;"&nbsp;and&nbsp;";&nbsp;print_endline&nbsp;(print_type&nbsp;ty2);<br>
+&nbsp;&nbsp;&nbsp;*)</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;v1&nbsp;=&nbsp;value_of&nbsp;ty1<br>
+&nbsp;&nbsp;<span class="keyword">and</span>&nbsp;v2&nbsp;=&nbsp;value_of&nbsp;ty2&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;v1&nbsp;==&nbsp;v2&nbsp;<span class="keyword">then</span>&nbsp;()&nbsp;<span class="keyword">else</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">match</span>&nbsp;(v1,&nbsp;v2)&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var,&nbsp;ty&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loop_test&nbsp;var&nbsp;ty;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rectify_levels&nbsp;var.level&nbsp;ty;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var.value&nbsp;&lt;-&nbsp;<span class="constructor">Know</span>&nbsp;ty<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;ty,&nbsp;<span class="constructor">Variable</span>&nbsp;var&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loop_test&nbsp;var&nbsp;ty;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rectify_levels&nbsp;var.level&nbsp;ty;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var.value&nbsp;&lt;-&nbsp;<span class="constructor">Know</span>&nbsp;ty<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(constr1,&nbsp;arguments1),&nbsp;<span class="constructor">Term</span>(constr2,&nbsp;arguments2)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;constr1&nbsp;&lt;&gt;&nbsp;constr2&nbsp;<span class="keyword">then</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raise&nbsp;(<span class="constructor">Conflit</span>(print_type&nbsp;v1,&nbsp;print_type&nbsp;v2))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">else</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span>&nbsp;i&nbsp;=&nbsp;0&nbsp;<span class="keyword">to</span>&nbsp;<span class="constructor">Array</span>.length&nbsp;arguments1&nbsp;-&nbsp;1&nbsp;<span class="keyword">do</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;arguments1.(i)&nbsp;arguments2.(i)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">done</span><br>
+;;<br>
+<br>
+<br>
+<span class="keyword">let</span>&nbsp;start_definition&nbsp;()&nbsp;=&nbsp;incr&nbsp;level_of_liaison<br>
+<span class="keyword">let</span>&nbsp;end_definition&nbsp;()&nbsp;=&nbsp;decr&nbsp;level_of_liaison<br>
+<br>
+<span class="keyword">let</span>&nbsp;generalisation&nbsp;ty&nbsp;=<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;params&nbsp;=&nbsp;ref&nbsp;[]&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;find_parameters&nbsp;ty&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value_of&nbsp;ty&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;var.level&nbsp;&gt;&nbsp;!level_of_liaison&nbsp;<span class="keywordsign">&amp;&amp;</span>&nbsp;not&nbsp;(<span class="constructor">List</span>.memq&nbsp;var&nbsp;!params)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">then</span>&nbsp;params&nbsp;:=&nbsp;var&nbsp;::&nbsp;!params<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(_,&nbsp;arguments)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Array</span>.iter&nbsp;find_parameters&nbsp;arguments&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;find_parameters&nbsp;ty;<br>
+&nbsp;&nbsp;{parameter&nbsp;=&nbsp;!params;&nbsp;corps&nbsp;=&nbsp;ty}<br>
+;;<br>
+<br>
+<span class="keyword">let</span>&nbsp;specialisation&nbsp;schema&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;schema.parameter&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;schema.corps<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;params&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;new_unknowns&nbsp;=<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">List</span>.map&nbsp;(<span class="keyword">fun</span>&nbsp;var&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(var,&nbsp;new_unknow&nbsp;()))&nbsp;params&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;copy&nbsp;ty&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value_of&nbsp;ty&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var&nbsp;<span class="keyword">as</span>&nbsp;ty&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">try</span>&nbsp;<span class="constructor">List</span>.assq&nbsp;var&nbsp;new_unknowns&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ty)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(constr,&nbsp;arguments)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Term</span>(constr,&nbsp;<span class="constructor">Array</span>.map&nbsp;copy&nbsp;arguments)&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;copy&nbsp;schema.corps<br>
+;;<br>
+<br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;type_pattern&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PAxiom</span>&nbsp;id&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">begin</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t&nbsp;=&nbsp;lookup_env&nbsp;id&nbsp;env&nbsp;<span class="keyword">in</span>&nbsp;specialisation&nbsp;t,&nbsp;env<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Error</span>&nbsp;(id&nbsp;^&nbsp;<span class="string">"&nbsp;is&nbsp;not&nbsp;found"</span>))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PVariable</span>&nbsp;id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ty,&nbsp;add_env&nbsp;(id,&nbsp;trivial_schema&nbsp;ty)&nbsp;env)<br>
+<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PBoolean</span>&nbsp;b&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_bool,&nbsp;env)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PNum</span>&nbsp;n&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(type_num,&nbsp;env)&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PString</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(type_string,&nbsp;env)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PPair</span>(m1,&nbsp;m2)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;m1&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty2,&nbsp;env2)&nbsp;=&nbsp;type_pattern&nbsp;env1&nbsp;m2&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_product&nbsp;ty1&nbsp;ty2,&nbsp;env2)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PNone</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(type_option&nbsp;(new_unknow&nbsp;()),&nbsp;env)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PSome</span>&nbsp;p&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty,&nbsp;env'&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;p&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_option&nbsp;ty,&nbsp;env')<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PNil</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_list&nbsp;(new_unknow&nbsp;()),&nbsp;env)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PCons</span>(m1,&nbsp;m2)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;m1&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty2,&nbsp;env2)&nbsp;=&nbsp;type_pattern&nbsp;env1&nbsp;m2&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;(type_list&nbsp;ty1)&nbsp;ty2;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ty2,&nbsp;env2)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PAll</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(new_unknow&nbsp;(),&nbsp;env)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PMinus</span>&nbsp;p1&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_arg&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_result&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;p1&nbsp;<span class="keyword">in</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty1&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;type_num&nbsp;type_result;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result,&nbsp;env1)<br>
+<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">POp</span>&nbsp;(_,&nbsp;p1,&nbsp;p2)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_arg&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_result&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;p1&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty2,&nbsp;env2)&nbsp;=&nbsp;type_pattern&nbsp;env1&nbsp;p2&nbsp;<span class="keyword">in</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty1&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty2&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;type_num&nbsp;type_result;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result,&nbsp;env2)<br>
+<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PCompose</span>&nbsp;(pf,&nbsp;pg)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_arg&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_result&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_inter&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;pg&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty2,&nbsp;env2)&nbsp;=&nbsp;type_pattern&nbsp;env1&nbsp;pf&nbsp;<span class="keyword">in</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty1&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_inter);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty2&nbsp;(type_arrow&nbsp;type_inter&nbsp;type_result);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result,&nbsp;env2)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PIdentity</span>&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_arrow&nbsp;t&nbsp;t,&nbsp;env)&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PConst</span>&nbsp;p&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_arg&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_result&nbsp;=&nbsp;new_unknow()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;p&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty1&nbsp;type_result;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_arrow&nbsp;type_arg&nbsp;type_result,&nbsp;env1)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PIsnum</span>&nbsp;p&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(ty1,&nbsp;env1)&nbsp;=&nbsp;&nbsp;type_pattern&nbsp;env&nbsp;p&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;ty1&nbsp;type_num;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_num,&nbsp;env1)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PWhen</span>(expr,&nbsp;pattern)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(t,&nbsp;env1)&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;pattern&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ignore&nbsp;(type_exp&nbsp;env1&nbsp;expr);&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(t,&nbsp;env1)<br>
+<br>
+<span class="keyword">and</span>&nbsp;type_expr&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ELet</span>&nbsp;(def,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t,&nbsp;env'&nbsp;=&nbsp;type_def&nbsp;env&nbsp;def&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(env',&nbsp;t)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeclare</span>&nbsp;(var,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;((add_env&nbsp;(var,&nbsp;trivial_schema&nbsp;ty)&nbsp;env),&nbsp;ty)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeriv</span>(ty,&nbsp;expr,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t_expr&nbsp;=&nbsp;type_exp&nbsp;env&nbsp;expr&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;t_expr&nbsp;(type_arrow&nbsp;ty&nbsp;type_string);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(env,&nbsp;type_unit)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EOpen</span>&nbsp;(m,&nbsp;<span class="constructor">None</span>)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;open_type_module&nbsp;m&nbsp;env<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;(env',&nbsp;type_unit)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;expr&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(env,&nbsp;type_exp&nbsp;env&nbsp;expr)<br>
+<br>
+<span class="keyword">and</span>&nbsp;type_exp&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;id&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">begin</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;specialisation&nbsp;(lookup_env&nbsp;id&nbsp;env)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Error</span>&nbsp;(id&nbsp;^&nbsp;<span class="string">"&nbsp;not&nbsp;found"</span>))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{&nbsp;def&nbsp;=&nbsp;list_of_cases&nbsp;}&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_argument&nbsp;=&nbsp;new_unknow&nbsp;()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">and</span>&nbsp;type_result&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_cas&nbsp;(pattern,&nbsp;expr)&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_pattern,&nbsp;extended_env&nbsp;=&nbsp;type_pattern&nbsp;env&nbsp;pattern<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;unify&nbsp;type_pattern&nbsp;type_argument;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_expr&nbsp;=&nbsp;type_exp&nbsp;extended_env&nbsp;expr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;unify&nbsp;type_expr&nbsp;type_result<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;<span class="constructor">List</span>.iter&nbsp;type_cas&nbsp;list_of_cases;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_arrow&nbsp;type_argument&nbsp;type_result<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>(func,&nbsp;argument)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_func&nbsp;=&nbsp;type_exp&nbsp;env&nbsp;func&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_argument&nbsp;=&nbsp;type_exp&nbsp;env&nbsp;argument&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_result&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;type_func&nbsp;(type_arrow&nbsp;type_argument&nbsp;type_result);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_result<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ELet</span>(def,&nbsp;<span class="constructor">Some</span>&nbsp;corps)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;_,&nbsp;env'&nbsp;=&nbsp;type_def&nbsp;env&nbsp;def&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;env'&nbsp;corps<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeclare</span>(var,&nbsp;<span class="constructor">Some</span>&nbsp;corps)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ty&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;add_env&nbsp;(var,&nbsp;trivial_schema&nbsp;ty)&nbsp;env&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;env'&nbsp;corps<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EOpen</span>&nbsp;(m,&nbsp;<span class="constructor">Some</span>&nbsp;body)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;env'&nbsp;=&nbsp;open_type_module&nbsp;m&nbsp;env<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;type_exp&nbsp;env'&nbsp;body&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EBoolean</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_bool<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENum</span>&nbsp;_<span class="keywordsign">-&gt;</span>&nbsp;type_num<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EString</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_string<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>&nbsp;(e1,&nbsp;e2)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_product&nbsp;(type_exp&nbsp;env&nbsp;e1)&nbsp;(type_exp&nbsp;env&nbsp;e2)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENone</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_option&nbsp;(new_unknow&nbsp;())<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>&nbsp;v&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_option&nbsp;(type_exp&nbsp;env&nbsp;v)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENil</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_list&nbsp;(new_unknow&nbsp;())<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EUnit</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_unit<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>(e1,&nbsp;e2)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t1&nbsp;=&nbsp;type_exp&nbsp;env&nbsp;e1&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;t2&nbsp;=&nbsp;type_exp&nbsp;env&nbsp;e2&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;(type_list&nbsp;t1)&nbsp;t2;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t2<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;(<span class="constructor">Error</span>&nbsp;<span class="string">"type_exp&nbsp;fail"</span>)<br>
+<br>
+<span class="keyword">and</span>&nbsp;type_def&nbsp;env&nbsp;def&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start_definition&nbsp;();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_expr&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;def.recursive&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keyword">false</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;type_exp&nbsp;env&nbsp;def.expr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keyword">true</span>&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_temporary&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;type_expr&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_exp&nbsp;(add_env&nbsp;(def.name,&nbsp;trivial_schema&nbsp;type_temporary)&nbsp;env)&nbsp;def.expr&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unify&nbsp;type_expr&nbsp;type_temporary;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type_expr&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end_definition&nbsp;();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type_expr,&nbsp;add_env&nbsp;(def.name,&nbsp;generalisation&nbsp;type_expr)&nbsp;env)<br>
+<br>
+<span class="keyword">and</span>&nbsp;do_type&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;env<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;x&nbsp;::&nbsp;xs&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;(env',&nbsp;_)&nbsp;=&nbsp;type_expr&nbsp;env&nbsp;x<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;do_type&nbsp;env'&nbsp;xs<br>
+<br>
+<span class="keyword">and</span>&nbsp;open_type_module&nbsp;m&nbsp;env&nbsp;=&nbsp;open_module&nbsp;do_type&nbsp;m&nbsp;env<br>
+<br>
+</code></body></html>

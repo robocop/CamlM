@@ -4,8 +4,8 @@
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Error.html">
-<link rel="next" href="Lambda_repl.html">
+<link rel="previous" href="Eval.html">
+<link rel="next" href="Helper.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -13,25 +13,22 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Graph</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Graph</title>
 </head>
 <body>
-<div class="navbar"><a href="Error.html">Previous</a>
-&nbsp;<a href="index.html">Up</a>
-&nbsp;<a href="Lambda_repl.html">Next</a>
+<div class="navbar"><a class="pre" href="Eval.html" title="Eval">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Helper.html" title="Helper">Next</a>
 </div>
-<center><h1>Module <a href="type_Graph.html">Graph</a></h1></center>
-<br>
-<pre><span class="keyword">module</span> Graph: <code class="code">sig</code> <a href="Graph.html">..</a> <code class="code">end</code></pre>A simple and incomplete directed graph implementation.
+<h1>Module <a href="type_Graph.html">Graph</a> (<a href="code_Graph.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Graph: <code class="code"><span class="keyword">sig</span></code> <a href="Graph.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>A simple and incomplete directed graph implementation.
 <p>
 
     Also rather inefficient.<br>
@@ -41,20 +38,21 @@
 A graph. Currently implemented as a list of (node, edges).<br>
 </div>
 
-<pre><span id="VALadd_node"><span class="keyword">val</span> add_node</span> : <code class="type">'a -> 'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a <a href="Graph.html#TYPEgraph">graph</a></code></pre><div class="info">
+<pre><span id="VALadd_node"><span class="keyword">val</span> <a href="code_VALGraph.add_node.html">add_node</a></span> : <code class="type">'a -> 'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a <a href="Graph.html#TYPEgraph">graph</a></code></pre><div class="info">
 Add a node with no edges to a graph.<br>
 </div>
-<pre><span id="VALadd_arc"><span class="keyword">val</span> add_arc</span> : <code class="type">'a -> 'a -> 'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a <a href="Graph.html#TYPEgraph">graph</a></code></pre><div class="info">
+<pre><span id="VALadd_arc"><span class="keyword">val</span> <a href="code_VALGraph.add_arc.html">add_arc</a></span> : <code class="type">'a -> 'a -> 'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a <a href="Graph.html#TYPEgraph">graph</a></code></pre><div class="info">
 Add a directed edge from a node to another in the graph.<br>
 <b>Raises</b> <code>Not_found</code> if the source node was not found.<br>
 </div>
-<pre><span id="VALadjacent_nodes"><span class="keyword">val</span> adjacent_nodes</span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a -> 'a list</code></pre><div class="info">
+<pre><span id="VALadjacent_nodes"><span class="keyword">val</span> <a href="code_VALGraph.adjacent_nodes.html">adjacent_nodes</a></span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a -> 'a list</code></pre><div class="info">
 Returns a list of the nodes which have an edge from the source node to them.<br>
 </div>
-<pre><span id="VALis_adjacent"><span class="keyword">val</span> is_adjacent</span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a -> 'a -> bool</code></pre><div class="info">
+<div class="param_info"><code class="code">node</code> : the source node.</div>
+<pre><span id="VALis_adjacent"><span class="keyword">val</span> <a href="code_VALGraph.is_adjacent.html">is_adjacent</a></span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a -> 'a -> bool</code></pre><div class="info">
 Checks that a has an edge to b.<br>
 </div>
-<pre><span id="VALdistance"><span class="keyword">val</span> distance</span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a -> 'a -> int</code></pre><div class="info">
+<pre><span id="VALdistance"><span class="keyword">val</span> <a href="code_VALGraph.distance.html">distance</a></span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a> -> 'a -> 'a -> int</code></pre><div class="info">
 Cheap distance in between two node. Used for module scoping.
 <p>
 <ul>
@@ -63,10 +61,10 @@ Cheap distance in between two node. Used for module scoping.
 </ul>
 <br>
 </div>
-<pre><span id="VALnode_present"><span class="keyword">val</span> node_present</span> : <code class="type">'a -> 'a <a href="Graph.html#TYPEgraph">graph</a> -> bool</code></pre><div class="info">
+<pre><span id="VALnode_present"><span class="keyword">val</span> <a href="code_VALGraph.node_present.html">node_present</a></span> : <code class="type">'a -> 'a <a href="Graph.html#TYPEgraph">graph</a> -> bool</code></pre><div class="info">
 Checks node is present in graph.<br>
 </div>
-<pre><span id="VALempty"><span class="keyword">val</span> empty</span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a></code></pre><div class="info">
+<pre><span id="VALempty"><span class="keyword">val</span> <a href="code_VALGraph.empty.html">empty</a></span> : <code class="type">'a <a href="Graph.html#TYPEgraph">graph</a></code></pre><div class="info">
 The empty graph. Combine with add_node and add_arc to build a graph.<br>
 </div>
 </body></html>

@@ -8,16 +8,14 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Show.show_function</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Show.show_function</title>
 </head>
 <body>
 <code class="code"><span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;show_def&nbsp;def&nbsp;=&nbsp;<br>
@@ -53,7 +51,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">fun</span>&nbsp;(m,&nbsp;e)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Printf</span>.sprintf&nbsp;<span class="string">"%s&nbsp;-&gt;&nbsp;%s\n"</span>&nbsp;(show_pattern&nbsp;m)&nbsp;(show&nbsp;e))&nbsp;def))<br>
 <br>
-</code><table><tr><td></td><td><span class="comment">(** Shows expressions reduced by <code class="code">Eval.eval</code>, but does not show the environment.
+</code><table><tr><td></td><td><span class="comment">(** Shows expressions reduced by <code class="code"><span class="constructor">Eval</span>.eval</code>, but does not show the environment.
   *)</span></td></tr></table><code class="code"><br>
 <span class="keyword">and</span>&nbsp;show&nbsp;=&nbsp;<span class="keyword">function</span><br>
 &nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;v&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;v<br>

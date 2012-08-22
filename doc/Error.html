@@ -5,7 +5,7 @@
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Builtin.html">
-<link rel="next" href="Graph.html">
+<link rel="next" href="Eval.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -13,25 +13,22 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Error</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Error</title>
 </head>
 <body>
-<div class="navbar"><a href="Builtin.html">Previous</a>
-&nbsp;<a href="index.html">Up</a>
-&nbsp;<a href="Graph.html">Next</a>
+<div class="navbar"><a class="pre" href="Builtin.html" title="Builtin">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Eval.html" title="Eval">Next</a>
 </div>
-<center><h1>Module <a href="type_Error.html">Error</a></h1></center>
-<br>
-<pre><span class="keyword">module</span> Error: <code class="code">sig</code> <a href="Error.html">..</a> <code class="code">end</code></pre>Exception definitions and pretty print function.
+<h1>Module <a href="type_Error.html">Error</a> (<a href="code_Error.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Error: <code class="code"><span class="keyword">sig</span></code> <a href="Error.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Exception definitions and pretty print function.
 <p>
 
     For now, most errors cause immediate termination of any eval/typing function.
@@ -39,7 +36,7 @@
 <hr width="100%">
 <pre><span id="EXCEPTIONMatchingFailure"><span class="keyword">exception</span> MatchingFailure</span></pre>
 <div class="info">
-Matching failed on current pattern. See the source code for <a href="Eval.html"><code class="code">Eval</code></a> to see
+Matching failed on current pattern. See the source code for <a href="Eval.html"><code class="code"><span class="constructor">Eval</span></code></a> to see
     how this is used.<br>
 </div>
 <pre><span id="EXCEPTIONError"><span class="keyword">exception</span> Error</span> <span class="keyword">of</span> <code class="type">string</code></pre>

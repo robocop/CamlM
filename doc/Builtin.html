@@ -12,38 +12,35 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Builtin" rel="Chapter" href="Builtin.html">
 <link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
 <link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
 <link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
 <link title="Modules" rel="Chapter" href="Modules.html">
 <link title="Show" rel="Chapter" href="Show.html">
-<link title="Typing" rel="Chapter" href="Typing.html">
-<link title="Eval" rel="Chapter" href="Eval.html">
-<link title="Helper" rel="Chapter" href="Helper.html">
-<link title="Lexer" rel="Chapter" href="Lexer.html">
-<link title="Parser" rel="Chapter" href="Parser.html">
-<link title="Syntax" rel="Chapter" href="Syntax.html"><title>Builtin</title>
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Builtin</title>
 </head>
 <body>
-<div class="navbar">&nbsp;<a href="index.html">Up</a>
-&nbsp;<a href="Error.html">Next</a>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Error.html" title="Error">Next</a>
 </div>
-<center><h1>Module <a href="type_Builtin.html">Builtin</a></h1></center>
-<br>
-<pre><span class="keyword">module</span> Builtin: <code class="code">sig</code> <a href="Builtin.html">..</a> <code class="code">end</code></pre>Default (prelude) function types and definitions.
+<h1>Module <a href="type_Builtin.html">Builtin</a> (<a href="code_Builtin.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Builtin: <code class="code"><span class="keyword">sig</span></code> <a href="Builtin.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Default (prelude) function types and definitions.
 <p>
 
-    <a href="Eval.html"><code class="code">Eval</code></a> dictates the reduction rules for Prelude functions.
+    <a href="Eval.html"><code class="code"><span class="constructor">Eval</span></code></a> dictates the reduction rules for Prelude functions.
     The builtin functions below are mixed in with the functions from the
     "prelude.mml" file in the lib/ directory by the REPL.<br>
 <hr width="100%">
-<pre><span id="VALtype_prim1"><span class="keyword">val</span> <a href="code_VALBuiltin.type_prim1.html">type_prim1</a></span> : <code class="type"><a href="Typing.html#TYPEsimple_type">Typing.simple_type</a> -> <a href="Typing.html#TYPEsimple_type">Typing.simple_type</a> -> <a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool</code></pre><pre><span id="VALtype_prim2"><span class="keyword">val</span> <a href="code_VALBuiltin.type_prim2.html">type_prim2</a></span> : <code class="type"><a href="Typing.html#TYPEsimple_type">Typing.simple_type</a> -><br>       <a href="Typing.html#TYPEsimple_type">Typing.simple_type</a> -> <a href="Typing.html#TYPEsimple_type">Typing.simple_type</a> -> <a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool</code></pre><pre><span id="VALtype_arithmetic"><span class="keyword">val</span> <a href="code_VALBuiltin.type_arithmetic.html">type_arithmetic</a></span> : <code class="type"><a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool</code></pre><pre><span id="VALtype_lexical"><span class="keyword">val</span> <a href="code_VALBuiltin.type_lexical.html">type_lexical</a></span> : <code class="type"><a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool</code></pre><pre><span id="VALtype_logic"><span class="keyword">val</span> <a href="code_VALBuiltin.type_logic.html">type_logic</a></span> : <code class="type"><a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool</code></pre><pre><span id="VALtype_poly_logic"><span class="keyword">val</span> <a href="code_VALBuiltin.type_poly_logic.html">type_poly_logic</a></span> : <code class="type"><a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool</code></pre><pre><span id="VALbuiltin_types"><span class="keyword">val</span> <a href="code_VALBuiltin.builtin_types.html">builtin_types</a></span> : <code class="type">(string * (string * (<a href="Typing.html#TYPEtype_schema">Typing.type_schema</a> * bool)) list) list</code></pre><div class="info">
-Builtin types. Note that <a href="Builtin.html#VALbuiltin_types"><code class="code">Builtin.builtin_types</code></a> is structured to be a namespace
-    for <a href="Syntax.html#TYPEenv"><code class="code">Syntax.env</code></a>.<br>
+<pre><span id="VALtype_prim1"><span class="keyword">val</span> <a href="code_VALBuiltin.type_prim1.html">type_prim1</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">Syntax.simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">Syntax.simple_type</a> -> <a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a></code></pre><pre><span id="VALtype_prim2"><span class="keyword">val</span> <a href="code_VALBuiltin.type_prim2.html">type_prim2</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">Syntax.simple_type</a> -><br>       <a href="Syntax.html#TYPEsimple_type">Syntax.simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">Syntax.simple_type</a> -> <a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a></code></pre><pre><span id="VALtype_arithmetic"><span class="keyword">val</span> <a href="code_VALBuiltin.type_arithmetic.html">type_arithmetic</a></span> : <code class="type"><a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a></code></pre><pre><span id="VALtype_lexical"><span class="keyword">val</span> <a href="code_VALBuiltin.type_lexical.html">type_lexical</a></span> : <code class="type"><a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a></code></pre><pre><span id="VALtype_logic"><span class="keyword">val</span> <a href="code_VALBuiltin.type_logic.html">type_logic</a></span> : <code class="type"><a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a></code></pre><pre><span id="VALtype_poly_logic"><span class="keyword">val</span> <a href="code_VALBuiltin.type_poly_logic.html">type_poly_logic</a></span> : <code class="type"><a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a></code></pre><pre><span id="VALbuiltin_types"><span class="keyword">val</span> <a href="code_VALBuiltin.builtin_types.html">builtin_types</a></span> : <code class="type">(string * (string * <a href="Syntax.html#TYPEtype_schema">Syntax.type_schema</a>) list) list</code></pre><div class="info">
+Builtin types. Note that <a href="Builtin.html#VALbuiltin_types"><code class="code"><span class="constructor">Builtin</span>.builtin_types</code></a> is structured to be a namespace
+    for <a href="Syntax.html#TYPEenv"><code class="code"><span class="constructor">Syntax</span>.env</code></a>.<br>
 </div>
 <pre><span id="VALbuiltin_fns"><span class="keyword">val</span> <a href="code_VALBuiltin.builtin_fns.html">builtin_fns</a></span> : <code class="type">(string *<br>        (string * (<a href="Syntax.html#TYPEexpression">Syntax.expression</a> option * <a href="Syntax.html#TYPEprop">Syntax.prop</a> list option)) list)<br>       list</code></pre><div class="info">
 Builtin functions and their representation and properties in the AST.
     <code class="code">+</code> and <code class="code">-</code> are defined to be associative and commutative. Like 
-    <a href="Builtin.html#VALbuiltin_types"><code class="code">Builtin.builtin_types</code></a>, <a href="Builtin.html#VALbuiltin_fns"><code class="code">Builtin.builtin_fns</code></a> is structured to be a namespace for
-    <a href="Syntax.html#TYPEenv"><code class="code">Syntax.env</code></a>.<br>
+    <a href="Builtin.html#VALbuiltin_types"><code class="code"><span class="constructor">Builtin</span>.builtin_types</code></a>, <a href="Builtin.html#VALbuiltin_fns"><code class="code"><span class="constructor">Builtin</span>.builtin_fns</code></a> is structured to be a namespace for
+    <a href="Syntax.html#TYPEenv"><code class="code"><span class="constructor">Syntax</span>.env</code></a>.<br>
 </div>
 </body></html>

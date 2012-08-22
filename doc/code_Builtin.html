@@ -1,0 +1,91 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Builtin</title>
+</head>
+<body>
+<code class="code"></code><table><tr><td></td><td><span class="comment">(** Default (prelude) function types and definitions.
+<p>
+
+    <code class="code"><span class="constructor">Eval</span></code> dictates the reduction rules for Prelude functions.
+    The builtin functions below are mixed in with the functions from the
+    "prelude.mml" file in the lib/ directory by the REPL.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Syntax</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Error</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Typing</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Eval</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Modules</span><br>
+<br>
+<span class="keyword">let</span>&nbsp;type_prim1&nbsp;a&nbsp;b&nbsp;=&nbsp;&nbsp;trivial_schema&nbsp;(type_arrow&nbsp;a&nbsp;b)<br>
+<span class="keyword">let</span>&nbsp;type_prim2&nbsp;a&nbsp;b&nbsp;c&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;trivial_schema&nbsp;(type_arrow&nbsp;a&nbsp;(type_arrow&nbsp;b&nbsp;c))<br>
+&nbsp;&nbsp;<br>
+<span class="keyword">let</span>&nbsp;type_arithmetic&nbsp;=&nbsp;type_prim2&nbsp;type_num&nbsp;type_num&nbsp;type_num<br>
+<span class="keyword">let</span>&nbsp;type_lexical&nbsp;=&nbsp;type_prim2&nbsp;type_string&nbsp;type_string&nbsp;type_string<br>
+<span class="keyword">let</span>&nbsp;type_logic&nbsp;=&nbsp;type_prim2&nbsp;type_bool&nbsp;type_bool&nbsp;type_bool<br>
+<span class="keyword">let</span>&nbsp;type_poly_logic&nbsp;=&nbsp;<span class="keyword">let</span>&nbsp;v&nbsp;=&nbsp;new_unknow&nbsp;()&nbsp;<span class="keyword">in</span>&nbsp;type_prim2&nbsp;v&nbsp;v&nbsp;type_bool<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Builtin types. Note that <code class="code">builtin_types</code> is structured to be a namespace
+    for <code class="code"><span class="constructor">Syntax</span>.env</code>.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;builtin_types&nbsp;=<br>
+&nbsp;&nbsp;[(<span class="string">"+"</span>,&nbsp;[prelude,&nbsp;type_arithmetic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"*"</span>,&nbsp;[prelude,&nbsp;type_arithmetic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"/"</span>,&nbsp;[prelude,&nbsp;type_arithmetic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"^"</span>,&nbsp;[prelude,&nbsp;type_arithmetic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"=="</span>,&nbsp;[prelude,&nbsp;type_poly_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"!="</span>,&nbsp;[prelude,&nbsp;type_poly_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&gt;="</span>,&nbsp;[prelude,&nbsp;type_poly_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&lt;="</span>,&nbsp;[prelude,&nbsp;type_poly_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&gt;"</span>,&nbsp;[prelude,&nbsp;type_poly_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&lt;"</span>,&nbsp;[prelude,&nbsp;type_poly_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"||"</span>,&nbsp;[prelude,&nbsp;type_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&amp;&amp;"</span>,&nbsp;[prelude,&nbsp;type_logic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"not"</span>,&nbsp;[prelude,&nbsp;type_prim1&nbsp;type_bool&nbsp;type_bool]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"-"</span>,&nbsp;[prelude,&nbsp;type_prim1&nbsp;type_num&nbsp;type_num]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"++"</span>,&nbsp;[prelude,&nbsp;type_lexical]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"mod"</span>,&nbsp;[prelude,&nbsp;type_arithmetic]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"string_of_int"</span>,&nbsp;[prelude,&nbsp;type_prim1&nbsp;type_num&nbsp;type_string])<br>
+&nbsp;&nbsp;&nbsp;]<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Builtin functions and their representation and properties in the AST.
+    <code class="code">+</code> and <code class="code">-</code> are defined to be associative and commutative. Like 
+    <code class="code">builtin_types</code>, <code class="code">builtin_fns</code> is structured to be a namespace for
+    <code class="code"><span class="constructor">Syntax</span>.env</code>.
+*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;builtin_fns&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[(<span class="string">"+"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"+"</span>),&nbsp;<span class="constructor">Some</span>&nbsp;[<span class="constructor">Assoc</span>;&nbsp;<span class="constructor">Com</span>])]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"*"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"*"</span>),&nbsp;<span class="constructor">Some</span>&nbsp;[<span class="constructor">Assoc</span>;&nbsp;<span class="constructor">Com</span>])]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"/"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"/"</span>),&nbsp;<span class="constructor">Some</span>&nbsp;[])]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"^"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"^"</span>),&nbsp;<span class="constructor">Some</span>&nbsp;[])]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"=="</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"=="</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"!="</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"!="</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&gt;="</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"&gt;="</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&lt;="</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"&lt;="</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&lt;"</span>,&nbsp;&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"&lt;"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&gt;"</span>,&nbsp;&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"&gt;"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"&amp;&amp;"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"&amp;&amp;"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"||"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"||"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"not"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"not"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"-"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"-"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"++"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"++"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"mod"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"mod"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;&nbsp;(<span class="string">"string_of_int"</span>,&nbsp;[prelude,&nbsp;(<span class="constructor">Some</span>&nbsp;(<span class="constructor">EVariable</span>&nbsp;<span class="string">"string_of_int"</span>),&nbsp;<span class="constructor">None</span>)]);<br>
+&nbsp;&nbsp;]<br>
+<br>
+</code></body></html>
