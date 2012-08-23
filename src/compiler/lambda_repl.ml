@@ -9,6 +9,7 @@ open Syntax
 open Error
 open Helper
 open Modules
+open Show
 
 (** Recursively defines the expressions to be reduced by the lambda calculus
     rules. 
@@ -19,6 +20,7 @@ let rec get_vars_of_pattern = function
   | PPair(a, b) | PCons(a, b) | POp(_, a, b) ->
     StringSet.union (get_vars_of_pattern a) (get_vars_of_pattern b)
   | PSome a -> get_vars_of_pattern a
+  | PWhen(_, p) -> get_vars_of_pattern p
   | _ -> StringSet.empty
 
 (** Creates a set of all free variables of a function. *)
@@ -27,8 +29,14 @@ let rec free_vars = function
   | EFunction {def = l; env = _} ->
     List.fold_left
       (fun ens (pattern, expr) -> 
-        let e = StringSet.diff (free_vars expr) (get_vars_of_pattern pattern) in
-        StringSet.union ens e
+        (match pattern with
+          | PWhen(cond_expr, p) -> 
+            let e = StringSet.diff (StringSet.union (free_vars expr) (free_vars cond_expr)) (get_vars_of_pattern pattern) in
+            StringSet.union ens e
+          | _ ->
+            let e = StringSet.diff (free_vars expr) (get_vars_of_pattern pattern) in
+            StringSet.union ens e
+        )
       )
       StringSet.empty
       l
@@ -49,6 +57,7 @@ let rec rename_a_pattern x z = function
   | PCons(a, b) -> PCons(rename_a_pattern x z a, rename_a_pattern x z b)
   | POp(op, a, b) -> POp(op, rename_a_pattern x z a, rename_a_pattern x z b)
   | PSome a -> PSome(rename_a_pattern x z a)
+  | PWhen(expr, p) -> PWhen(expr, rename_a_pattern x z p) 
 (* .. *)
   | r -> r
 
@@ -56,7 +65,8 @@ let rec rename_a_pattern x z = function
     calculus rules.
   *)
 
-let rec substitution expr arg x = match expr with
+let rec substitution expr arg x =
+  match Printf.printf "remplace %s par %s dans %s\n\n" x (show arg) (show expr); expr with
   | EVariable v when v = x -> arg
   | EVariable y when y <> x -> EVariable y
 
@@ -64,18 +74,33 @@ let rec substitution expr arg x = match expr with
   | EFunction {def = l; env = env } ->
     let vars_arg = free_vars arg in
     let new_def =
-      List.map (fun (pattern, expr) -> 
-      let vars_p = get_vars_of_pattern pattern in
+      List.map (fun (pattern, expr) -> (* Pour chaque couple pattern * expression de la fonction *)
+      let vars_p = get_vars_of_pattern pattern in (* On calcule les variables du pattern *)
       let (p, e) = StringSet.fold 
-        (fun y (pattern, expr) -> 
-          let ens =  StringSet.union 
-            (StringSet.union vars_arg (StringSet.diff (free_vars expr) vars_p)) 
-            (StringSet.singleton x) 
-          in
-          let z = new_variable ens y in
-          let pattern' = rename_a_pattern y z pattern in
-          let expr' = substitution expr (EVariable z) y in
-          (pattern', expr')
+        (fun y (pattern, expr) -> (* Pour chacunes de ces variables y *)  
+          (match pattern with
+            | PWhen(expr_cond, p) ->
+              let ens =  StringSet.union 
+                (StringSet.union vars_arg (StringSet.diff (StringSet.union (free_vars expr) (free_vars expr_cond)) vars_p)) 
+                (StringSet.singleton x) 
+              in
+              let z = new_variable ens y in
+              let p' = rename_a_pattern y z p in
+              let expr' = substitution expr (EVariable z) y in
+              let expr_cond' = substitution expr_cond (EVariable z) y in
+              let expr_cond2' = substitution expr_cond' arg x in
+              let pattern' = PWhen(expr_cond2', p') in
+              (pattern', expr')
+            | _ ->
+              let ens =  StringSet.union 
+                (StringSet.union vars_arg (StringSet.diff (free_vars expr) vars_p)) 
+                (StringSet.singleton x) 
+              in
+              let z = new_variable ens y in
+              let pattern' = rename_a_pattern y z pattern in
+              let expr' = substitution expr (EVariable z) y in
+              (pattern', expr')
+          )
         ) 
         vars_p
         (pattern, expr)
@@ -96,9 +121,13 @@ let rec substitution expr arg x = match expr with
     let e2 = substitution e1 arg x in
     EFunction {def = [PVariable z, e2]; env = env}
 *)
-(* ... let ? *)
-  | ELet({expr = a} as def, Some b) ->
+
+  | ELet({name = n; expr = a} as def, Some b) when n <> x ->
     ELet({def with expr = substitution a arg x}, Some (substitution b arg x))
+  | ELet({expr = a} as def, Some b)  ->
+    ELet({def with expr = substitution a arg x}, Some b)
+
+
   | EDeclare(s, Some expr) -> EDeclare(s, Some (substitution expr arg x))
   | EOpen(m, Some expr) -> EOpen(m, Some (substitution expr arg x))
 
@@ -108,47 +137,3 @@ let rec substitution expr arg x = match expr with
   | ECons(n1, n2) -> ECons(substitution n1 arg x, substitution n2 arg x)
   | ESome(n) -> ESome(substitution n arg x)
   | rest -> rest
-
-
-(** Replaces all the free variables satisfying {!is_simple_value} from an
-    expression by their corresponding expression in [env]. Uses the
-    {!substitution} function to make valid replacements.
-*)
-(*
-let replace env f = 
-  let rec to_replace fv env = function
-    | EVariable x when StringSet.mem x fv ->
-        (match value (lookup_env x env) with
-           | Some v  -> if is_simple_value v then StringSet.singleton x else StringSet.empty
-           | None -> StringSet.empty
-        )
-    | EVariable x -> StringSet.empty
-    | EPair(m, n)
-    | ECons(m, n) 
-    | EApplication(m, n) ->
-        StringSet.union (to_replace fv env m) (to_replace fv env n)
-    | EFunction {def = [PVariable v, expr]; env = _} ->
-        to_replace fv env expr
-    | ESome n -> to_replace fv env n
-    | rest -> StringSet.empty
-  in
-    StringSet.fold 
-      (fun var expr -> substitution expr (get (value (lookup_env var env))) var)
-      (to_replace (free_vars f) env f)
-      f
-
-(** Beta-reduces an expression. *)
-let rec normal_order_reduct = function
-  | EApplication
-      (EFunction {def = [PVariable x, m]}, n) ->
-    normal_order_reduct (substitution m n x)
-  | EFunction {def = [PVariable x, m]; env = env} ->
-    EFunction {def = [PVariable x, normal_order_reduct m]; env = env}
-  | EApplication(m, n)  -> EApplication(normal_order_reduct m, normal_order_reduct n)
-  | EPair(m, n) -> EPair(normal_order_reduct m, normal_order_reduct n)
-  | ECons(m, n) ->
-    ECons(normal_order_reduct m, normal_order_reduct n)
-  | ESome n -> normal_order_reduct n
-  | rest -> rest
-
-*)

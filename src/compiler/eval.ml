@@ -40,6 +40,11 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
       if i1 = i2 then [] else raise MatchingFailure
+  | (value, PIsnum p) ->
+    (match value with
+      | ENum n -> matching (false, false) env (ENum n) p 
+      | _ -> raise MatchingFailure
+    )
   | (EString s1, PString s2) ->
       if s1 = s2 then [] else raise MatchingFailure
   | (EPair(v1, v2), PPair (m1, m2)) ->
@@ -71,6 +76,17 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
           (matching (false, false) env e1 pf) @ (matching (false, false) env e2 pg)
         | _ -> raise MatchingFailure
     end
+  | (expr, PWhen(expr_cond, pattern)) -> 
+    let vars = matching (false, false) env expr pattern in
+    let r = List.fold_left 
+        (fun expr (var, e_var) -> substitution expr (get (fst e_var)) var)
+        expr_cond
+        vars
+    in
+    Printf.printf "%s == %s ?\n" (show r) (show expr);
+      (match eval' env r with
+        | EBoolean true -> vars
+        | _ -> raise MatchingFailure)
   | _ -> raise MatchingFailure
 
 
@@ -114,17 +130,13 @@ and eval' env expr = match expr with
       let corps' = substitution corps value name_var in
       eval' env corps'
     else 
-      let rec fixpoint f x = match f x with
+      let rec fixpoint count f x = match print_endline (show x); print_newline(); f x with
         | x' when (x' = x) -> x
-        | x' -> fixpoint f x'
+        | x' -> if count <= 40000000000 then fixpoint (count+1) f x' else x'
       in
       let f expr = eval' env (substitution expr value name_var) in
-      fixpoint f corps
-(*
-      f env (value, name_var) corps
-*)
-     (* eval' env corps *) (* si la fonction est récusive on ne subsitute pas (pour l'instant) *)
-                      (* Pour plus tard : on évalue jusqu'à l'eventuel point fixe f = susbtitue . eval'  sur corps*)
+      fixpoint 0 f corps
+
   | EApplication (EFunction {def = case_list} as f, argument) ->
     let arg = eval' env argument in
     begin
@@ -138,14 +150,15 @@ and eval' env expr = match expr with
       eval' env r
     with MatchingFailure -> EApplication(f, arg)
     end
-  | EApplication (EFunction {def = [PVariable x, f_x]}, arg) ->
-    eval' env (substitution f_x arg x)
+
   | EApplication(m, n)  -> 
     primitive (eval' env m) (eval' env n)
-  | EFunction {def = [PVariable v, expr]; env = Some env_f } ->
-    EFunction {def = [PVariable v, eval' env_f expr]; env = Some env_f}
-  | EFunction {def = [PVariable v, expr]; env = None } ->
-    EFunction {def = [PVariable v, eval' env expr]; env = Some env}
+  | EFunction {def = case_list; env = Some env_f } ->
+    EFunction {def = List.map (fun (p, e) -> (p, eval' env_f e)) case_list; env = Some env_f }
+  | EFunction {def = case_list; env = None } ->
+    EFunction {def = List.map (fun (p, e) -> (p, eval' env e)) case_list; env = Some env }
+  
+
   | EDeclare(_, Some expr) -> eval' env expr
 
   | EPair(a, b) -> EPair(eval' env a, eval' env b)
