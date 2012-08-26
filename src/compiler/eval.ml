@@ -83,7 +83,7 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
         expr_cond
         vars
     in
-    Printf.printf "%s == %s ?\n" (show r) (show expr);
+    (* Printf.printf "%s == %s ?\n" (show r) (show expr); *)
       (match eval' env r with
         | EBoolean true -> vars
         | _ -> raise MatchingFailure)
@@ -130,29 +130,29 @@ and eval' env expr = match expr with
       let corps' = substitution corps value name_var in
       eval' env corps'
     else 
-      let rec fixpoint count f x = match print_endline (show x); print_newline(); f x with
+      let rec fixpoint count f x = match f x with
         | x' when (x' = x) -> x
-        | x' -> if count <= 40000000000 then fixpoint (count+1) f x' else x'
+        | x' -> if count <= 5 then fixpoint (count+1) f x' else x'
       in
       let f expr = eval' env (substitution expr value name_var) in
       fixpoint 0 f corps
 
   | EApplication (EFunction {def = case_list} as f, argument) ->
     let arg = eval' env argument in
-    begin
-    try
-      let new_vars, f_x = eval_application env case_list arg in
-      let r = List.fold_left 
-        (fun f_x (var, e_var) -> substitution f_x (get (fst e_var)) var)
-        f_x 
-        new_vars
-      in
-      eval' env r
-    with MatchingFailure -> EApplication(f, arg)
+    begin try
+    let new_vars, f_x = eval_application env case_list arg in
+    let r = List.fold_left 
+      (fun f_x (var, e_var) -> substitution f_x (get (fst e_var)) var)
+      f_x 
+      new_vars
+    in
+    eval' env r
+      with _ -> EApplication(f, argument)
     end
 
-  | EApplication(m, n)  -> 
-    primitive (eval' env m) (eval' env n)
+  | EApplication(m, n) as r  -> 
+    let r' = primitive (eval' env m) (eval' env n) in
+    if r' <> r then eval' env r' else r'
   | EFunction {def = case_list; env = Some env_f } ->
     EFunction {def = List.map (fun (p, e) -> (p, eval' env_f e)) case_list; env = Some env_f }
   | EFunction {def = case_list; env = None } ->

@@ -65,8 +65,7 @@ let rec rename_a_pattern x z = function
     calculus rules.
   *)
 
-let rec substitution expr arg x =
-  match Printf.printf "remplace %s par %s dans %s\n\n" x (show arg) (show expr); expr with
+let rec substitution expr arg x = match expr with
   | EVariable v when v = x -> arg
   | EVariable y when y <> x -> EVariable y
 
