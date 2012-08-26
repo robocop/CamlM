@@ -1,0 +1,194 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Syntax</title>
+</head>
+<body>
+<code class="code"></code><table><tr><td></td><td><span class="comment">(** CamlM representation and environment types. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Graph</span>&nbsp;<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** CamlM AST structure.
+<p>
+
+    A CamlM source is parsed into an <code class="code">expression</code> by the CamlM parser
+    (<code class="code"><span class="constructor">Parser</span></code>). Base expressions include : 
+<p>
+<ul>
+<li>A construct similiar to OCaml's option type (<code class="code"><span class="constructor">Some</span> a</code>, <code class="code"><span class="constructor">None</span></code>).</li>
+<li>Ordered pairs of elements (a 2-tuple).</li>
+<li>Lists.</li>
+<li>Axiom declaration (<code class="code">declare axiom</code>).</li>
+<li>...</li>
+</ul>
+
+    While most of these constructs can be easily understood by the average OCaml
+    user, the <code class="code">declare</code> syntax (<code class="code"><span class="constructor">EDeclare</span></code>) deserves some
+    explanation. See the CamlM wiki (linked below).
+<p>
+
+    @see
+    &lt;https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM&gt;
+    (in french) for further details.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">type</span>&nbsp;expression&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;<span class="keyword">of</span>&nbsp;closure<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>&nbsp;<span class="keyword">of</span>&nbsp;expression&nbsp;*&nbsp;expression<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ELet</span>&nbsp;<span class="keyword">of</span>&nbsp;definition&nbsp;*&nbsp;expression&nbsp;option<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeclare</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;expression&nbsp;option<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EDeriv</span>&nbsp;<span class="keyword">of</span>&nbsp;simple_type&nbsp;*&nbsp;expression&nbsp;*&nbsp;expression&nbsp;option<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EOpen</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;expression&nbsp;option<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EBoolean</span>&nbsp;<span class="keyword">of</span>&nbsp;bool<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENum</span>&nbsp;<span class="keyword">of</span>&nbsp;int32<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>&nbsp;<span class="keyword">of</span>&nbsp;expression&nbsp;*&nbsp;expression<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EUnit</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENil</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>&nbsp;<span class="keyword">of</span>&nbsp;expression&nbsp;*&nbsp;expression<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENone</span>&nbsp;&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EString</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>&nbsp;<span class="keyword">of</span>&nbsp;expression<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Type for holding an environment. This type is parametrized - it is used in
+    both <code class="code"><span class="constructor">Eval</span></code> and <code class="code"><span class="constructor">Typing</span></code>. The structure stays the same, but the payload
+    differs based on the use.
+<p>
+
+    In the <code class="code"><span class="constructor">Eval</span></code> module, a <code class="code">fun_env_content</code> is held by the <code class="code">env</code> structure.
+    In the <code class="code"><span class="constructor">Typing</span></code> module, it is a <code class="code"><span class="constructor">Typing</span>.type_env_content</code>.
+<p>
+
+    The fields are as follow : <ul>
+<li><code class="code">this</code> : name of the "current module". In the REPL, it will be
+       "_toplevel". When evaluating module "Foo", it will be "Foo".</li>
+<li><code class="code">modules</code> : directed graph of all opened modules. If a module B
+       is exposed to a module A, there is an edge in between A and B.</li>
+<li><code class="code">namespace</code> : associates names to a list of modules they occur
+       in. Depending on the module, the payload (the "value" associated to the
+       name in the current context) will be different.
+  </li>
+</ul>
+*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">and</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;env&nbsp;=&nbsp;{<br>
+&nbsp;&nbsp;this:&nbsp;string;<br>
+&nbsp;&nbsp;modules:&nbsp;string&nbsp;graph;<br>
+&nbsp;&nbsp;namespace:&nbsp;(string&nbsp;*&nbsp;((string&nbsp;*&nbsp;<span class="keywordsign">'</span>a)&nbsp;list))&nbsp;list<br>
+}<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Environment payload for expression evaluation (see <code class="code"><span class="constructor">Eval</span></code>). Holds the value
+    of a name (None if the name is an axiom) and a list of properties (see
+    <code class="code">prop</code>) if the name is an operator.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">and</span>&nbsp;fun_env_content&nbsp;=&nbsp;(expression&nbsp;option)&nbsp;*&nbsp;((prop&nbsp;list)&nbsp;option)<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Properties of an operator : <code class="code"><span class="constructor">Com</span></code> if operator is commutative,
+    <code class="code"><span class="constructor">Assoc</span></code> if operator is associative.
+<p>
+
+    This is useful to shorten redundant patterns (e.g. no need to test for 
+    patterns <code class="code">(-a) + b</code> and <code class="code">b + (-a)</code> as <code class="code">(+)</code> is commutative).
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">and</span>&nbsp;prop&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Com</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Assoc</span><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Pattern matching structure. Represents a pattern in any pattern matching
+    construct (<code class="code"><span class="keyword">function</span> ...</code>, <code class="code"><span class="keyword">match</span> ... <span class="keyword">with</span></code>, etc).
+<p>
+
+    It is possible to match against specific axioms using the "@" symbol (parsed
+    into a <code class="code"><span class="constructor">PAxiom</span></code>), or to disassemble functions around an
+    operator. Again, see wiki.
+<p>
+
+    @see
+    &lt;https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM&gt;
+    (in french) for further details.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">and</span>&nbsp;pattern&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PAll</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PVariable</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PAxiom</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PBoolean</span>&nbsp;<span class="keyword">of</span>&nbsp;bool<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PNum</span>&nbsp;<span class="keyword">of</span>&nbsp;int32<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PPair</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern&nbsp;*&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PNil</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PCons</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern&nbsp;*&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PNone</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PSome</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PString</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">POp</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;pattern&nbsp;*&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PMinus</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PCompose</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern&nbsp;*&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PIdentity</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PConst</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PIsnum</span>&nbsp;<span class="keyword">of</span>&nbsp;pattern<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">PWhen</span>&nbsp;<span class="keyword">of</span>&nbsp;expression&nbsp;*&nbsp;pattern<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** A function environment (<code class="code">env</code>) paired with a function. Your everyday
+    closure, really. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">and</span>&nbsp;closure&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;def&nbsp;:&nbsp;(pattern&nbsp;*&nbsp;expression)&nbsp;list;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">mutable</span>&nbsp;env&nbsp;:&nbsp;(fun_env_content&nbsp;env)&nbsp;option&nbsp;}<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Name definition. Name attached to a potentially recursive function or a
+    value. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">and</span>&nbsp;definition&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recursive:bool;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name:string;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;expr:expression<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Types for the typing system *)</span></td></tr></table><code class="code"><br>
+<br>
+<span class="keyword">and</span>&nbsp;simple_type&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;<span class="keyword">of</span>&nbsp;variable_of_type<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;simple_type&nbsp;array<br>
+<span class="keyword">and</span>&nbsp;variable_of_type&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;{&nbsp;<span class="keyword">mutable</span>&nbsp;level:&nbsp;int;&nbsp;<span class="keyword">mutable</span>&nbsp;value:&nbsp;value_of_variable&nbsp;}<br>
+<span class="keyword">and</span>&nbsp;value_of_variable&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Unknow</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Know</span>&nbsp;<span class="keyword">of</span>&nbsp;simple_type<br>
+<span class="keyword">type</span>&nbsp;type_schema&nbsp;=&nbsp;<br>
+&nbsp;{&nbsp;parameter&nbsp;:&nbsp;variable_of_type&nbsp;list;&nbsp;corps&nbsp;:&nbsp;simple_type&nbsp;}<br>
+;;<br>
+<span class="keyword">let</span>&nbsp;type_unit&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"unit"</span>,&nbsp;[||])<br>
+<span class="keyword">let</span>&nbsp;type_num&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"num"</span>,&nbsp;[||])<br>
+<span class="keyword">let</span>&nbsp;type_bool&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"bool"</span>,&nbsp;[||])<br>
+<span class="keyword">let</span>&nbsp;type_string&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"string"</span>,&nbsp;[||])<br>
+<span class="keyword">let</span>&nbsp;type_product&nbsp;t1&nbsp;t2&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"*"</span>,&nbsp;[|t1;&nbsp;t2|])<br>
+<span class="keyword">let</span>&nbsp;type_list&nbsp;t&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"list"</span>,&nbsp;[|t|])<br>
+<span class="keyword">let</span>&nbsp;type_option&nbsp;t&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"option"</span>,&nbsp;[|t|])<br>
+<span class="keyword">let</span>&nbsp;type_arrow&nbsp;t1&nbsp;t2&nbsp;=&nbsp;<span class="constructor">Term</span>(<span class="string">"-&gt;"</span>,&nbsp;[|t1;&nbsp;t2|])<br>
+<br>
+<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** REPL parser types. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">type</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;interpreter&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">INothing</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><span class="comment">(** Nothing was entererd. *)</span></td></tr></table><code class="code"><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ICommand</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><span class="comment">(** REPL command (e.g. "#quit;;"). *)</span></td></tr></table><code class="code"><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">IValue</span>&nbsp;<span class="keyword">of</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><span class="comment">(** Expression to evaluate. *)</span></td></tr></table><code class="code"><br>
+<br>
+<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** <code class="code">fun_env_content</code> helper. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;value&nbsp;(value,&nbsp;_)&nbsp;=&nbsp;value<br>
+</code><table><tr><td></td><td><span class="comment">(** <code class="code">fun_env_content</code> helper. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;op_prop&nbsp;(_,&nbsp;prop)&nbsp;=&nbsp;prop<br>
+<br>
+</code></body></html>

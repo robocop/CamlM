@@ -1,0 +1,123 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Lambda_repl</title>
+</head>
+<body>
+<code class="code"></code><table><tr><td></td><td><span class="comment">(** Lambda calculus reduction rules applied to formal functions.
+<p>
+
+   @see
+   &lt;https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM&gt;
+   (in french) for details on formal functions.
+*)</span></td></tr></table><code class="code"><br>
+<br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Syntax</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Error</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Helper</span><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Modules</span><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Recursively defines the expressions to be reduced by the lambda calculus
+    rules.
+<p>
+
+    A function <code class="code">f</code> is said to be a "formal function" if <code class="code">is_simple_value f</code>. 
+    Only formal functions are reduced by <code class="code">replace</code> and <code class="code">normal_order_reduct</code>.
+*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;is_simple_value&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;_,&nbsp;expr];&nbsp;env&nbsp;=&nbsp;_}&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;is_simple_value&nbsp;expr<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENum</span>&nbsp;_&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EBoolean</span>&nbsp;_&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENil</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ENone</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EString</span>&nbsp;_&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">true</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>&nbsp;(a,&nbsp;b)&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>&nbsp;(a,&nbsp;b)&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>(a,&nbsp;b)<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is_simple_value&nbsp;a&nbsp;<span class="keywordsign">&amp;&amp;</span>&nbsp;is_simple_value&nbsp;b<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>&nbsp;e&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;is_simple_value&nbsp;e<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;f&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">false</span><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Creates a set of all free variables of a formal function. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;free_vars&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;x&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">StringSet</span>.singleton&nbsp;x<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;v,&nbsp;e];&nbsp;env&nbsp;=&nbsp;_}&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">StringSet</span>.diff&nbsp;(free_vars&nbsp;e)&nbsp;(<span class="constructor">StringSet</span>.singleton&nbsp;v)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>(m,&nbsp;n)&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>(m,&nbsp;n)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>(m,&nbsp;n)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">StringSet</span>.union&nbsp;(free_vars&nbsp;m)&nbsp;(free_vars&nbsp;n)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>&nbsp;n&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;free_vars&nbsp;n<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">StringSet</span>.empty<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Substitutes a variable <code class="code">x</code> for an expression <code class="code">arg</code> in <code class="code">expr</code> using lambda
+    calculus rules.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;substitution&nbsp;expr&nbsp;arg&nbsp;x&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;expr&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;v&nbsp;<span class="keyword">when</span>&nbsp;v&nbsp;=&nbsp;x&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;arg<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;y&nbsp;<span class="keyword">when</span>&nbsp;y&nbsp;&lt;&gt;&nbsp;x&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;y<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;v,&nbsp;e];&nbsp;env&nbsp;=&nbsp;env}&nbsp;<span class="keyword">when</span>&nbsp;v&nbsp;=&nbsp;x<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;v,&nbsp;e];&nbsp;env&nbsp;=&nbsp;env}<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;y,&nbsp;e];&nbsp;env&nbsp;=&nbsp;env}&nbsp;<span class="keyword">as</span>&nbsp;f&nbsp;<span class="keyword">when</span>&nbsp;y&nbsp;&lt;&gt;&nbsp;x&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;ens&nbsp;=&nbsp;<span class="constructor">StringSet</span>.union&nbsp;(<span class="constructor">StringSet</span>.union&nbsp;(free_vars&nbsp;arg)&nbsp;(free_vars&nbsp;f))&nbsp;(<span class="constructor">StringSet</span>.singleton&nbsp;x)&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;z&nbsp;=&nbsp;new_variable&nbsp;ens&nbsp;y&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;e1&nbsp;=&nbsp;substitution&nbsp;e&nbsp;(<span class="constructor">EVariable</span>&nbsp;z)&nbsp;y&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;e2&nbsp;=&nbsp;substitution&nbsp;e1&nbsp;arg&nbsp;x&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;z,&nbsp;e2];&nbsp;env&nbsp;=&nbsp;env}<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>(n1,&nbsp;n2)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">EApplication</span>(substitution&nbsp;n1&nbsp;arg&nbsp;x,&nbsp;substitution&nbsp;n2&nbsp;arg&nbsp;x)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>(n1,&nbsp;n2)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">EPair</span>(substitution&nbsp;n1&nbsp;arg&nbsp;x,&nbsp;substitution&nbsp;n2&nbsp;arg&nbsp;x)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>(n1,&nbsp;n2)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">ECons</span>(substitution&nbsp;n1&nbsp;arg&nbsp;x,&nbsp;substitution&nbsp;n2&nbsp;arg&nbsp;x)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>(n)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">ESome</span>(substitution&nbsp;n&nbsp;arg&nbsp;x)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;rest&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;rest<br>
+<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Replaces all the free variables satisfying <code class="code">is_simple_value</code> from an
+    expression by their corresponding expression in <code class="code">env</code>. Uses the
+    <code class="code">substitution</code> function to make valid replacements.
+*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;replace&nbsp;env&nbsp;f&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;to_replace&nbsp;fv&nbsp;env&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;x&nbsp;<span class="keyword">when</span>&nbsp;<span class="constructor">StringSet</span>.mem&nbsp;x&nbsp;fv&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">match</span>&nbsp;value&nbsp;(lookup_env&nbsp;x&nbsp;env)&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Some</span>&nbsp;v&nbsp;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">if</span>&nbsp;is_simple_value&nbsp;v&nbsp;<span class="keyword">then</span>&nbsp;<span class="constructor">StringSet</span>.singleton&nbsp;x&nbsp;<span class="keyword">else</span>&nbsp;<span class="constructor">StringSet</span>.empty<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">None</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">StringSet</span>.empty<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EVariable</span>&nbsp;x&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">StringSet</span>.empty<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>(m,&nbsp;n)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>(m,&nbsp;n)&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>(m,&nbsp;n)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">StringSet</span>.union&nbsp;(to_replace&nbsp;fv&nbsp;env&nbsp;m)&nbsp;(to_replace&nbsp;fv&nbsp;env&nbsp;n)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;v,&nbsp;expr];&nbsp;env&nbsp;=&nbsp;_}&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to_replace&nbsp;fv&nbsp;env&nbsp;expr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>&nbsp;n&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;to_replace&nbsp;fv&nbsp;env&nbsp;n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;rest&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">StringSet</span>.empty<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">StringSet</span>.fold&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">fun</span>&nbsp;var&nbsp;expr&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;substitution&nbsp;expr&nbsp;(get&nbsp;(value&nbsp;(lookup_env&nbsp;var&nbsp;env)))&nbsp;var)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(to_replace&nbsp;(free_vars&nbsp;f)&nbsp;env&nbsp;f)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Beta-reduces an expression. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;normal_order_reduct&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;x,&nbsp;m]},&nbsp;n)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;normal_order_reduct&nbsp;(substitution&nbsp;m&nbsp;n&nbsp;x)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;x,&nbsp;m];&nbsp;env&nbsp;=&nbsp;env}&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">EFunction</span>&nbsp;{def&nbsp;=&nbsp;[<span class="constructor">PVariable</span>&nbsp;x,&nbsp;normal_order_reduct&nbsp;m];&nbsp;env&nbsp;=&nbsp;env}<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EApplication</span>(m,&nbsp;n)&nbsp;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">EApplication</span>(normal_order_reduct&nbsp;m,&nbsp;normal_order_reduct&nbsp;n)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">EPair</span>(m,&nbsp;n)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">EPair</span>(normal_order_reduct&nbsp;m,&nbsp;normal_order_reduct&nbsp;n)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ECons</span>(m,&nbsp;n)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">ECons</span>(normal_order_reduct&nbsp;m,&nbsp;normal_order_reduct&nbsp;n)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ESome</span>&nbsp;n&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;normal_order_reduct&nbsp;n<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;rest&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;rest<br>
+<br>
+</code></body></html>

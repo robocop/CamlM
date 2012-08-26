@@ -1,0 +1,75 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Graph</title>
+</head>
+<body>
+<code class="code"></code><table><tr><td></td><td><span class="comment">(** A simple and incomplete directed graph implementation.
+<p>
+
+    Also rather inefficient.
+  *)</span></td></tr></table><code class="code"><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** A graph. Currently implemented as a list of (node, edges). *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">type</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;graph&nbsp;=&nbsp;(<span class="keywordsign">'</span>a&nbsp;*&nbsp;<span class="keywordsign">'</span>a&nbsp;list)&nbsp;list<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Add a node with no edges to a graph. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;add_node&nbsp;node&nbsp;graph&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;(node,&nbsp;[])&nbsp;::&nbsp;graph<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Add a directed edge from a node to another in the graph.
+<p>
+
+    @raise Not_found if the source node was not found.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;add_arc&nbsp;node&nbsp;arc&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;raise&nbsp;<span class="constructor">Not_found</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;(node',&nbsp;arcs)&nbsp;::&nbsp;xs&nbsp;<span class="keyword">when</span>&nbsp;node'&nbsp;=&nbsp;node&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(node',&nbsp;arc&nbsp;::&nbsp;arcs)&nbsp;::&nbsp;xs<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;x&nbsp;::&nbsp;xs&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;x&nbsp;::&nbsp;add_arc&nbsp;node&nbsp;arc&nbsp;xs<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Returns a list of the nodes which have an edge from the source node to them.
+<p>
+
+    @param node the source node.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;adjacent_nodes&nbsp;graph&nbsp;node&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">try</span>&nbsp;<span class="constructor">List</span>.assoc&nbsp;node&nbsp;graph<br>
+&nbsp;&nbsp;<span class="keyword">with</span>&nbsp;<span class="constructor">Not_found</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;[]<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Checks that a has an edge to b. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;is_adjacent&nbsp;graph&nbsp;a&nbsp;b&nbsp;=&nbsp;<span class="constructor">List</span>.mem&nbsp;b&nbsp;(adjacent_nodes&nbsp;graph&nbsp;a)<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Cheap distance in between two node. Used for module scoping.
+<p>
+<ul>
+<li>0 &lt;= distance &lt;= 1, then the dst module is in scope.</li>
+<li>distance &gt; 1, then the dst module is not exposed to src.
+ </li>
+</ul>
+*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;distance&nbsp;graph&nbsp;src&nbsp;dst&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;src,&nbsp;dst&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;a,&nbsp;b&nbsp;<span class="keyword">when</span>&nbsp;a&nbsp;=&nbsp;b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;0<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;a,&nbsp;b&nbsp;<span class="keyword">when</span>&nbsp;is_adjacent&nbsp;graph&nbsp;a&nbsp;b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;1<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;2<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Checks node is present in graph. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;node_present&nbsp;node&nbsp;=&nbsp;<span class="constructor">List</span>.exists&nbsp;(<span class="keyword">fun</span>&nbsp;(node',&nbsp;_)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;node'&nbsp;=&nbsp;node)<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** The empty graph. Combine with add_node and add_arc to build a graph. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;empty&nbsp;=&nbsp;[]<br>
+<br>
+</code></body></html>

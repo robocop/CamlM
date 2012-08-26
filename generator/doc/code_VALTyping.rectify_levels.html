@@ -1,0 +1,25 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Typing.rectify_levels</title>
+</head>
+<body>
+<code class="code"><span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;rectify_levels&nbsp;level_max&nbsp;ty&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;value_of&nbsp;ty&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Variable</span>&nbsp;var&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;var.level&nbsp;&gt;&nbsp;level_max&nbsp;<span class="keyword">then</span>&nbsp;var.level&nbsp;&lt;-&nbsp;level_max<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Term</span>(_,&nbsp;arguments)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Array</span>.iter&nbsp;(rectify_levels&nbsp;level_max)&nbsp;arguments</code></body></html>

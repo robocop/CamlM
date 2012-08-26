@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Helper.html">
+<link rel="next" href="Modules.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Lambda_repl</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Helper.html" title="Helper">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Modules.html" title="Modules">Next</a>
+</div>
+<h1>Module <a href="type_Lambda_repl.html">Lambda_repl</a> (<a href="code_Lambda_repl.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Lambda_repl: <code class="code"><span class="keyword">sig</span></code> <a href="Lambda_repl.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Lambda calculus reduction rules applied to formal functions.<br>
+<b>See also</b> <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">(in french) for details on formal functions.</a><br>
+<hr width="100%">
+<pre><span id="VALis_simple_value"><span class="keyword">val</span> <a href="code_VALLambda_repl.is_simple_value.html">is_simple_value</a></span> : <code class="type"><a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> bool</code></pre><div class="info">
+Recursively defines the expressions to be reduced by the lambda calculus
+    rules.
+<p>
+
+    A function <code class="code">f</code> is said to be a "formal function" if <code class="code">is_simple_value f</code>. 
+    Only formal functions are reduced by <a href="Lambda_repl.html#VALreplace"><code class="code"><span class="constructor">Lambda_repl</span>.replace</code></a> and <a href="Lambda_repl.html#VALnormal_order_reduct"><code class="code"><span class="constructor">Lambda_repl</span>.normal_order_reduct</code></a>.<br>
+</div>
+<pre><span id="VALfree_vars"><span class="keyword">val</span> <a href="code_VALLambda_repl.free_vars.html">free_vars</a></span> : <code class="type"><a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> Helper.StringSet.t</code></pre><div class="info">
+Creates a set of all free variables of a formal function.<br>
+</div>
+<pre><span id="VALsubstitution"><span class="keyword">val</span> <a href="code_VALLambda_repl.substitution.html">substitution</a></span> : <code class="type"><a href="Syntax.html#TYPEexpression">Syntax.expression</a> -><br>       <a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> Helper.StringSet.elt -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Substitutes a variable <code class="code">x</code> for an expression <code class="code">arg</code> in <code class="code">expr</code> using lambda
+    calculus rules.<br>
+</div>
+<pre><span id="VALreplace"><span class="keyword">val</span> <a href="code_VALLambda_repl.replace.html">replace</a></span> : <code class="type">(<a href="Syntax.html#TYPEexpression">Syntax.expression</a> option * 'a) <a href="Syntax.html#TYPEenv">Syntax.env</a> -><br>       <a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Replaces all the free variables satisfying <a href="Lambda_repl.html#VALis_simple_value"><code class="code"><span class="constructor">Lambda_repl</span>.is_simple_value</code></a> from an
+    expression by their corresponding expression in <code class="code">env</code>. Uses the
+    <a href="Lambda_repl.html#VALsubstitution"><code class="code"><span class="constructor">Lambda_repl</span>.substitution</code></a> function to make valid replacements.<br>
+</div>
+<pre><span id="VALnormal_order_reduct"><span class="keyword">val</span> <a href="code_VALLambda_repl.normal_order_reduct.html">normal_order_reduct</a></span> : <code class="type"><a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Beta-reduces an expression.<br>
+</div>
+</body></html>

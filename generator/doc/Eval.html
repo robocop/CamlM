@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Error.html">
+<link rel="next" href="Graph.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Eval</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Error.html" title="Error">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Graph.html" title="Graph">Next</a>
+</div>
+<h1>Module <a href="type_Eval.html">Eval</a> (<a href="code_Eval.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Eval: <code class="code"><span class="keyword">sig</span></code> <a href="Eval.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Expression evaluation routines.
+<p>
+
+    Handles pattern matching &amp; expression reduction and evaluation. Some
+    reduction (formal function reduction) is done by <a href="Lambda_repl.html"><code class="code"><span class="constructor">Lambda_repl</span></code></a>.
+<p>
+
+    TODO : Fix name clashes when redefining Prelude names.<br>
+<hr width="100%">
+<pre><span id="VALop_property"><span class="keyword">val</span> <a href="code_VALEval.op_property.html">op_property</a></span> : <code class="type">'a -> string -> ('b * 'a list option) <a href="Syntax.html#TYPEenv">Syntax.env</a> -> bool</code></pre><pre><span id="VALis_com"><span class="keyword">val</span> <a href="code_VALEval.is_com.html">is_com</a></span> : <code class="type">string -> <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -> bool</code></pre><pre><span id="VALis_assoc"><span class="keyword">val</span> <a href="code_VALEval.is_assoc.html">is_assoc</a></span> : <code class="type">string -> <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -> bool</code></pre><pre><span id="VALmatching"><span class="keyword">val</span> <a href="code_VALEval.matching.html">matching</a></span> : <code class="type">bool * bool -><br>       <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -><br>       <a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> <a href="Syntax.html#TYPEpattern">Syntax.pattern</a> -> (string * <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a>) list</code></pre><div class="info">
+Matches an expression against a pattern, and computes the new variables
+    defined by the pattern. Returns a list of names and their values to be added
+    to the environment.
+<p>
+
+    Operator properties (commutativity and associativity) are also handled here
+    using the booleans <code class="code">com_test</code> and <code class="code">assoc_test</code> and the environment.<br>
+</div>
+<pre><span id="VALeval"><span class="keyword">val</span> <a href="code_VALEval.eval.html">eval</a></span> : <code class="type"><a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -><br>       <a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> * <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Evaluate top level definitions that change the environment globally.
+<p>
+<ul>
+<li><code class="code"><span class="keyword">let</span> ... = ...;;</code></li>
+<li><code class="code">declare ...;</code></li>
+<li><code class="code"><span class="keyword">open</span> ...;</code></li>
+</ul>
+<br>
+</div>
+<pre><span id="VALeval'"><span class="keyword">val</span> <a href="code_VALEval.eval'.html">eval'</a></span> : <code class="type"><a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Evaluate expressions that only change the environment locally.
+<p>
+
+    Recursively reduces an expression "as much as possible". Formal functions
+    (see wiki) are reduced using the lambda calculus rules defined in
+    <a href="Lambda_repl.html"><code class="code"><span class="constructor">Lambda_repl</span></code></a>.
+<p>
+
+    The builtin Prelude calls are also evaluated here.<br>
+<b>See also</b> <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">(in french) for details on formal functions.</a><br>
+</div>
+<pre><span id="VALeval_application"><span class="keyword">val</span> <a href="code_VALEval.eval_application.html">eval_application</a></span> : <code class="type"><a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -><br>       (<a href="Syntax.html#TYPEpattern">Syntax.pattern</a> * <a href="Syntax.html#TYPEexpression">Syntax.expression</a>) list -><br>       <a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Evaluate a function application by matching the argument with the function
+    pattern. The environment is extended with the results from <code class="code">matching</code> and the
+    function call is evaluated within this environment.<br>
+</div>
+<pre><span id="VALeval_definition"><span class="keyword">val</span> <a href="code_VALEval.eval_definition.html">eval_definition</a></span> : <code class="type"><a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -><br>       <a href="Syntax.html#TYPEdefinition">Syntax.definition</a> -> <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> * <a href="Syntax.html#TYPEexpression">Syntax.expression</a></code></pre><div class="info">
+Evaluate a function definition. Builds a closure in the case of a
+    recursive function, and uses the standard <a href="Eval.html#VALeval'"><code class="code"><span class="constructor">Eval</span>.eval'</code></a> function otherwise.<br>
+</div>
+<pre><span id="VALdo_eval"><span class="keyword">val</span> <a href="code_VALEval.do_eval.html">do_eval</a></span> : <code class="type"><a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -><br>       <a href="Syntax.html#TYPEexpression">Syntax.expression</a> list -> <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
+Evaluate a list of expressions, keeping the environment in between the
+    calls.<br>
+</div>
+<pre><span id="VALopen_fun_module"><span class="keyword">val</span> <a href="code_VALEval.open_fun_module.html">open_fun_module</a></span> : <code class="type">string -><br>       <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a> -> <a href="Syntax.html#TYPEfun_env_content">Syntax.fun_env_content</a> <a href="Syntax.html#TYPEenv">Syntax.env</a></code></pre><div class="info">
+See <a href="Modules.html#VALopen_module"><code class="code"><span class="constructor">Modules</span>.open_module</code></a><br>
+</div>
+</body></html>

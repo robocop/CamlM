@@ -1,0 +1,26 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Helper.next</title>
+</head>
+<body>
+<code class="code"><span class="keyword">let</span>&nbsp;next&nbsp;str&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;nstr&nbsp;=&nbsp;<span class="constructor">String</span>.copy&nbsp;str&nbsp;<span class="keyword">in</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">match</span>&nbsp;str.[<span class="constructor">String</span>.length&nbsp;str&nbsp;-&nbsp;1]&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="string">'z'</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;nstr.[<span class="constructor">String</span>.length&nbsp;str&nbsp;-&nbsp;1]&nbsp;&lt;-&nbsp;<span class="string">'a'</span>;&nbsp;nstr&nbsp;^&nbsp;<span class="string">"a"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;c&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;nstr.[<span class="constructor">String</span>.length&nbsp;str&nbsp;-&nbsp;1]&nbsp;&lt;-&nbsp;<span class="constructor">Char</span>.chr&nbsp;(<span class="constructor">Char</span>.code&nbsp;c&nbsp;+&nbsp;1);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nstr</code></body></html>

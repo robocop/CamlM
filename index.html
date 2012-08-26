@@ -32,59 +32,37 @@
 
       </header>
       <section>
-        <h1>CamlM</h1>
-
+        <h1 id="camlm-v0.1---maquette-tech-demo">CamlM v0.1 - MAQUETTE (TECH DEMO)</h1>
+<p>Page d’accueil <a href="http://robocop.github.com/CamlM/">ici</a>.</p>
 <p>CamlM est un langage de programmation basé sur le langage caml et étendu pour pouvoir faire facilement du calcul formel, de manière analogue à Maple ou Mathématica (du moins en théorie).</p>
-
-<h2>Installation</h2>
-
-<p>Nécessite Linux ou Mac, ainsi qu'une installation de OCaml (=&gt; 3.10) et de Menhir.</p>
-
-<ol>
-<li>Faire une copie du dépot : <code>git clone git://github.com/robocop/CamlM.git</code>
-</li>
-<li>Executer la commande : <code>./configure</code>
-</li>
-<li>Executer la commande : <code>make</code>
-</li>
-<li>Lancer l'interpreteur avec <code>./camlm</code> (nécessite rlwrap. On peut aussi utiliser emacs avec le tuareg-mode)</li>
-</ol><h2>Documentation</h2>
-
-<p>Executer la commander <code>make doc</code> pour générer la documentation.</p>
-
-<h2>Développement</h2>
-
-<p>Si le fichier _oasis est modifié, le regénérer avec la commande <code>oasis setup</code>
-Le "back-end" du compilateur se trouve dans <code>src/compiler</code>. 
-Le seul "front-end" actuellement disponible est le REPL, et se trouve dans <code>src/repl</code>.</p>
-
-<h2>Exemples de programmes</h2>
-
+<h2 id="installation">Installation</h2>
+<p>Nécessite Linux ou Mac, ainsi qu’une installation de OCaml (=&gt; 3.10) et de Menhir.</p>
+<ol style="list-style-type: decimal">
+<li>Faire une copie du dépot : <code>git clone git://github.com/robocop/CamlM.git</code></li>
+<li>Executer la commande : <code>./configure</code></li>
+<li>Executer la commande : <code>make</code></li>
+<li>Lancer l’interpreteur avec <code>./camlm</code> (nécessite rlwrap. On peut aussi utiliser emacs avec le tuareg-mode)</li>
+</ol>
+<h2 id="documentation">Documentation</h2>
+<p>Executer la commander <code>make doc</code> pour générer la documentation. On peut aussi trouver la documentation sur <a href="http://robocop.github.com/CamlM/">la page d’acceuil de CamlM</a>.</p>
+<h2 id="développement">Développement</h2>
+<p>Si le fichier _oasis est modifié, le regénérer avec la commande <code>oasis setup</code> Le “back-end” du compilateur se trouve dans <code>src/compiler</code>. Le seul “front-end” actuellement disponible est le REPL, et se trouve dans <code>src/repl</code>.</p>
+<h2 id="exemples-de-programmes">Exemples de programmes</h2>
 <p>CamlM supporte toutes les fonctionnalités de base de CamlM (fonctions récusives, filtrage, typage).</p>
-
-<h3>Fonction factorielle</h3>
-
-<div class="highlight"><pre><span class="o">#</span> <span class="k">let</span> <span class="k">rec</span> <span class="n">fac</span> <span class="o">=</span> <span class="k">function</span> <span class="mi">0</span> <span class="o">-&gt;</span> <span class="mi">1</span> <span class="o">|</span> <span class="n">n</span> <span class="o">-&gt;</span> <span class="n">n</span><span class="o">*</span><span class="n">fac</span><span class="o">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="k">in</span> <span class="n">fac</span> <span class="mi">5</span><span class="o">;;</span>
-<span class="o">:-</span> <span class="kt">int</span> <span class="o">=</span> <span class="mi">120</span>
-</pre></div>
-
-<h3>Dérivation d'expression mathématique :</h3>
-
-<div class="highlight"><pre><span class="o">#</span> <span class="k">open</span> <span class="nc">Maths</span><span class="o">;;</span>
-<span class="o">:-</span> <span class="kt">unit</span> <span class="o">=</span> <span class="bp">()</span>
-<span class="o">#</span> <span class="k">open</span> <span class="nc">Formel</span><span class="o">;;</span>
-<span class="o">:-</span> <span class="kt">unit</span> <span class="o">=</span> <span class="bp">()</span>
-<span class="o">#</span> <span class="n">d</span> <span class="o">(</span><span class="err">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span><span class="o">*</span><span class="n">ln</span> <span class="n">x</span><span class="o">);;</span> <span class="c">(* la notation des fonctions anonymes est analogue à celle utilisée dans Haskell : \x -&gt; f x *)</span>
-<span class="o">:-</span> <span class="o">(</span><span class="kt">int</span> <span class="o">-&gt;</span> <span class="kt">int</span><span class="o">)</span> <span class="o">=</span> <span class="err">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="o">(</span><span class="n">ln</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="c">(* la fonction est dérivée puis simplifiée automatiquement grâce à la fonction d présente dans maths.mml *)</span>
-</pre></div>
-
-<h3>Autres exemples</h3>
-
-<p>Il suffit d'ouvrir les fichiers d'extension <code>.mml</code> qui contiennent du code écrit en CamlM.</p>
-
-<h2>Sémantique du langage CamlM</h2>
-
-<p>Pour avoir une vue plus complète des fonctionnalités du langage, on pourra visiter cette page : <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">Éléments de sémantique du langage CamlM</a>. </p>
+<h3 id="fonction-factorielle">Fonction factorielle</h3>
+<pre class="sourceCode Ocaml"><code class="sourceCode ocaml"># <span class="kw">let</span> <span class="kw">rec</span> fac = <span class="kw">function</span> 0 -&gt; 1 | n -&gt; n*fac(n<span class="dv">-1</span>) <span class="kw">in</span> fac 5;;
+:- <span class="dt">int</span> = 120</code></pre>
+<h3 id="dérivation-dexpression-mathématique">Dérivation d’expression mathématique :</h3>
+<pre class="sourceCode Ocaml"><code class="sourceCode ocaml"># <span class="ot">open</span> Maths;;
+:- <span class="dt">unit</span> = ()
+# <span class="ot">open</span> Formel;;
+:- <span class="dt">unit</span> = ()
+# d (\x -&gt; x*ln x);; <span class="co">(* la notation des fonctions anonymes est analogue à celle utilisée dans Haskell : \x -&gt; f x *)</span>
+:- (<span class="dt">int</span> -&gt; <span class="dt">int</span>) = \x -&gt; (ln x + 1) <span class="co">(* la fonction est dérivée puis simplifiée automatiquement grâce à la fonction d présente dans maths.mml *)</span></code></pre>
+<h3 id="autres-exemples">Autres exemples</h3>
+<p>Il suffit d’ouvrir les fichiers d’extension <code>.mml</code> qui contiennent du code écrit en CamlM.</p>
+<h2 id="sémantique-du-langage-camlm">Sémantique du langage CamlM</h2>
+<p>Pour avoir une vue plus complète des fonctionnalités du langage, on pourra visiter cette page : <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">Éléments de sémantique du langage CamlM</a>.</p>
       </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>

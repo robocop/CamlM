@@ -1,0 +1,541 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Show.html">
+<link rel="next" href="Typing.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Syntax</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Show.html" title="Show">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Typing.html" title="Typing">Next</a>
+</div>
+<h1>Module <a href="type_Syntax.html">Syntax</a> (<a href="code_Syntax.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Syntax: <code class="code"><span class="keyword">sig</span></code> <a href="Syntax.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>CamlM representation and environment types.<br>
+<hr width="100%">
+<pre><code><span id="TYPEexpression"><span class="keyword">type</span> <code class="type"></code>expression</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EVariable"><span class="constructor">EVariable</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EFunction"><span class="constructor">EFunction</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEclosure">closure</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EApplication"><span class="constructor">EApplication</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEexpression">expression</a> * <a href="Syntax.html#TYPEexpression">expression</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.ELet"><span class="constructor">ELet</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEdefinition">definition</a> * <a href="Syntax.html#TYPEexpression">expression</a> option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EDeclare"><span class="constructor">EDeclare</span></span> <span class="keyword">of</span> <code class="type">string * <a href="Syntax.html#TYPEexpression">expression</a> option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EDeriv"><span class="constructor">EDeriv</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a> * <a href="Syntax.html#TYPEexpression">expression</a> * <a href="Syntax.html#TYPEexpression">expression</a> option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EOpen"><span class="constructor">EOpen</span></span> <span class="keyword">of</span> <code class="type">string * <a href="Syntax.html#TYPEexpression">expression</a> option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EBoolean"><span class="constructor">EBoolean</span></span> <span class="keyword">of</span> <code class="type">bool</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.ENum"><span class="constructor">ENum</span></span> <span class="keyword">of</span> <code class="type">int32</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EPair"><span class="constructor">EPair</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEexpression">expression</a> * <a href="Syntax.html#TYPEexpression">expression</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EUnit"><span class="constructor">EUnit</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.ENil"><span class="constructor">ENil</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.ECons"><span class="constructor">ECons</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEexpression">expression</a> * <a href="Syntax.html#TYPEexpression">expression</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.ENone"><span class="constructor">ENone</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.EString"><span class="constructor">EString</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTexpression.ESome"><span class="constructor">ESome</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEexpression">expression</a></code></code></td>
+
+</tr></table>
+
+<div class="info">
+CamlM AST structure.
+<p>
+
+    A CamlM source is parsed into an <a href="Syntax.html#TYPEexpression"><code class="code"><span class="constructor">Syntax</span>.expression</code></a> by the CamlM parser
+    (<code class="code"><span class="constructor">Parser</span></code>). Base expressions include : 
+<p>
+<ul>
+<li>A construct similiar to OCaml's option type (<code class="code"><span class="constructor">Some</span> a</code>, <code class="code"><span class="constructor">None</span></code>).</li>
+<li>Ordered pairs of elements (a 2-tuple).</li>
+<li>Lists.</li>
+<li>Axiom declaration (<code class="code">declare axiom</code>).</li>
+<li>...</li>
+</ul>
+
+    While most of these constructs can be easily understood by the average OCaml
+    user, the <code class="code">declare</code> syntax (<a href="Syntax.html#TYPEexpression"><code class="code"><span class="constructor">EDeclare</span></code></a>) deserves some
+    explanation. See the CamlM wiki (linked below).<br>
+<b>See also</b> <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">(in french) for further details.</a><br>
+</div>
+
+<pre><code><span id="TYPEenv"><span class="keyword">type</span> <code class="type">'a</code> env</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTenv.this">this</span>&nbsp;:<code class="type">string</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTenv.modules">modules</span>&nbsp;:<code class="type">string <a href="Graph.html#TYPEgraph">Graph.graph</a></code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTenv.namespace">namespace</span>&nbsp;:<code class="type">(string * (string * 'a) list) list</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info">
+Type for holding an environment. This type is parametrized - it is used in
+    both <a href="Eval.html"><code class="code"><span class="constructor">Eval</span></code></a> and <a href="Typing.html"><code class="code"><span class="constructor">Typing</span></code></a>. The structure stays the same, but the payload
+    differs based on the use.
+<p>
+
+    In the <a href="Eval.html"><code class="code"><span class="constructor">Eval</span></code></a> module, a <a href="Syntax.html#TYPEfun_env_content"><code class="code"><span class="constructor">Syntax</span>.fun_env_content</code></a> is held by the <a href="Syntax.html#TYPEenv"><code class="code"><span class="constructor">Syntax</span>.env</code></a> structure.
+    In the <a href="Typing.html"><code class="code"><span class="constructor">Typing</span></code></a> module, it is a <a href="Typing.html#TYPEtype_env_content"><code class="code"><span class="constructor">Typing</span>.type_env_content</code></a>.
+<p>
+
+    The fields are as follow : <ul>
+<li><a href="Syntax.html#TYPEenv"><code class="code">this</code></a> : name of the "current module". In the REPL, it will be
+       "_toplevel". When evaluating module "Foo", it will be "Foo".</li>
+<li><a href="Syntax.html#TYPEenv"><code class="code">modules</code></a> : directed graph of all opened modules. If a module B
+       is exposed to a module A, there is an edge in between A and B.</li>
+<li><a href="Syntax.html#TYPEenv"><code class="code">namespace</code></a> : associates names to a list of modules they occur
+       in. Depending on the module, the payload (the "value" associated to the
+       name in the current context) will be different.</li>
+</ul>
+<br>
+</div>
+
+<pre><span id="TYPEfun_env_content"><span class="keyword">type</span> <code class="type"></code>fun_env_content</span> = <code class="type"><a href="Syntax.html#TYPEexpression">expression</a> option * <a href="Syntax.html#TYPEprop">prop</a> list option</code> </pre>
+<div class="info">
+Environment payload for expression evaluation (see <a href="Eval.html"><code class="code"><span class="constructor">Eval</span></code></a>). Holds the value
+    of a name (None if the name is an axiom) and a list of properties (see
+    <a href="Syntax.html#TYPEprop"><code class="code"><span class="constructor">Syntax</span>.prop</code></a>) if the name is an operator.<br>
+</div>
+
+<pre><code><span id="TYPEprop"><span class="keyword">type</span> <code class="type"></code>prop</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTprop.Com"><span class="constructor">Com</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTprop.Assoc"><span class="constructor">Assoc</span></span></code></td>
+
+</tr></table>
+
+<div class="info">
+Properties of an operator : <a href="Syntax.html#TYPEprop"><code class="code"><span class="constructor">Com</span></code></a> if operator is commutative,
+    <a href="Syntax.html#TYPEprop"><code class="code"><span class="constructor">Assoc</span></code></a> if operator is associative.
+<p>
+
+    This is useful to shorten redundant patterns (e.g. no need to test for 
+    patterns <code class="code">(-a) + b</code> and <code class="code">b + (-a)</code> as <code class="code">(+)</code> is commutative).<br>
+</div>
+
+<pre><code><span id="TYPEpattern"><span class="keyword">type</span> <code class="type"></code>pattern</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PAll"><span class="constructor">PAll</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PVariable"><span class="constructor">PVariable</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PAxiom"><span class="constructor">PAxiom</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PBoolean"><span class="constructor">PBoolean</span></span> <span class="keyword">of</span> <code class="type">bool</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PNum"><span class="constructor">PNum</span></span> <span class="keyword">of</span> <code class="type">int32</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PPair"><span class="constructor">PPair</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a> * <a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PNil"><span class="constructor">PNil</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PCons"><span class="constructor">PCons</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a> * <a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PNone"><span class="constructor">PNone</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PSome"><span class="constructor">PSome</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PString"><span class="constructor">PString</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.POp"><span class="constructor">POp</span></span> <span class="keyword">of</span> <code class="type">string * <a href="Syntax.html#TYPEpattern">pattern</a> * <a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PMinus"><span class="constructor">PMinus</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PCompose"><span class="constructor">PCompose</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a> * <a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PIdentity"><span class="constructor">PIdentity</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PConst"><span class="constructor">PConst</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PIsnum"><span class="constructor">PIsnum</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTpattern.PWhen"><span class="constructor">PWhen</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEexpression">expression</a> * <a href="Syntax.html#TYPEpattern">pattern</a></code></code></td>
+
+</tr></table>
+
+<div class="info">
+Pattern matching structure. Represents a pattern in any pattern matching
+    construct (<code class="code"><span class="keyword">function</span> ...</code>, <code class="code"><span class="keyword">match</span> ... <span class="keyword">with</span></code>, etc).
+<p>
+
+    It is possible to match against specific axioms using the "@" symbol (parsed
+    into a <a href="Syntax.html#TYPEpattern"><code class="code"><span class="constructor">PAxiom</span></code></a>), or to disassemble functions around an
+    operator. Again, see wiki.<br>
+<b>See also</b> <a href="https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM">(in french) for further details.</a><br>
+</div>
+
+<pre><code><span id="TYPEclosure"><span class="keyword">type</span> <code class="type"></code>closure</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTclosure.def">def</span>&nbsp;:<code class="type">(<a href="Syntax.html#TYPEpattern">pattern</a> * <a href="Syntax.html#TYPEexpression">expression</a>) list</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTclosure.env">env</span>&nbsp;:<code class="type"><a href="Syntax.html#TYPEfun_env_content">fun_env_content</a> <a href="Syntax.html#TYPEenv">env</a> option</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info">
+A function environment (<a href="Syntax.html#TYPEenv"><code class="code"><span class="constructor">Syntax</span>.env</code></a>) paired with a function. Your everyday
+    closure, really.<br>
+</div>
+
+<pre><code><span id="TYPEdefinition"><span class="keyword">type</span> <code class="type"></code>definition</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTdefinition.recursive">recursive</span>&nbsp;:<code class="type">bool</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTdefinition.name">name</span>&nbsp;:<code class="type">string</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTdefinition.expr">expr</span>&nbsp;:<code class="type"><a href="Syntax.html#TYPEexpression">expression</a></code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info">
+Name definition. Name attached to a potentially recursive function or a
+    value.<br>
+</div>
+
+<br>
+Types for the typing system<br>
+<pre><code><span id="TYPEsimple_type"><span class="keyword">type</span> <code class="type"></code>simple_type</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTsimple_type.Variable"><span class="constructor">Variable</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEvariable_of_type">variable_of_type</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTsimple_type.Term"><span class="constructor">Term</span></span> <span class="keyword">of</span> <code class="type">string * <a href="Syntax.html#TYPEsimple_type">simple_type</a> array</code></code></td>
+
+</tr></table>
+
+
+<pre><code><span id="TYPEvariable_of_type"><span class="keyword">type</span> <code class="type"></code>variable_of_type</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTvariable_of_type.level">level</span>&nbsp;:<code class="type">int</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTvariable_of_type.value">value</span>&nbsp;:<code class="type"><a href="Syntax.html#TYPEvalue_of_variable">value_of_variable</a></code>;</code></td>
+
+</tr></table>
+}
+
+
+<pre><code><span id="TYPEvalue_of_variable"><span class="keyword">type</span> <code class="type"></code>value_of_variable</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue_of_variable.Unknow"><span class="constructor">Unknow</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue_of_variable.Know"><span class="constructor">Know</span></span> <span class="keyword">of</span> <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a></code></code></td>
+
+</tr></table>
+
+
+<pre><code><span id="TYPEtype_schema"><span class="keyword">type</span> <code class="type"></code>type_schema</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTtype_schema.parameter">parameter</span>&nbsp;:<code class="type"><a href="Syntax.html#TYPEvariable_of_type">variable_of_type</a> list</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTtype_schema.corps">corps</span>&nbsp;:<code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a></code>;</code></td>
+
+</tr></table>
+}
+
+
+<pre><span id="VALtype_unit"><span class="keyword">val</span> <a href="code_VALSyntax.type_unit.html">type_unit</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_num"><span class="keyword">val</span> <a href="code_VALSyntax.type_num.html">type_num</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_bool"><span class="keyword">val</span> <a href="code_VALSyntax.type_bool.html">type_bool</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_string"><span class="keyword">val</span> <a href="code_VALSyntax.type_string.html">type_string</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_product"><span class="keyword">val</span> <a href="code_VALSyntax.type_product.html">type_product</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_list"><span class="keyword">val</span> <a href="code_VALSyntax.type_list.html">type_list</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_option"><span class="keyword">val</span> <a href="code_VALSyntax.type_option.html">type_option</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><span id="VALtype_arrow"><span class="keyword">val</span> <a href="code_VALSyntax.type_arrow.html">type_arrow</a></span> : <code class="type"><a href="Syntax.html#TYPEsimple_type">simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">simple_type</a> -> <a href="Syntax.html#TYPEsimple_type">simple_type</a></code></pre><pre><code><span id="TYPEinterpreter"><span class="keyword">type</span> <code class="type">'a</code> interpreter</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTinterpreter.INothing"><span class="constructor">INothing</span></span></code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Nothing was entererd.</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTinterpreter.ICommand"><span class="constructor">ICommand</span></span> <span class="keyword">of</span> <code class="type">string</code></code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >REPL command (e.g. "#quit;;").</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTinterpreter.IValue"><span class="constructor">IValue</span></span> <span class="keyword">of</span> <code class="type">'a</code></code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Expression to evaluate.</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr></table>
+
+<div class="info">
+REPL parser types.<br>
+</div>
+
+<pre><span id="VALvalue"><span class="keyword">val</span> <a href="code_VALSyntax.value.html">value</a></span> : <code class="type">'a * 'b -> 'a</code></pre><div class="info">
+<a href="Syntax.html#TYPEfun_env_content"><code class="code"><span class="constructor">Syntax</span>.fun_env_content</code></a> helper.<br>
+</div>
+<pre><span id="VALop_prop"><span class="keyword">val</span> <a href="code_VALSyntax.op_prop.html">op_prop</a></span> : <code class="type">'a * 'b -> 'b</code></pre><div class="info">
+<a href="Syntax.html#TYPEfun_env_content"><code class="code"><span class="constructor">Syntax</span>.fun_env_content</code></a> helper.<br>
+</div>
+</body></html>

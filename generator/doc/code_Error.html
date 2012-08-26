@@ -1,0 +1,72 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Error</title>
+</head>
+<body>
+<code class="code"></code><table><tr><td></td><td><span class="comment">(** Exception definitions and pretty print function.
+<p>
+
+    For now, most errors cause immediate termination of any eval/typing function.
+    It is the responsability of the front end (CLI, REPL) to handle those errors.
+  *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">open</span>&nbsp;<span class="constructor">Lexing</span><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Matching failed on current pattern. See the source code for <code class="code"><span class="constructor">Eval</span></code> to see
+    how this is used.*)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">MatchingFailure</span><br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Generic error. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">Error</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Parse error at specific position. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">ParseError</span>&nbsp;<span class="keyword">of</span>&nbsp;<span class="constructor">Lexing</span>.position&nbsp;*&nbsp;string<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Type system caught in a loop. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">Loop</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;string<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Type conflict during unification. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">Conflit</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;string<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Multiple, equally valid names returned from an environment lookup. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">MultiDef</span>&nbsp;<span class="keyword">of</span>&nbsp;string&nbsp;*&nbsp;string&nbsp;list<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Name was not found in environment lookup. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">exception</span>&nbsp;<span class="constructor">Undef</span>&nbsp;<span class="keyword">of</span>&nbsp;string<br>
+<br>
+</code><table><tr><td></td><td><span class="comment">(** Pretty print function. *)</span></td></tr></table><code class="code"><br>
+<span class="keyword">let</span>&nbsp;handle_error&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Error</span>&nbsp;s&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;print_endline&nbsp;(<span class="string">"Error&nbsp;:&nbsp;"</span>&nbsp;^&nbsp;s)&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Undef</span>&nbsp;f&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;print_endline&nbsp;(<span class="string">"Error&nbsp;:&nbsp;"</span>&nbsp;^&nbsp;f&nbsp;^&nbsp;<span class="string">"&nbsp;is&nbsp;not&nbsp;defined"</span>)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">MultiDef</span>&nbsp;(f,&nbsp;mods)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;pretty_error&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;[]&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;m&nbsp;::&nbsp;xs&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print_endline&nbsp;(<span class="string">"&nbsp;-&nbsp;"</span>&nbsp;^&nbsp;f&nbsp;^&nbsp;<span class="string">"&nbsp;in&nbsp;module&nbsp;"</span>&nbsp;^&nbsp;m);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pretty_error&nbsp;xs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span>&nbsp;print_endline&nbsp;(<span class="string">"Error&nbsp;:&nbsp;multiple&nbsp;definitions&nbsp;of&nbsp;"</span>&nbsp;^&nbsp;f&nbsp;^&nbsp;<span class="string">",&nbsp;did&nbsp;you&nbsp;mean:&nbsp;"</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pretty_error&nbsp;mods<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">ParseError</span>&nbsp;(p,&nbsp;tok)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print_endline&nbsp;(<span class="string">"Parse&nbsp;error&nbsp;(line&nbsp;"</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^&nbsp;string_of_int&nbsp;p.pos_lnum<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^&nbsp;<span class="string">",&nbsp;column&nbsp;"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^&nbsp;string_of_int&nbsp;(p.pos_cnum&nbsp;-&nbsp;p.pos_bol)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^&nbsp;<span class="string">")&nbsp;on&nbsp;token&nbsp;:&nbsp;'"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^&nbsp;tok&nbsp;^&nbsp;<span class="string">"'"</span>)<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;exn&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;print_endline&nbsp;(<span class="string">"Unhandled&nbsp;exception&nbsp;:&nbsp;"</span>&nbsp;^&nbsp;<span class="constructor">Printexc</span>.to_string&nbsp;exn)<br>
+<br>
+</code></body></html>

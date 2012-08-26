@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Modules.html">
+<link rel="next" href="Syntax.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Builtin" rel="Chapter" href="Builtin.html">
+<link title="Error" rel="Chapter" href="Error.html">
+<link title="Eval" rel="Chapter" href="Eval.html">
+<link title="Graph" rel="Chapter" href="Graph.html">
+<link title="Helper" rel="Chapter" href="Helper.html">
+<link title="Lambda_repl" rel="Chapter" href="Lambda_repl.html">
+<link title="Modules" rel="Chapter" href="Modules.html">
+<link title="Show" rel="Chapter" href="Show.html">
+<link title="Syntax" rel="Chapter" href="Syntax.html">
+<link title="Typing" rel="Chapter" href="Typing.html"><title>Show</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Modules.html" title="Modules">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Syntax.html" title="Syntax">Next</a>
+</div>
+<h1>Module <a href="type_Show.html">Show</a> (<a href="code_Show.html">.ml</a>)</h1>
+<pre><span class="keyword">module</span> Show: <code class="code"><span class="keyword">sig</span></code> <a href="Show.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Pretty print routines for pretty much everything.<br>
+<hr width="100%">
+<pre><span id="VALshow_list"><span class="keyword">val</span> <a href="code_VALShow.show_list.html">show_list</a></span> : <code class="type">string list -> string</code></pre><pre><span id="VALshow_def"><span class="keyword">val</span> <a href="code_VALShow.show_def.html">show_def</a></span> : <code class="type"><a href="Syntax.html#TYPEdefinition">Syntax.definition</a> -> string</code></pre><pre><span id="VALshow_pattern"><span class="keyword">val</span> <a href="code_VALShow.show_pattern.html">show_pattern</a></span> : <code class="type"><a href="Syntax.html#TYPEpattern">Syntax.pattern</a> -> string</code></pre><pre><span id="VALshow_function"><span class="keyword">val</span> <a href="code_VALShow.show_function.html">show_function</a></span> : <code class="type">(<a href="Syntax.html#TYPEpattern">Syntax.pattern</a> * <a href="Syntax.html#TYPEexpression">Syntax.expression</a>) list -> string</code></pre><pre><span id="VALshow"><span class="keyword">val</span> <a href="code_VALShow.show.html">show</a></span> : <code class="type"><a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> string</code></pre><div class="info">
+Shows expressions reduced by <a href="Eval.html#VALeval"><code class="code"><span class="constructor">Eval</span>.eval</code></a>, but does not show the environment.<br>
+</div>
+<pre><span id="VALget_list"><span class="keyword">val</span> <a href="code_VALShow.get_list.html">get_list</a></span> : <code class="type"><a href="Syntax.html#TYPEexpression">Syntax.expression</a> -> string list</code></pre><pre><span id="VALshow_env"><span class="keyword">val</span> <a href="code_VALShow.show_env.html">show_env</a></span> : <code class="type">('a * 'b) <a href="Syntax.html#TYPEenv">Syntax.env</a> -> unit list</code></pre><div class="info">
+Debug show function.<br>
+</div>
+<pre><span id="VALshow_graph"><span class="keyword">val</span> <a href="code_VALShow.show_graph.html">show_graph</a></span> : <code class="type">(string * string list) list -> unit</code></pre><div class="info">
+Debug show function.<br>
+</div>
+</body></html>
