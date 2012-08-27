@@ -12,12 +12,12 @@ open Error
 open Helper
 open Show
 
-let op_property prop op env = match op_prop (lookup_env op env) with
-  | None -> raise (Error "tried to get op properties from a non-op object")
-  | Some p -> List.mem prop p
+let expr_property prop expr env = List.mem prop (expr_prop (lookup_env expr env))
 
-let is_com op env = op_property Com op env
-let is_assoc op env = op_property Assoc op env
+
+let is_com op env = expr_property Com op env
+let is_assoc op env = expr_property Assoc op env
+let is_rec expr env = expr_property Recursive expr env
 
 (** Matches an expression against a pattern, and computes the new variables
     defined by the pattern. Returns a list of names and their values to be added
@@ -102,7 +102,7 @@ and eval env = function
       in (env', EUnit)
  *)
   | EDeclare(var, None) ->
-      let env' = add_env (var, (None, None)) env
+      let env' = add_env (var, (None, [])) env
       in (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_fun_module m env

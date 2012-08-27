@@ -64,7 +64,7 @@ and 'a env = {
     of a name (None if the name is an axiom) and a list of properties (see
     {!prop}) if the name is an operator.
   *)
-and fun_env_content = (expression option) * ((prop list) option)
+and fun_env_content = (expression option) * (prop list)
 
 (** Properties of an operator : {{!prop}[Com]} if operator is commutative,
     {{!prop}[Assoc]} if operator is associative.
@@ -75,6 +75,7 @@ and fun_env_content = (expression option) * ((prop list) option)
 and prop = 
   | Com
   | Assoc
+  | Recursive
 
 (** Pattern matching structure. Represents a pattern in any pattern matching
     construct ([function ...], [match ... with], etc).
@@ -160,5 +161,5 @@ type 'a interpreter =
 (** {!fun_env_content} helper. *)
 let value (value, _) = value
 (** {!fun_env_content} helper. *)
-let op_prop (_, prop) = prop
+let expr_prop (_, prop) = prop
 
