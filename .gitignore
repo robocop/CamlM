@@ -1,0 +1,4 @@
+_store/
+generator/*.hi
+generator/*.o
+generator/main
