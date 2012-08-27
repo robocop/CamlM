@@ -112,7 +112,8 @@ and pattern =
     closure, really. *)
 and closure = 
     { def : (pattern * expression) list; 
-	    mutable env : (fun_env_content env) option }
+      n : string option
+    }
 
 (** Name definition. Name attached to a potentially recursive function or a
     value. *)

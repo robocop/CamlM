@@ -26,7 +26,7 @@ let rec get_vars_of_pattern = function
 (** Creates a set of all free variables of a function. *)
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
-  | EFunction {def = l; env = _} ->
+  | EFunction {def = l} ->
     List.fold_left
       (fun ens (pattern, expr) -> 
         (match pattern with
@@ -70,7 +70,7 @@ let rec substitution expr arg x = match expr with
   | EVariable y when y <> x -> EVariable y
 
 
-  | EFunction {def = l; env = env } ->
+  | EFunction {def = l; n = n} ->
     let vars_arg = free_vars arg in
     let new_def =
       List.map (fun (pattern, expr) -> (* Pour chaque couple pattern * expression de la fonction *)
@@ -108,7 +108,7 @@ let rec substitution expr arg x = match expr with
     )
       l
     in
-    EFunction{def = new_def; env = env }
+    EFunction{def = new_def; n = n}
 
 (*
   | EFunction {def = [PVariable v, e]; env = env} when v = x->

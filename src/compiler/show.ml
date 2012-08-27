@@ -64,7 +64,7 @@ and show = function
   | EApplication(EVariable f, r) -> f ^ " (" ^ show r ^ ")"
   | EApplication (f, e) ->
       "("^show f^") "^"("^show e^")" 
-  | EFunction {def = def; env = _} -> 
+  | EFunction {def = def} -> 
       begin
         match def with
           | [PVariable v, expr] ->

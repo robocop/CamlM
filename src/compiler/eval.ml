@@ -16,8 +16,8 @@ let op_property prop op env = match op_prop (lookup_env op env) with
   | None -> raise (Error "tried to get op properties from a non-op object")
   | Some p -> List.mem prop p
 
-let is_com = op_property Com
-let is_assoc = op_property Assoc
+let is_com op env = op_property Com op env
+let is_assoc op env = op_property Assoc op env
 
 (** Matches an expression against a pattern, and computes the new variables
     defined by the pattern. Returns a list of names and their values to be added
@@ -130,14 +130,14 @@ and eval' env expr = match expr with
       let corps' = substitution corps value name_var in
       eval' env corps'
     else 
-      let rec fixpoint count f x = match f x with
+      let rec fixpoint f x = match f x with
         | x' when (x' = x) -> x
-        | x' -> if count <= 5 then fixpoint (count+1) f x' else x'
+        | x' -> fixpoint f x'
       in
       let f expr = eval' env (substitution expr value name_var) in
-      fixpoint 0 f corps
+      fixpoint f corps
 
-  | EApplication (EFunction {def = case_list} as f, argument) ->
+  | EApplication (EFunction {def = case_list; n = name} as f, argument) ->
     let arg = eval' env argument in
     begin try
     let new_vars, f_x = eval_application env case_list arg in
@@ -147,16 +147,18 @@ and eval' env expr = match expr with
       new_vars
     in
     eval' env r
-      with _ -> EApplication(f, argument)
+      with _ -> 
+	(match name with 
+	    Some n -> EApplication(EVariable n, argument)
+	  | None -> EApplication(f, argument)
+	)
     end
 
   | EApplication(m, n) as r  -> 
     let r' = primitive (eval' env m) (eval' env n) in
     if r' <> r then eval' env r' else r'
-  | EFunction {def = case_list; env = Some env_f } ->
-    EFunction {def = List.map (fun (p, e) -> (p, eval' env_f e)) case_list; env = Some env_f }
-  | EFunction {def = case_list; env = None } ->
-    EFunction {def = List.map (fun (p, e) -> (p, eval' env e)) case_list; env = Some env }
+  | EFunction {def = case_list; n = n } ->
+    EFunction {def = List.map (fun (p, e) -> (p, eval' env e)) case_list;  n = n}
   
 
   | EDeclare(_, Some expr) -> eval' env expr
@@ -202,24 +204,14 @@ and eval_application env case_list argument = match case_list with
     recursive function, and uses the standard {!eval'} function otherwise.
   *)
 and eval_definition curr_env def =
-  match def.recursive with
-    | false ->
-        let value = eval' curr_env def.expr in
-        (def.name, value, false)
-          (*
-        let curr_env' = add_env (def.name, (Some value, None)) curr_env
-        in (curr_env', value)
-          *)
-    | true -> (* Recursive function *)
-        match def.expr with
-          | EFunction f ->
-              let closure = {def = f.def; env = None } in
-              let new_entry = (def.name, (Some (EFunction closure), None)) in
-              let extended_env = add_env new_entry curr_env in
-                closure.env <- Some extended_env;
-              (*  (extended_env, EFunction closure) *) 
-                (def.name, EFunction closure, true)
-          | _ -> raise (Error "Non-functionnal recursive let definition")
+  match def.expr, def.recursive with
+    | EFunction f, r -> 
+       let closure = {def = f.def; n = Some def.name } in
+       (def.name, EFunction closure, r)
+    | _, true ->  raise (Error "Non-functionnal recursive let definition")
+    | expr, _ -> 
+      let value = eval' curr_env def.expr in
+      (def.name, value, false)
 
 (** Evaluate a list of expressions, keeping the environment in between the
     calls.

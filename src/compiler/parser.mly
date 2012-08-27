@@ -9,7 +9,7 @@
 
     let rec mkFun (cases, e) = match cases with
         | [] -> e
-        | x :: xs -> mkFun (xs, EFunction {def = [x, e]; env = None})
+        | x :: xs -> mkFun (xs, EFunction {def = [x, e]; n = None})
 
     let mkLet r (n, pats, exp) in_clause = 
         ELet ( { recursive = r
@@ -31,7 +31,7 @@
         | x :: xs -> PCons (x, mkMotifList xs)
 
 
-    let fn e = EFunction {def = List.rev e; env = None}
+    let fn e = EFunction {def = List.rev e; n = None}
 
     let mkPreMinus = function
       | ENum n -> ENum (Int32.neg n)
