@@ -120,6 +120,18 @@ let rec lookup_env name env = match lookup_env' name env.namespace with
                      ) names
       in disambiguate env name names'
             
+
+
+let get_accessible_names env =
+  let rec aux in_scope = function
+    | [] -> []
+    | (n, p) :: xs ->
+        let accessible = List.filter (function (m, _) -> List.mem m in_scope) p
+        in (List.map (function (_, v) -> (n, v)) accessible)
+        @ aux in_scope xs
+  in aux (adjacent_nodes env.modules env.this) env.namespace
+
+
 (** Add a name & content to an environment's namespace. The namespace is
     structured such that names are the key of the association list. Each value
     associated to those keys is another association list containing pairs of

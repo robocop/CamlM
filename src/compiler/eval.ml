@@ -97,18 +97,44 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
      - [open ...;]
 *)
 and eval env = function
- (* | ELet (def, None) ->
-      let (env', _) = eval_definition env def
-      in (env', EUnit)
- *)
+  | ELet (def, None) ->
+      let  (name, value, is_rec) = eval_definition env def in
+      let value' = replace_env env value in
+      let env' = add_env (name, (Some value', if is_rec then [Recursive] else [])) env in
+      (env', EUnit)
+ 
   | EDeclare(var, None) ->
       let env' = add_env (var, (None, [])) env
       in (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_fun_module m env
       in (env', EUnit)
-  | expr -> (env, eval' env expr)
+  | expr -> 
+    let expr' = replace_env env expr in
+    (env, eval' env expr')
 
+
+and replace_env env expr = 
+  let l = get_accessible_names env in
+  List.fold_left
+    (fun expr (name_var, (e_option, props)) ->
+      match e_option with
+	| None -> expr
+	| Some value ->
+	  if List.mem Recursive props then
+	    let rec fixpoint f x = match f x with
+              | x' when (x' = x) -> x
+              | x' -> fixpoint f x'
+	    in
+	    let f expr = eval' env (substitution expr value name_var) in
+	    fixpoint f expr
+	  else 
+	    let expr' = substitution expr value name_var in
+	    eval' env expr'
+	    	  
+    )
+    expr
+    l
 (** Evaluate expressions that only change the environment locally.
    
     Recursively reduces an expression "as much as possible". Formal functions
