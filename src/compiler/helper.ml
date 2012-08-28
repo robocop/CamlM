@@ -40,13 +40,6 @@ let parse f lexbuf =
     let tok = Lexing.lexeme lexbuf in
     raise (ParseError (p, tok))
 
-(** Extract from the option type.
-  
-    @raise Failure if tried to extract from [None] constructor.
-  *)      
-let get = function
-  | Some e -> e
-  | None -> failwith "Tried to extract from a none value"
 
 (** Acquire, use, release cycle. *)
 let bracket acquire use release = 

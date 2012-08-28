@@ -64,7 +64,7 @@ and 'a env = {
     of a name (None if the name is an axiom) and a list of properties (see
     {!prop}) if the name is an operator.
   *)
-and fun_env_content = (expression option) * (prop list)
+and fun_env_content = expression * (prop list)
 
 (** Properties of an operator : {{!prop}[Com]} if operator is commutative,
     {{!prop}[Assoc]} if operator is associative.
@@ -159,7 +159,7 @@ type 'a interpreter =
 
 
 (** {!fun_env_content} helper. *)
-let value (value, _) = value
+let expr_value (value, _) = value
 (** {!fun_env_content} helper. *)
 let expr_prop (_, prop) = prop
 

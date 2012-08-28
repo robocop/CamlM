@@ -49,22 +49,22 @@ let builtin_types =
     {!Syntax.env}.
 *)
 let builtin_fns = 
-   [("+", [prelude, (Some (EVariable "+"), [Assoc; Com])]);
-   ("*", [prelude, (Some (EVariable "*"), [Assoc; Com])]);
-   ("/", [prelude, (Some (EVariable "/"), [])]);
-   ("^", [prelude, (Some (EVariable "^"), [])]);
-   ("==", [prelude, (Some (EVariable "=="), [])]);
-   ("!=", [prelude, (Some (EVariable "!="), [])]);
-   (">=", [prelude, (Some (EVariable ">="), [])]);
-   ("<=", [prelude, (Some (EVariable "<="), [])]);
-   ("<",  [prelude, (Some (EVariable "<"), [])]);
-   (">",  [prelude, (Some (EVariable ">"), [])]);
-   ("&&", [prelude, (Some (EVariable "&&"), [])]);
-   ("||", [prelude, (Some (EVariable "||"), [])]);
-   ("not", [prelude, (Some (EVariable "not"), [])]);
-   ("-", [prelude, (Some (EVariable "-"), [])]);
-   ("++", [prelude, (Some (EVariable "++"), [])]);
-   ("mod", [prelude, (Some (EVariable "mod"), [])]);
-   ("string_of_int", [prelude, (Some (EVariable "string_of_int"), [])]);
+   [("+", [prelude, (EVariable "+", [Assoc; Com])]);
+   ("*", [prelude, (EVariable "*", [Assoc; Com])]);
+   ("/", [prelude, (EVariable "/", [])]);
+   ("^", [prelude, (EVariable "^", [])]);
+   ("==", [prelude, (EVariable "==", [])]);
+   ("!=", [prelude, (EVariable "!=", [])]);
+   (">=", [prelude, (EVariable ">=", [])]);
+   ("<=", [prelude, (EVariable "<=", [])]);
+   ("<",  [prelude, (EVariable "<", [])]);
+   (">",  [prelude, (EVariable ">", [])]);
+   ("&&", [prelude, (EVariable "&&", [])]);
+   ("||", [prelude, (EVariable "||", [])]);
+   ("not", [prelude, (EVariable "not", [])]);
+   ("-", [prelude, (EVariable "-", [])]);
+   ("++", [prelude, (EVariable "++", [])]);
+   ("mod", [prelude, (EVariable "mod", [])]);
+   ("string_of_int", [prelude, (EVariable "string_of_int", [])]);
   ]
 

@@ -28,14 +28,9 @@ let is_rec expr env = expr_property Recursive expr env
   *)
 let rec matching (com_test, assoc_test) env value pattern = match value, pattern with
   | (_, PAll) -> []
-  | (value, PAxiom id) ->
-      begin
-        match value, lookup_env id env with
-          | EVariable v, (_, _) when v = id -> []
-          | _ -> raise MatchingFailure
-      end
+ 
 
-  | (value, PVariable id) -> [(id, (Some value, None))] 
+  | (value, PVariable id) -> [id, (value, [])] 
   | (EBoolean b1, PBoolean b2) ->
       if b1 = b2 then [] else raise MatchingFailure
   | (ENum i1, PNum i2) ->
@@ -79,11 +74,10 @@ let rec matching (com_test, assoc_test) env value pattern = match value, pattern
   | (expr, PWhen(expr_cond, pattern)) -> 
     let vars = matching (false, false) env expr pattern in
     let r = List.fold_left 
-        (fun expr (var, e_var) -> substitution expr (get (fst e_var)) var)
+        (fun expr (var, e_var) -> substitution expr (expr_value e_var) var)
         expr_cond
         vars
     in
-    (* Printf.printf "%s == %s ?\n" (show r) (show expr); *)
       (match eval' env r with
         | EBoolean true -> vars
         | _ -> raise MatchingFailure)
@@ -100,11 +94,11 @@ and eval env = function
   | ELet (def, None) ->
       let  (name, value, is_rec) = eval_definition env def in
       let value' = replace_env env value in
-      let env' = add_env (name, (Some value', if is_rec then [Recursive] else [])) env in
+      let env' = add_env (name, (value', if is_rec then [Recursive] else [])) env in
       (env', EUnit)
  
   | EDeclare(var, None) ->
-      let env' = add_env (var, (None, [])) env
+      let env' = add_env (var, (EVariable var, [])) env
       in (env', EUnit)
   | EOpen (m, None) -> 
       let env' = open_fun_module m env
@@ -114,27 +108,33 @@ and eval env = function
     (env, eval' env expr')
 
 
+
+
+
+and replace_a_value  env (name_var, (value, props)) expr = 
+  if List.mem Recursive props then
+    let rec fixpoint f x = match f x with
+      | x' when (x' = x) -> x
+      | x' -> fixpoint f x'
+    in
+    let f expr = eval' env (substitution expr value name_var) in
+    fixpoint f expr
+  else 
+    let expr' = substitution expr value name_var in
+    eval' env expr'
+	    
 and replace_env env expr = 
   let l = get_accessible_names env in
-  List.fold_left
-    (fun expr (name_var, (e_option, props)) ->
-      match e_option with
-	| None -> expr
-	| Some value ->
-	  if List.mem Recursive props then
-	    let rec fixpoint f x = match f x with
-              | x' when (x' = x) -> x
-              | x' -> fixpoint f x'
-	    in
-	    let f expr = eval' env (substitution expr value name_var) in
-	    fixpoint f expr
-	  else 
-	    let expr' = substitution expr value name_var in
-	    eval' env expr'
-	    	  
-    )
-    expr
-    l
+  List.fold_left (fun expr v -> replace_a_value env v expr) expr l
+
+
+
+
+
+
+
+
+
 (** Evaluate expressions that only change the environment locally.
    
     Recursively reduces an expression "as much as possible". Formal functions
@@ -147,28 +147,16 @@ and replace_env env expr =
     <https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM>
     (in french) for details on formal functions.
 *)
-
-
 and eval' env expr = match expr with
   | ELet(def, Some corps) ->
     let name_var, value, is_rec  = eval_definition env def in
-    if not is_rec then 
-      let corps' = substitution corps value name_var in
-      eval' env corps'
-    else 
-      let rec fixpoint f x = match f x with
-        | x' when (x' = x) -> x
-        | x' -> fixpoint f x'
-      in
-      let f expr = eval' env (substitution expr value name_var) in
-      fixpoint f corps
-
+    replace_a_value env (name_var, (value, if is_rec then [Recursive] else [])) corps 
   | EApplication (EFunction {def = case_list; n = name} as f, argument) ->
     let arg = eval' env argument in
     begin try
     let new_vars, f_x = eval_application env case_list arg in
     let r = List.fold_left 
-      (fun f_x (var, e_var) -> substitution f_x (get (fst e_var)) var)
+      (fun f_x (var, e_var) -> substitution f_x (expr_value e_var) var)
       f_x 
       new_vars
     in
