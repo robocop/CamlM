@@ -44,6 +44,9 @@ let tests =
    ("+ est associatif dans un filtrage", 
     "let f = function 1 + 2 + b-> true | _ -> false in  declare x in (f ((1+2)+x), f (1+(2+x)))", 
     "(true, true)");
+   ("Remplacement d'une fonction récursive",
+    "let fac = 3 in let rec fac = function 0 -> 1 | Num n -> n*fac(n-1) in \x -> fac x",
+    "\x -> fac x");
   ]
 
 

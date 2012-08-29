@@ -120,9 +120,8 @@ let rec substitution expr arg x = match expr with
 *)
   | ELet({name = n; expr = a} as def, Some b) when n <> x ->
     ELet({def with expr = substitution a arg x}, Some (substitution b arg x))
-  | ELet({expr = a} as def, Some b)  ->
+  | ELet({expr = a; recursive = false} as def, Some b)  ->
     ELet({def with expr = substitution a arg x}, Some b)
-
 
   | EDeclare(s, Some expr) -> EDeclare(s, Some (substitution expr arg x))
   | EOpen(m, Some expr) -> EOpen(m, Some (substitution expr arg x))
