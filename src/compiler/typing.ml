@@ -134,12 +134,14 @@ let specialisation schema = match schema.parameter with
 ;;
 
 let rec type_pattern env = function
+(*
   | PAxiom id ->
       begin 
         try 
           let t = lookup_env id env in specialisation t, env
         with Not_found -> raise (Error (id ^ " is not found"))
       end
+*)
   | PVariable id -> 
       let ty = new_unknow () in
         (ty, add_env (id, trivial_schema ty) env)
@@ -164,55 +166,27 @@ let rec type_pattern env = function
         unify (type_list ty1) ty2;
         (ty2, env2)
   | PAll -> (new_unknow (), env)
-  | PMinus p1 ->
-      let type_arg = new_unknow() in
-      let type_result = new_unknow() in
-      let (ty1, env1) = type_pattern env p1 in
-
-        unify ty1 (type_arrow type_arg type_result);
-        unify type_num type_result;
-
-        (type_arrow type_arg type_result, env1)
-(*
-  | POp (_, p1, p2) ->
-      let type_arg = new_unknow() in
-      let type_result = new_unknow() in
-
-      let (ty1, env1) = type_pattern env p1 in
-      let (ty2, env2) = type_pattern env1 p2 in
-
-        unify ty1 (type_arrow type_arg type_result);
-        unify ty2 (type_arrow type_arg type_result);
-        unify type_num type_result;
-        (type_arrow type_arg type_result, env2)
-*)
+  | PMinus p ->
+    let ty, env = type_pattern env p in
+    unify ty type_num;
+    (type_num, env)
+    
   | POp(_, p1, p2) ->
     let (ty1, env1) = type_pattern env p1 in
     let (ty2, env2) = type_pattern env1 p2 in
     unify ty1 type_num;
     unify ty2 type_num;
     (type_num, env2)
-  | PCompose (pf, pg) ->
-      let type_arg = new_unknow() in
-      let type_result = new_unknow() in
-      let type_inter = new_unknow() in
 
-      let (ty1, env1) = type_pattern env pg in
-      let (ty2, env2) = type_pattern env1 pf in
+  | PApplication (pf, parg) ->
+    let type_arg = new_unknow() in
+    let type_result = new_unknow() in
+    let (ty1, env1) = type_pattern env parg in
+    let (ty2, env2) = type_pattern env1 pf in
+    unify ty1 type_arg;
+    unify ty2 (type_arrow type_arg type_result);
+    (type_result, env2)
 
-        unify ty1 (type_arrow type_arg type_inter);
-        unify ty2 (type_arrow type_inter type_result);
-
-        (type_arrow type_arg type_result, env2)
-  | PIdentity ->
-      let t = new_unknow() in
-        (type_arrow t t, env) 
-  | PConst p ->
-      let type_arg = new_unknow() in
-      let type_result = new_unknow() in
-      let (ty1, env1) = type_pattern env p in
-        unify ty1 type_result;
-        (type_arrow type_arg type_result, env1)
   | PIsnum p ->
       let (ty1, env1) =  type_pattern env p in
         unify ty1 type_num;

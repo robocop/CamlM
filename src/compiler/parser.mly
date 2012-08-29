@@ -47,9 +47,9 @@
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN (*LARROW*)
 %token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE DERIV TNUM TBOOL
-%token PLUS MINUS TIMES DIV POW CONS CONCAT POINT MOD
+%token PLUS MINUS TIMES DIV POW CONS CONCAT MOD
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
-%token ID CONST AT PNUM
+%token AT PNUM
 %token <int32> NUM
 %token <string> VAR STRING MODULE
 
@@ -65,13 +65,12 @@
 %left BLEQ BGEQ BLT BGT
 %left BEQ BNEQ
 %right CONS 
-%left POINT
 %left PLUS MINUS
 %right CONCAT
 %left TIMES DIV
 %right POW
 %left MOD
-%nonassoc SOME BNOT CONST (*ID AT*) PNUM
+%nonassoc SOME BNOT (*ID AT*) PNUM
 %left funapp
 
 %start eval
@@ -220,9 +219,7 @@ case:
     | MINUS case                 { mkMotifPreMinus $2 }
     | case DIV case              { POp ("/", $1, $3) }
     | case POW case              { POp("^", $1, $3) }
-    | case POINT case            { PCompose ($1, $3) }
-    | ID                         { PIdentity }
-    | CONST case                 { PConst $2 }
+    | case DOLLAR case           { PApplication ($1, $3) }
     | PNUM case                  { PIsnum $2 }
 
 

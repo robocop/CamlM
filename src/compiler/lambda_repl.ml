@@ -4,7 +4,6 @@
    <https://github.com/robocop/CamlM/wiki/%C3%89l%C3%A9ments-de-s%C3%A9mantique-du-langage-CamlM>
    (in french) for details on formal functions.
 *)
-
 open Syntax
 open Error
 open Helper
@@ -14,7 +13,6 @@ open Show
 (** Recursively defines the expressions to be reduced by the lambda calculus
     rules. 
 *)
-
 let rec get_vars_of_pattern = function
   | PVariable s -> StringSet.singleton s
   | PPair(a, b) | PCons(a, b) | POp(_, a, b) ->
@@ -120,7 +118,6 @@ let rec substitution expr arg x = match expr with
     let e2 = substitution e1 arg x in
     EFunction {def = [PVariable z, e2]; env = env}
 *)
-
   | ELet({name = n; expr = a} as def, Some b) when n <> x ->
     ELet({def with expr = substitution a arg x}, Some (substitution b arg x))
   | ELet({expr = a} as def, Some b)  ->

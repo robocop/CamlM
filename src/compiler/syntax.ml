@@ -100,13 +100,12 @@ and pattern =
   | PNone
   | PSome of pattern 
   | PString of string
-  | POp of string * pattern * pattern
 
+  | POp of string * pattern * pattern
   | PMinus of pattern
-  | PCompose of pattern * pattern
-  | PIdentity
-  | PConst of pattern
+  | PApplication of pattern * pattern
   | PIsnum of pattern
+
   | PWhen of expression * pattern
 
 (** A function environment ({!env}) paired with a function. Your everyday

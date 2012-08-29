@@ -26,10 +26,8 @@ and show_pattern = function
   | PString s -> Printf.sprintf "\"%s\"" s
   | POp (op, m1, m2) -> Printf.sprintf "%s %s %s" (show_pattern m1) op (show_pattern m2)
   | PMinus m -> Printf.sprintf "-%s" (show_pattern m)
-  | PIdentity -> "Id"
-  | PConst p -> "Const "^(show_pattern p)
-  | PCompose (f, g) ->
-     "("^show_pattern f^") "^". ("^show_pattern g^")" 
+  | PApplication (f, g) ->
+     "("^show_pattern f^") ("^show_pattern g^")" 
   | PIsnum p -> "Num "^(show_pattern p)
   | PWhen(expr, pattern) -> Printf.sprintf "%s when %s" (show_pattern pattern) (show expr)
  
