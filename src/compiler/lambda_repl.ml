@@ -7,7 +7,7 @@ open Modules
 open Show
 
 (** This function compute the variables of a pattern.
-    For exemple, in the pattern (a, _+b), get_vars_of_pattern = {a, b}
+    For exemple, in the pattern [(a, _+b)], [get_vars_of_pattern = {a, b}]
     (return a set)
 *)
 let rec get_vars_of_pattern = function
@@ -17,13 +17,15 @@ let rec get_vars_of_pattern = function
   | PSome a | PMinus a | PWhen(_, a) -> get_vars_of_pattern a
   | _ -> StringSet.empty
 
-(** Creates a set of all free variables of an expression (return a set)
-    For exemple, in the expression "\x -> y+x", free_vars = {y}.
+(** Creates a set of all free variables of an  {!Syntax.expression} (return a set).
+
+    For exemple, in the expression [\x -> y+x], [free_vars = {y}].
+
     (return a set)
 *)
 let rec free_vars = function
   | EVariable x -> StringSet.singleton x
-  | EFunction {def = l} -> (** We extended the rule FV(\x -> expr) = FV(expr) - {x} to all the functions (with get_vars_of_pattern) *)
+  | EFunction {def = l} -> (** We extended the rule [FV(\x -> expr) = FV(expr) - {x}] to all the functions (with get_vars_of_pattern) *)
     List.fold_left
       (fun ens (pattern, expr) -> 
         (match pattern with
@@ -57,28 +59,29 @@ let rec rename_a_pattern x z = function
   | PWhen(expr, p) -> PWhen(expr, rename_a_pattern x z p) 
   | r -> r
 
-(** Substitutes a variable [x] for an expression [arg] in [expr] using lambda
-    calculus rules (extended to support all the caml's expressions)
-    We note "substitution expr arg x =  expr[x := arg]"
+(** Substitutes a variable [x] for an  expression [arg] in [expr] using lambda
+    calculus rules (extended to support all the caml's expressions).
+
+    We note "substitution expr arg x =  expr\[x := arg\]"
   *)
 
 let rec substitution expr arg x = match expr with
-  | EVariable v when v = x -> arg (** v[v := arg] = arg *)
-  | EVariable y when y <> x -> EVariable y (** y[v:=arg] = y if y <> v *)
+  | EVariable v when v = x -> arg (* v[v := arg] = arg *)
+  | EVariable y when y <> x -> EVariable y (* y[v:=arg] = y if y <> v *)
 
 
   | EFunction {def = l; n = n} -> 
-    (** We extended the rule 
+    (* We extended the rule 
 	(\y -> e)[x:=arg] = (\z -> e2) where z is not in FV(arg) U free_vars (\y -> e) U {x} and where e2 is (e[y:=z])[x:=arg]
 	if y = x, (\y -> e)[x:=arg] is also (\y -> e)
 	We use rename_a_pattern
     *)
     let vars_arg = free_vars arg in
     let new_def =
-      List.map (fun (pattern, expr) -> (** For eatch couple of pattern * expression of the function *)
+      List.map (fun (pattern, expr) -> (* For eatch couple of pattern * expression of the function *)
       let vars_p = get_vars_of_pattern pattern in (* We compute the pattern's variables *)
       let (p, e) = StringSet.fold 
-        (fun y (pattern, expr) -> (** For eatch of these variables y *)  
+        (fun y (pattern, expr) -> (* For eatch of these variables y *)  
           (match pattern with
             | PWhen(expr_cond, p) ->
               let ens =  StringSet.union 
@@ -93,20 +96,20 @@ let rec substitution expr arg x = match expr with
               let pattern' = PWhen(expr_cond2', p') in
               (pattern', expr')
             | _ ->
-              let ens =  StringSet.union  (** We compute ens = FV(arg) U free_vars (\y -> e) U {x} *)
+              let ens =  StringSet.union  (* We compute ens = FV(arg) U free_vars (\y -> e) U {x} *)
                 (StringSet.union vars_arg (StringSet.diff (free_vars expr) vars_p)) 
                 (StringSet.singleton x) 
               in
-              let z = new_variable ens y in (** We generate a new variable z, where z is not in ens *)
-              let pattern' = rename_a_pattern y z pattern (** We rename the pattern with the variable z *)in
-              let expr' = substitution expr (EVariable z) y (** And we replace y by z in the expression associed to the pattern *)in
+              let z = new_variable ens y in (* We generate a new variable z, where z is not in ens *)
+              let pattern' = rename_a_pattern y z pattern (* We rename the pattern with the variable z *)in
+              let expr' = substitution expr (EVariable z) y (* And we replace y by z in the expression associed to the pattern *)in
               (pattern', expr')
           )
         ) 
         vars_p
         (pattern, expr)
       in
-      (** Once all the pattern's variables are replaced, we can replace in e x by arg *)
+      (* Once all the pattern's variables are replaced, we can replace in e x by arg *)
       (p, substitution e arg x)
     )
       l
