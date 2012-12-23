@@ -26,7 +26,6 @@ type expression =
   | EApplication of expression * expression
   | ELet of definition * expression option
   | EDeclare of string * expression option
-  | EDeriv of simple_type * expression * expression option
   | EOpen of string * expression option
   | EBoolean of bool
   | ENum of int32

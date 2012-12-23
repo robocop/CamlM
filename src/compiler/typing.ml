@@ -223,10 +223,6 @@ and type_expr env = function
   | EDeclare (var, None) -> 
     let ty = new_unknow () in
     ((add_env (var, trivial_schema ty) env), ty)
-  | EDeriv(ty, expr, None) ->
-    let t_expr = type_exp env expr in
-    unify t_expr (type_arrow ty type_string);
-    (env, type_unit)
   | EOpen (m, None) -> 
       let env' = open_type_module m env
       in (env', type_unit)
