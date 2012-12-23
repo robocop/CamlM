@@ -87,9 +87,9 @@ let simplify f =
     (f ^ (Const (Num a))) ^ (Const (Num b)) -> let r = a*b in (\x -> (f x) ^ r, true)
       | f -> (f, false)
     in
+    (* Broken. Does not simplify a and b when a, b nums and a /= b. *)
     let rec similitude f g = match (f, g) with
-        (Const (Num a), Const (Num b)) -> true
-      | (f^Const (Num a), g) -> similitude f g
+      (f^Const (Num a), g) -> similitude f g
       | (f, g^(Const (Num a))) -> similitude f g
       | (f^(Const (Num a)), g^(Const (Num b))) -> similitude f g
       | (-f, -g) -> similitude f g
@@ -160,7 +160,8 @@ let simplify f =
     | f * g when compare f g -> \x -> (f x) ^2
     | f ^ (Const 1) -> f
     | f ^ (Const 0) -> (\x -> 1)
-    | (Const 0)^ _ -> (\x -> 0)
+    (* YUCK. *)
+    | (Const 0) ^ (Const (Num x)) -> if (x > 0) (\x -> 0) (\x -> 1/0)
     | @exp . (@ln . f)  -> simpl f
     | @ln . (@exp . f)-> simpl f
     | ((@cos . e)^(Const 2)) + ((@sin . e')^(Const 2)) when compare e e' -> (\x -> 1)
