@@ -224,7 +224,7 @@ and eval' env expr = match expr with
             (try
               eval_application env_f def arg
             with
-                _  -> EApplication(f, e)
+                MatchingFailure  -> EApplication(f, e)
             )
           | _ -> EApplication(f', x')
         end
@@ -247,7 +247,7 @@ and eval' env expr = match expr with
     function call is evaluated within this environment.
   *)
 and eval_application env case_list argument = match case_list with
-  | [] -> raise (Error "Pattern matching failure")
+  | [] -> raise MatchingFailure
   | (pattern, expr) :: rest ->
       try
         let extended_env = multi_add_env (matching (false, false) env argument pattern) env

@@ -52,6 +52,3 @@ let rec map_fun app f = match app f with
       | f -> f	
     )
 ;;
-
-
-				

@@ -46,7 +46,7 @@
 
 %token LPA RPA LSB RSB SEMI EOF END_EXPR HASH DOLLAR
 %token FUNCTION MATCH WITH FUN OPEN (*LARROW*)
-%token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE DERIV TNUM TBOOL
+%token LET DECLARE EQ IN COMMA RARROW PIPE REC SOME NONE UNDERSCORE
 %token PLUS MINUS TIMES DIV POW CONS CONCAT POINT MOD
 %token BEQ BNEQ BLEQ BGEQ BLT BGT BAND BOR BNOT BTRUE BFALSE WHEN
 %token ID CONST AT PNUM
@@ -101,16 +101,11 @@ toplevel:
       LET rec_flag let_bindings END_EXPR
         { mkLet $2 $3 None }
     | DECLARE VAR END_EXPR { EDeclare($2, None) }
-    | DERIV inline_type EQ expr END_EXPR { EDeriv($2, $4, None) }
     | OPEN MODULE END_EXPR
         { mkOpen $2 None }
     | expr END_EXPR
         { $1 }
 
-inline_type:
-      TBOOL  { type_bool }
-    | TNUM   { type_num } 
-    | inline_type RARROW inline_type { type_arrow $1 $3 }
 
 expr:
       simple_expr simple_expr_list %prec funapp

@@ -18,7 +18,7 @@ rule token = parse
   | '*'         { TIMES }
   | '/'         { DIV }
   | '^'         { POW }
-  | '$'         { DOLLAR }
+  | '$'         { DOLLAR } 
   | '@'         { AT }
   | "::"        { CONS }
   | "=="        { BEQ }
@@ -45,9 +45,6 @@ rule token = parse
   | "when"      { WHEN }
   | "let"       { LET }
   | "declare"   { DECLARE }
-  | "deriving"     { DERIV }
-  | "bool"      { TBOOL }
-  | "num"       { TNUM }
   | "rec"       { REC }
   | "function"  { FUNCTION }
   | "in"        { IN  }
