@@ -93,7 +93,7 @@ let rec lookup_env' name namespace =
 (** When the environment lookup returns multiple names (or none at all),
     pick the required one or throw an exception. *)
 let disambiguate env name = function 
-  | [] -> raise (Undef name)
+  | [] -> raise (Undef name) 
   (* When the module is within scope, return the content, otherwise Undef *)
   | [m, content] when distance env.modules env.this m < 2 -> content
   | [_, _] -> raise (Undef name)

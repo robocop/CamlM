@@ -8,3 +8,8 @@ let min a b = if (a < b) a b;;
 
 let id x = x;;
 let const x _ = x;;
+let rec pgcd a b = match a mod b with 
+      0 -> b 
+    | Num r -> pgcd b r
+;;
+let ppcm a b = (a * b) / (pgcd a b);;

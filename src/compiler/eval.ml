@@ -224,7 +224,7 @@ and eval' env expr = match expr with
             (try
               eval_application env_f def arg
             with
-                MatchingFailure  -> EApplication(f, e)
+                MatchingFailure  -> (print_endline "ok"; EApplication(f, x'))
             )
           | _ -> EApplication(f', x')
         end
