@@ -1,0 +1,575 @@
+\documentclass[a4paper, 12pt]{article}
+
+
+\usepackage[utf8]{inputenc}   % LaTeX, comprends les accents !
+\usepackage[T1]{fontenc}      % Police contenant les caractères français
+\usepackage[francais]{babel} 
+\usepackage[a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry} 
+% \usepackage[a4paper]{geometry}% Réduire les marges
+
+\usepackage{hyperref}
+
+
+\usepackage{amsfonts}
+
+\usepackage{fancyvrb}
+\usepackage{tikz}
+\usepackage{float}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,fit,positioning,shapes.symbols,chains}
+\DefineShortVerb{\|}
+
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\usepackage{listings}
+\lstset{language=Caml, 
+		basicstyle=\fontsize{12}{13},
+ 		numbersep=5pt,             
+ 		backgroundcolor=\color{white}, 
+ 	    showspaces=false,               % show spaces adding particular underscores
+ 	    showstringspaces=false,         % underline spaces within strings
+ 	    showtabs=false,         
+ 	 	frame=single,                   % adds a frame around the code
+ 		tabsize=2,                      % sets default tabsize to 2 spaces
+ 		captionpos=b,                   % sets the caption-position to bottom
+ 		breaklines=true,                % sets automatic line breaking
+ 	 	breakatwhitespace=false,        
+  		keywordstyle=\color{blue},        
+ 		commentstyle=\color{dkgreen},      
+        stringstyle=\color{mauve},
+        escapechar=!,
+		}
+		
+
+
+\title{T.I.P.E. : Calcul formel en Caml}           % Les paramètres du titre : titre, auteur, date
+\author{Quentin Cormier}
+\date{}                   % La date n'est pas requise (la date du
+                              % jour de compilation est utilisée en son
+			      % absence)
+
+\sloppy                       % Ne pas faire déborder les lignes dans la marge
+
+\begin{document}
+
+\maketitle                    % Faire un titre utilisant les données
+                              % passées à  \title, \author et \date
+
+%\begin{abstract}
+%deded
+
+%\end{abstract}
+
+\tableofcontents              % Table des matières
+
+% \part{Titre}                % Commencer une partie...
+
+\section{Introduction}
+
+Les logiciels de calcul formel comme Maple et Mathematica sont très efficaces pour effectuer des calculs symboliques complexes, comme le calcul de primitives ou la factorisation d'une expression.
+
+Maple et Mathematica offrent un langage de programmation haut niveau pour pouvoir utiliser leurs nombreuses fonctions mathématiques.
+
+Mais ces langages ne sont pas aussi expressifs et sûrs que les langages fonctionnels comme Haskell ou OCaml : le typage statique et l'inférence de type, le filtrage, les fonctions d'ordre supérieur, les types construits rendent ainsi l'écriture de programmes plus agréable en Caml qu'en Mathematica.
+
+Cependant, Caml et Haskell ne permettent pas de faire du calcul symbolique.
+Le but de ce T.I.P.E. est de concevoir un petit langage de programmation, appelé CamlM, basé sur Caml, et enrichi de quelques fonctionnalités permettant de faire du calcul formel.
+
+Après avoir détaillé les différentes fonctionnalités du langage, on montrera des exemples effectifs de programmes réalisés dans ce langage, comme la dérivation d'une expression mathématique.
+
+On présentera ensuite l'interpréteur de CamlM, écrit en Ocaml.
+
+
+\section{Présentation générale du langage}            
+
+CamlM supporte les fonctionnalités de base de Caml, à savoir les fonctions récursives, le filtrage, l'inférence de type, l'application partielle, etc.
+La syntaxe de CamlM est, à quelques détails près, identique à celle de Caml.
+
+Les fonctions anonymes sont notées  $\backslash$\lstinline|x |$\rightarrow$| f x| en CamlM (notation comme en Haskell) et non \lstinline|fun x |$\rightarrow$| f x| comme en Caml.
+
+On représente une expression mathématique à l'aide d'une fonction.
+Par exemple, l'expression $5x^2+8x+1$ est représentée en CamlM par la syntaxe : |\x |$\rightarrow$| 5*x^2+8*x+1|.
+
+Pour pouvoir manipuler des expressions mathématiques, CamlM 	accorde une importance particulière à certaines fonctions, appelées \textit{fonctions formelles}.
+
+\subsection{Fonctions formelles}
+\label{fonctions}
+Dans Ocaml et dans CamlM, les fonctions sont définies par une liste |l = [(p1, e1); ...; (pn, en)]|. Chaque élément de l est un couple dont la première composante est un motif et la deuxième composante est une expression associée à ce motif.
+
+Par exemple, la fonction suivante de Caml est représentée par la liste |[(0, 1); (Variable "n", 0)]| : 
+\begin{lstlisting}
+let f = function
+	| 0 -> 1
+	| n -> 0
+\end{lstlisting}
+
+Dans CamlM, on définit un sous ensemble des ces fonctions, appelé ''fonctions formelles'' (qui correspond aux fonctions ''simples'') de la manière suivante : \\
+
+
+\textbf{Définition} : Si |f = [(p1, e1); ...; (pn, en)]| est une fonction, f est une fonction formelle si elle vérifie le prédicat |P| défini par induction structurel de la manière suivante :\\
+
+Pour toute expression du langage expr, si expr est :
+\begin{itemize}
+\item Une fonction non récursive de la forme |[(Variable "x", expr')]| alors |P(expr) <=> P(expr')|
+\item L'application de la fonction |g| et de l'argument |expr'|, alors |P(expr) <=> [ P(g) et P(expr') ]|
+\item Un élément terminal comme un nombre, un booléen, une chaine de caractères, etc. alors |P(expr) = vrai|
+\item Un couple de la forme |(e1, e2)| ou une liste de la forme |e1::e2|, alors |P(expr) <=> P(e1) && P(e2)|
+\item Un élément de la forme |Some e|, alors |P(expr) <=> P(e)| (et pour l'élément terminal |None|, |P(expr) = vrai|)
+\item Tout autre forme d’expression alors |P(expr) = false|
+
+\end{itemize}
+
+
+
+	Aussi, les fonctions suivantes sont des fonctions formelles :
+\begin{itemize}
+\item    $\backslash$|x |$\rightarrow$| x+1|
+\item    $\backslash$|x |$\rightarrow$| (|$\backslash$|y |$\rightarrow$| y+1) (x+1)|
+\item    $\backslash$|x |$\rightarrow$| (|$\backslash$|y |$\rightarrow$| x)|
+\end{itemize}
+
+
+Et celles-ci n'en sont pas :
+\begin{itemize}
+\item    $\backslash$|x |$\rightarrow$| let y = 5 in x+y|
+\item    $\backslash$|(x, y) |$\rightarrow$| x+y|
+\item    |let rec f x = x in f|
+\end{itemize}
+
+Ces fonctions formelles sont ''ouvertes'' en CamlM : il est possible d'explorer leur définition à l'aide du filtrage de motif.
+
+\subsection{Filtrage sur les fonctions formelles}
+
+La manipulation de ces fonctions est rendue possible par l'ajout de fonctionnalités dans le filtrage de motifs. L'ajout des opérateurs |+|, |*|, |/|, |^| et |.| permet de déterminer si une fonction formelle est la somme, le produit, le rapport, l'exponentiation ou la composée de deux fonctions formelles.
+
+La syntaxe est la suivante, elle ne diffère pas du filtrage habituel : 
+\begin{lstlisting}
+function
+   f + g -> [...]
+ | f * g -> [...]
+ | [...]
+\end{lstlisting}
+Exemple : 
+\begin{lstlisting}
+# let dec_sum = function 
+    f+g -> Some (f, g) (* si une fonction est la somme de deux fonctions f et g, on renvoit le couple (f, g) *)
+  | _ -> None
+;;
+:- ((`a -> int) -> ((`a -> int) * (`a -> int)) option) = ()
+
+# dec_sum (\x -> 5*x+1);;
+:- ((int -> int) * (int -> int)) option = Some (\x -> (5 * x), \x -> 1)
+(* \x -> 5*x+1 est bien la somme formelle des fonctions \x -> 5*x et \x -> 1 *)
+# dec_sum (\x -> 5*x);;
+:- ((int -> int) * (int -> int)) option = None
+\end{lstlisting}
+
+Il est à noter la différence de signification au niveau du typage de ces opérateurs si l'on se situe dans un filtrage ou dans une expression.\\
+Dans un filtrage |f + g| signifie ''une fonction formelle se décomposant en somme de deux fonctions formelles f et g'' de type |num |$\rightarrow$| num|.
+Dans une expression |x+y| signifie ''le nombre |x+y|'' de type |num|.\\
+
+
+
+On rajoute également dans le filtrage de manière analogue les mots clés |Id|, |Const f| et |Num x| qui permettent respectivement de savoir si une expression est la fonction identité, une fonction constante (indépendante de sa variable), ou un nombre.
+
+
+
+\subsection{Réduction des fonctions formelles}
+
+Les fonctions formelles subissent deux traitements pendant l'évaluation : le remplacement de ses variables libres et une réduction normale.
+
+\subsubsection{Remplacement des variables libres}
+
+Les variables intervenant dans une fonction formelle sont remplacées par leur expression. Pour chaque fonction formelle $\backslash$|x |$\rightarrow$| expr| on recherche dans |expr| les variables libres et on les substitue par leur expression.
+
+Par exemple :
+\begin{lstlisting}
+let g x = x+1 in
+\x -> g (5*x)
+\end{lstlisting}
+
+On obtient après ce traitement : $\backslash$|x |$\rightarrow$| (|$\backslash$|x |$\rightarrow$| x+1) (5 * x)|.
+
+On a substitué dans la dernière fonction la variable g par son expression.
+
+
+\subsubsection{Réduction normale de type ''béta reduction''}
+
+Il s'agit d'une réduction visant à réduire quand cela est possible l'application d'une fonction avec un argument. Aussi la fonction $\backslash$|x |$\rightarrow$| (|$\backslash$|x |$\rightarrow$| x+1) (5 * x)| est réduite après ce traitement en $\backslash$|x |$\rightarrow$| ((5 * x) + 1)|.
+ 
+Les règles de substitution et de réduction sont analogues aux règles issues du $\lambda$-calcul (voir \ref{lambdacalcul}).
+
+\subsection{Axiomes}
+
+Il peut être utile de définir un objet sans lui attribuer d'expression explicite. Par exemple, pour définir le nombre $\pi$, on ne souhaite pas donner une valeur particulière à $\pi$ comme $3.14$.
+
+CamlM dispose d'une syntaxe pour définir de tels objets, la syntaxe |declare|.
+
+Ainsi, pour définir le nombre $\pi$, ou la fonction |exp|, on peut écrire :
+
+\begin{lstlisting}
+declare pi;;
+declare exp;;
+\end{lstlisting}
+On peut alors utiliser pi comme un nombre comme les autres.
+\begin{lstlisting}
+# 5*pi+1;;
+:- num = ((5 * pi) + 1)
+\end{lstlisting}
+
+
+
+Il est possible de savoir si une expression est explicitement un axiome à l'aide de la syntaxe |@| ajoutée dans le système de filtrage de motifs : |@var |$\rightarrow$| ...| est du sucre syntaxique équivalent à | v when v == var  |$\rightarrow$| -> ...|.\\
+Exemple : 
+\begin{lstlisting}
+# declare exp;;
+# declare ln;;
+# let evalue_en_1 = function @ln -> 0 | @exp -> exp 1 | g -> g 1;;
+
+# evalue_en_1 ln;; (* l'axiome ln est bien reconnu *)
+# :- int = 0
+# evalue_en_1 exp;; (* l'axiome exp est bien reconnu *)
+:- int = exp 1
+# evalue_en_1 (\x -> 5*x);; (* les deux axiomes ln et exp ne sont pas reconnus *)
+:- int = 5
+\end{lstlisting}
+
+Lorsque l'on n'utilise pas l'arobase, le comportement du filtrage est analogue à celui d'Ocaml.
+\begin{lstlisting}
+# let evalue_en_1 = function ln -> 0 | g -> g 1;; 
+:- ((int -> int) -> int) = ()
+# evalue_en_1 (\x -> x);;
+:- int = 0
+\end{lstlisting}
+
+ 
+
+\section{Exemples de programmes écrits en CamlM}
+
+
+Toutes ces fonctionnalités permettent d'écrire des fonctions pour dériver, développer, simplifier,... une expression mathématique en CamlM.
+
+\subsection{Dérivation d'une fonction}
+On commence par déclarer quelques fonctions usuelles : 
+\begin{lstlisting}
+declare exp;;
+declare ln;;
+declare sqrt;;
+\end{lstlisting}
+On définit alors récursivement la dérivée d'une fonction en implémentant les règles de base des dérivées : 
+\begin{lstlisting}
+let rec deriv = function
+    @exp -> exp (* exp' = exp *)
+  | @ln -> (\x -> 1/x) (* ln' = 1/x *)
+  | @sqrt -> (\x -> 1/(2*sqrt x))
+  | Id -> \x -> 1
+  | Const _ -> \x -> 0
+  | f+g -> (* (f+g)' = f'+g' *)
+    let df = deriv f in (* on calcule f' *)
+    let dg = deriv g in (* on calcule g' *)
+     \x -> df x + dg x (* on renvoie la fonction f'+g' *)
+  | -f ->
+    let df = deriv f in
+    \x -> - df x
+  | f*g -> (* (fg)' = f'g + g'f *)
+    let df = deriv f in let dg = deriv g in \x -> df x * g x + dg x * f x
+  | f / g -> (* (f/g)' = (f'g - g'f) / g^2 *)
+    let df = deriv f in let dg = deriv g in \x -> (df x * g x - dg x * f x)/(g x * g x)
+  | f . g -> (* (f o g)' = f' o g * g'  *)
+    let df = deriv f in
+    let dg = deriv g in
+    \x -> df (g x) * (dg x)
+;;
+\end{lstlisting}
+Exemple : 
+\begin{lstlisting}
+# deriv (\x -> x*ln x);;
+:- (num -> num) = \x -> ((1 * ln x) + (((1 / x) * 1) * x))
+\end{lstlisting}
+\subsection{Développer une expression}
+
+Le filtrage sur les fonctions formelles permet de manipuler finement une expression.
+On peut ainsi facilement développer une expression : 
+\begin{lstlisting}
+let rec expand = function
+    a*(b+c) ->
+    let f = expand (\x -> (a x)*(b x)) in
+    let g = expand (\x -> (a x)*(c x)) in
+    \x -> f x + g x
+  | f+g -> 
+    let f' = expand f in 
+    let g' = expand g in
+    \x -> f' x + g' x
+  | f.g -> 
+    let f' = expand f in 
+    let g' = expand g in
+    \x -> f' (g' x)
+  | f -> f
+;;
+\end{lstlisting}
+Exemple : 
+\begin{lstlisting}
+# expand (\x -> 5*x*(ln x + x));;
+:- (num -> num) = \x -> (((5 * x) * ln x) + ((5 * x) * x))
+\end{lstlisting}
+
+\subsection{Simplification d'une expression}
+
+La simplification d'une expression est plus délicate. j'ai écrit une fonction qui regroupe d'abord les termes d'une somme en paquet du même type.
+Aussi, $5x+7+ln(x)+7x+13$ se regroupe en $(7+13)+(5x+7x)+(ln(x))$. On peut alors simplifier facilement les termes d'un même paquet.
+Le code est un peu plus long (~150 lignes de code CamlM) et fut un bon moyen de tester l'interpréteur.
+On pourra le trouver ici : \url{https://github.com/robocop/CamlM/blob/master/lib/maths.mml}
+
+Exemples : 
+\begin{lstlisting}
+# simplify (\x -> 5*x+7+ln x+7*x+13);;
+:- (num -> num) = \x -> ((12 * x) + (20 + ln x))
+# deriv (\x -> x*ln x - x);;
+:- (num -> num) = \x -> (((1 * ln x) + (((1 / x) * 1) * x)) + - 1)
+# simplify (deriv (\x -> x*ln x - x));;
+:- (num -> num) = \x -> ln x
+\end{lstlisting}
+
+\section{Structure de l'interpréteur}
+
+L’interpréteur de CamlM est écrit en Ocaml.
+Il se présente comme une invite de commande (de la même façon que l’interpréteur Ocaml).
+
+Pour l'installer, il suffit de récupérer les sources sur github, et de compiler le projet : 
+
+\begin{itemize}
+\item Faire une copie du dépôt : |git clone git://github.com/robocop/CamlM.git|
+\item Compiler en exécutant la commande  : |./configure && make|
+\item Lancer l’interpréteur avec |./camlm|
+\end{itemize}
+
+Le code de l’interpréteur est organisé en plusieurs fichiers qui correspondent chacun à une tache précise, organisation que l'on peut résumer avec le schéma suivant : 
+	\begin{figure}[H]
+		  \begin{center}
+		\centering
+		  \begin{tikzpicture}
+		    [node distance = 3cm, auto,font=\footnotesize,
+		    % STYLES
+		    every node/.style={node distance=2cm},
+		    % The comment style is used to describe the characteristics of each force
+		    comment/.style={rectangle, inner sep= 5pt, text width=4cm, node distance=0.25cm, font=\scriptsize\sffamily},
+		    % The force style is used to draw the forces' name
+		    force/.style={rectangle, draw, fill=black!10, inner sep=5pt, text width=4cm, text badly centered, minimum height=1.2cm, font=\bfseries\footnotesize\sffamily}] 
+
+		    % Draw forces
+		    \node [force] (expr) {Expression\\ |syntax.ml| };
+		    \node [force, above of=expr] (parser) {Parseur \\ |parser.mly| };
+		    \node [force, left=1cm of parser] (lexer) {Lexer \\ |lexer.mll|};
+		    \node [force, left=1cm of lexer] (string) {Code entré par l'utilisateur};
+
+			\node [force, below of=expr] (typing) {Typage \\ |typing.ml| };
+			\node [force, left=1cm of typing] (simplify) {Simplification et filtrage \\|eval.ml| };
+			\node [force, left=1cm of expr] (help) {$\lambda$-calcul \\ |lambda_repl.ml|};
+			\node [force, left=1cm of simplify] (print) {Affichage du type et du résultat \\ |show.ml|};
+
+		    % Draw the links between forces
+		    \path[->,thick] 
+		    (string) edge (lexer)
+		    (lexer) edge (parser)
+		    (parser) edge (expr)
+		    (expr) edge (typing)
+		    (typing) edge (simplify)
+		    (simplify) edge (help)
+		    (help) edge (simplify)
+		    (simplify) edge (print);
+		    \end{tikzpicture} 
+		  \end{center}
+		  \end{figure}
+		  \floatplacement{figure}{t}
+	Une documentation précise de chacun des fichiers pourra être trouvée ici \url{http://robocop.github.io/CamlM/doc/}.
+	
+	La structure de l’interpréteur est très proche de celle décrite dans le livre ''Le Langage Caml'' (\cite{LLC}) de Pierre Weis et Xavier Leroy, chapitre 17 (Exécution d'un langage fonctionnel) et chapitre 18 (Un synthétiseur de type) : ces deux chapitres m'ont servis de base que j'ai peu à peu modifié pour écrire l’interpréteur de CamlM.
+	
+	\subsection{Analyse lexicale et syntaxique}
+	
+	L'analyse lexicale (découpe du code en mots) et syntaxique (construction de l'A.S.T.) est réalisée à l'aide de menhir, dans les fichiers |lexer.mll| et |parser.mly|.
+	La difficulté fut d'éviter les erreurs de type ''shift/reduce conflict'' qui traduisent une syntaxe ambiguë.
+	
+	\subsection{A.S.T. : représentation interne du code CamlM}
+	
+	Le code CamlM est représenté par un arbre dont le type explicité dans le fichier |syntax.ml|.
+	Il s'agit du type |expression| définit de la sorte : 
+	\begin{lstlisting}
+type expression = 
+| 	EVariable of string
+| 	EFunction of closure
+| 	EApplication of expression * expression
+| 	ELet of definition * expression option
+| 	EDeclare of string * expression option
+| 	EBoolean of bool
+| 	ENum of int32
+| 	EPair of expression * expression
+| 	EUnit
+| 	ENil
+| 	ECons of expression * expression
+| 	ENone
+| 	EString of string
+| 	ESome of expression
+	\end{lstlisting}
+	
+	Une fonction (|EFunction|) est donc définie par sa fermeture : 
+\begin{lstlisting}
+	type closure = {
+   	def :(pattern * expression) list;
+   	mutable env :fun_env_content env option;
+    } 
+\end{lstlisting}
+	Une fermeture, c'est la donnée d'un environnement, c'est à dire la liste des variables que connaît la fonction au moment où on la définit, et d'une liste de couples |motif * expression| qui définissent la fonction (comme expliqué en \ref{fonctions}).
+	
+	Le type |pattern| décrit les différents motifs possibles dans un filtrage : 
+\begin{lstlisting}
+type pattern = 
+| 	PAll (* correspond a  (n'importe quelle expression) *)
+| 	PVariable of string
+| 	PAxiom of string (* syntaxe '@' *)
+| 	PBoolean of bool
+| 	PNum of int32
+| 	PPair of pattern * pattern
+| 	PNil (* motif de la liste vide *)
+| 	PCons of pattern * pattern
+| 	PNone
+| 	PSome of pattern
+| 	PString of string
+| 	POp of string * pattern * pattern (* motif de la somme de deux fonctions formelles f + g *)
+| 	PMinus of pattern
+| 	PCompose of pattern * pattern
+| 	PIdentity (* motif qui teste si une fonction est la fonction formelle identite *)
+| 	PConst of pattern
+| 	PIsnum of pattern
+| 	PWhen of expression * pattern
+\end{lstlisting}
+Enfin, le type |definition| permet de gérer la définition d'une variable (avec la syntaxe |let|), qui peut être récursive ou non.
+\begin{lstlisting}
+type definition = {
+   	recursive :bool;
+   	name :string;
+   	expr :expression;
+} 
+\end{lstlisting}
+\subsection{Typage}
+Une fois le code de l'utilisateur parsé et transformé en arbre de type |expression|, celui-ci est typé à l'aide du fichier |typing.ml|.
+Le typeur est exactement celui décrit par Pierre Weis et Xavier Leroy dans le chapitre 18 de \cite{LLC}. Je me suis contenté d'implémenter sans aucune modification ou presque l'algorithme présenté.
+
+\subsection{Simplification d'une expression CamlM}
+Il s'agit de la partie centrale de l'interpréteur (fichier |eval.ml|).
+Dans l'interpréteur présenté dans \cite{LLC}, l'évaluation d'une expression consiste à prendre un code Caml (de type |expression|), et à l'évaluer entièrement, en renvoyant un résultat final simple, de type |valeur| ($\neq$ |expression|), c'est à dire soit la valeur d'un entier, soit la valeur d'un booléen, d'une paire, etc.
+
+Ici, la logique est un peu différente, il ne s'agit pas vraiment d'une évaluation, mais d'une simplification : on prend en entré une expression CamlM, de type |expression|, et on renvoie en sortie une expression CamlM équivalente, simplifiée, de type |expression| également.
+
+Les règles de simplifications sont les suivantes, si l'expression est
+\begin{itemize}
+\item Une variable : on va chercher la valeur de la variable dans l'environnement en cours, si elle n'existe pas on renvoie une erreur
+\item Une fonction : on teste si la fonction est une fonction formelle, si oui on la simplifie (cf \ref{lambdacalcul}), sinon on la laisse telle quelle.
+\item L'application d'une fonction à un argument : si la fonction est une primitive du langage (comme l'addition de deux entiers naturels par exemple), on évalue directement le résultat, sinon on regarde si la fonction est dans environnement. Si c'est le cas, on cherche sa fermeture, et on l'évalue à l'aide de la fonction |eval_application| en l'argument.
+|eval_application| teste chacun des motifs qui définit la fonction avec l'argument (à l'aide de la fonction |matching|). Dès qu'un motif correspond, on évalue l'expression associée.
+\item Une déclaration de variable (|let v = expr in r|) : on évalue la variable v avec l'environnement en cours, et on ajoute v et sa valeur à l'environnement, en distinguant si v est défini récursivement ou non.
+\end{itemize}
+
+Les règles sont donc identiques à celles de Caml, sauf pour les fonctions formelles que l'on simplifie en utilisant des règles de $\lambda$-calcul.
+
+\subsection{Simplification d'une fonction formelle ($\lambda$-calcul)}
+\label{lambdacalcul}
+La manipulation des fonctions formelles à lieu dans le fichier |lambda_repl.ml|.
+Une fonction permet de tester si une fonction est une fonction formelle. Si c'est le cas, on applique d'abord une règle de remplacement, qui consiste à substituer les variables libres intervenant dans l'expression de la fonction formelle par leurs expressions.
+Puis on applique l'algorithme ''Normal Order Reduct'' pour simplifier la fonction finale.
+
+
+On interprète une fonction formelle comme une expression de $\lambda$-calcul, de la forme suivante : 
+\begin{lstlisting}
+x est une variable
+M ::= x | !$\lambda$!x.M | M M
+\end{lstlisting}
+
+Exemple : 
+$\lambda$x.($\lambda$y.x) x correspond à la fonction CamlM $\backslash$|x |$\rightarrow$| (|$\backslash$|y |$\rightarrow$| x) x|.
+
+\textbf{Calcul des variables libres}
+\begin{lstlisting}
+FV(x) = {x}
+FV(!$\lambda$!x.M) = FV(M) - {x}
+FV(M N) = FV(M) !$\cup$! FV(N)
+\end{lstlisting}
+\newpage
+\textbf{Substitution}\\
+On note |N[M/x]| : substitution de la variable x par le terme M dans N. 
+On a alors les règles suivantes : 
+\begin{lstlisting}
+x[M/x] = M
+y[M/x] = y si x !$\neq$! y
+(!$\lambda$!x.N')[M/x] = !$\lambda$!x.N'
+(!$\lambda$!y.N')[M/x] = !$\lambda$!z. ((N'[z/y]) [M/x]) si x !$\neq$! y et z !$\notin$! FV(M) !$\cup$! FV(N) !$\cup$! {x}
+(N1 N2)[M/x] = N1[M/x] N2 [M/x]
+\end{lstlisting}
+
+\textbf{$\beta$-réduction et Normal Order Reduction}\\
+Permet de simplifier un terme de $\lambda$-calcul.
+\begin{lstlisting}
+(!$\lambda$!x.M) N !$\rightarrow$! M[N/x]
+Si M !$\rightarrow$! M' alors !$\lambda$!x.M !$\rightarrow$! !$\lambda$!x.M'
+Si M !$\rightarrow$! M' alors M N !$\rightarrow$! M' N
+Si N !$\rightarrow$! N' alors M N !$\rightarrow$! M N'
+\end{lstlisting}
+On applique cette simplification autant que possible.
+Ces règles sont implémentées dans le fichier |lambda_repl.ml| et rendent donc effectives la simplification des fonctions formelles : on peut dire en ce sens que CamlM est un interpréteur de $\lambda$-calcul.
+
+Ces simplifications amènent parfois à introduire de nouvelles variables.
+Exemple : 
+\begin{lstlisting}
+# declare a;;
+# let g x = a+x;;
+# \a -> g(a+1);;
+:- (num -> num) = \b -> (a + (b + 1))
+\end{lstlisting}
+CamlM introduit la variable |b| pour simplifier correctement la fonction formelle.
+\subsection{Affichage du résultat}
+Enfin, le fichier |show.ml| s'occupe de l'affichage de l'expression ainsi simplifiée.
+
+\section{Conclusion}
+
+On a ainsi vu qu'en rajoutant quelques fonctionnalités à Caml, on peut effectuer du calcul formel dans un langage fonctionnel. 
+
+On a accordé une importance particulière à certaines fonctions, les fonctions formelles, et on peut se demander pourquoi s'imposer une telle limitation.
+Après tout, on peut sans difficulté étendre les règles $\lambda$-calcul à l'ensemble de Caml, et voir le problème de la simplification d'une expression mathématique comme un problème de réduction de $\lambda$-calcul étendu.
+Plutôt que d'ajouter des fonctionnalités de filtrage sur les fonctions comme on le fait actuellement (|f+g -> ...| permet de tester si une fonction est la somme de deux fonctions), on peut ajouter des fonctionnalités de filtrage sur les expressions : |a+Int 5 -> ...| permettrait alors de tester si une expression est de la forme |a+5|, avec |a| une expression quelconque.
+
+C'est le travail que j'ai commencé à réaliser (voir la branche \href{https://github.com/robocop/CamlM/tree/feature/new_eval}{$new\_eval$} du projet sur github).
+On s'approche alors des fonctionnalités de méta-programmation de lisp.
+En lisp on peut programmer la dérivation d'une expression mathématique naturellement à l'aide des quotations\footnote{Voir \cite{SICP}, chapitre \href{http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-16.html}{Symbolic Differentiation}}.
+
+Cependant, il semble alors que le langage devienne trop expressif pour le typeur (typer du lisp, ce n'est pas facile), et j'ai du renoncer à cette version.
+On comprend alors que les fonctions formelles sont un bon compromis pour pouvoir faire du calcul symbolique   
+tout en continuant d'avoir un système d'inférence de type statique comme en Caml.
+
+
+\textbf{Remerciements : } Charlie Paucard (|cgizmo|, étudiant à Imperial College) pour la réalisation du système de Module dans CamlM analogue à celui dans OCaml, et Gabriel Scherer (|gashe|, doctorant à l'INRIA)  
+pour ses précieux conseils.
+\begin{thebibliography}{}
+
+  \bibitem[LLC]{LLC}
+  Pierre Weis, Xavier Leroy, 
+  \newblock \textit{\href{http://caml.inria.fr/distrib/books/}{Le langage Caml}},
+  \newblock 1999.
+ 
+  \bibitem{}
+  Philippa Gardner
+  \newblock Cours de $\lambda$-calcul de Imperial College,      \href{https://piazza.com/imperial.ac.uk/fall2012/240/resources}{disponible sur internet}.
+  
+  \bibitem[SICP]{SICP}
+  Harold Abelson, Gerald Jay Sussman, Julie Sussman
+  \newblock \textit{\href{http://mitpress.mit.edu/sicp/}{Structure and Interpretation of Computer Programs}},
+  \newblock MIT Press 1996.
+  
+\end{thebibliography} 
+
+\end{document}
+
+
+
